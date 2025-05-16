@@ -17,19 +17,7 @@
             "group": "Get Started",
             "pages": [
               "index",
-              "quickstart",
-              "development"
-            ]
-          },
-          {
-            "group": "Essentials",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/settings",
-              "essentials/navigation",
-              "essentials/reusable-snippets"
+              "quickstart"
             ]
           }
         ]
@@ -46,10 +34,14 @@
           {
             "group": "Endpoint Examples",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api-reference/endpoint/cluster-status",
+              "api-reference/endpoint/delete-files",
+              "api-reference/endpoint/download-file",
+              "api-reference/endpoint/health",
+              "api-reference/endpoint/query",
+              "api-reference/endpoint/rename-file",
+              "api-reference/endpoint/upload-file",
+              "api-reference/endpoint/list-files"
             ]
           }
         ]
@@ -58,18 +50,8 @@
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Community",
-          "href": "https://mintlify.com/community",
-          "icon": "slack"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
+          "anchor": "Evals",
+          "href": "https://evals.nebulacloud.app",
           "icon": "newspaper"
         }
       ]
