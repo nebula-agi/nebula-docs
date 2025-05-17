@@ -10,7 +10,7 @@
   "favicon": 
   {
       "dark": "/images/hero-dark.png",
-      "light": "/iamges/hero-light.png"
+      "light": "/images/hero-light.png"
    },
   "navigation": {
     "tabs": [
