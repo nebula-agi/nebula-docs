@@ -1,0 +1,40 @@
+---
+title: Rename File
+openapi: 'POST /clusters/files/rename'
+---
+
+# POST `/clusters/files/rename`
+
+Renames a file or folder in a cluster by file ID or name.
+
+## Request
+- **Body (JSON):**
+  - `cluster` (string, required): Cluster name or ID
+  - `fileId` (string, optional): File or folder ID
+  - `fileName` (string, optional): File or folder name
+  - `newName` (string, required): New name (cannot change file extension)
+- **Headers:**
+  - `Authorization: Bearer <token>` or `Authorization: ApiKey <key>`
+
+### Example (cURL)
+```bash
+curl -X POST https://api.nebulacloud.app/clusters/files/rename \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"cluster": "my-cluster", "fileName": "document.pdf", "newName": "renamed.pdf"}'
+```
+
+## Response
+```json
+{
+  "message": "File renamed successfully",
+  "itemId": "abc123",
+  "oldName": "document.pdf",
+  "newName": "renamed.pdf"
+}
+```
+
+## Error Responses
+- `400`: File extension change, duplicate name, or invalid characters
+- `404`: File/folder or cluster not found
+- `500`: Internal server error 

@@ -9,8 +9,8 @@
   },
   "favicon": 
   {
-      "dark": "/logo/light.png",
-      "light": "/logo/dark.png"
+      "dark": "/logo/dark.png",
+      "light": "/logo/light.png"
    },
   "navigation": {
     "tabs": [
@@ -38,14 +38,13 @@
           {
             "group": "Endpoint Examples",
             "pages": [
-              "api-reference/endpoint/cluster-status",
-              "api-reference/endpoint/delete-files",
-              "api-reference/endpoint/download-file",
               "api-reference/endpoint/health",
-              "api-reference/endpoint/query",
-              "api-reference/endpoint/rename-file",
-              "api-reference/endpoint/upload-file",
-              "api-reference/endpoint/list-files"
+              "api-reference/endpoint/clusters-files-upload",
+              "api-reference/endpoint/clusters-files-download",
+              "api-reference/endpoint/clusters-files-list",
+              "api-reference/endpoint/clusters-files-delete",
+              "api-reference/endpoint/clusters-files-rename",
+              "api-reference/endpoint/clusters-files-update"
             ]
           }
         ]

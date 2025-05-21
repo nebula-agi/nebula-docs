@@ -1,0 +1,51 @@
+---
+title: Delete Files
+openapi: 'POST /clusters/files/delete'
+---
+
+# POST `/clusters/files/delete`
+
+Deletes one or more files from a cluster by file ID or name.
+
+## Request
+- **Body (JSON):**
+  - `cluster` (string, required): Cluster name or ID
+  - `fileIds` (array of string, optional): List of file IDs
+  - `fileNames` (array of string, optional): List of file names
+  - `fileId` (string, optional): Single file ID
+  - `fileName` (string, optional): Single file name
+- **Headers:**
+  - `Authorization: Bearer <token>` or `Authorization: ApiKey <key>`
+
+### Example (cURL)
+```bash
+curl -X POST https://api.nebulacloud.app/clusters/files/delete \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"cluster": "my-cluster", "fileNames": ["document.pdf"]}'
+```
+
+## Response
+```json
+{
+  "message": "Delete operations completed",
+  "results": {
+    "successful": [
+      {"itemId": "abc123", "itemName": "document.pdf", "isFolder": false}
+    ],
+    "failed": [
+      {"itemName": "notfound.txt", "error": "File not found"}
+    ],
+    "summary": {
+      "total": 2,
+      "succeeded": 1,
+      "failed": 1
+    }
+  }
+}
+```
+
+## Error Responses
+- `400`: No file IDs or names provided
+- `404`: Cluster not found
+- `500`: Internal server error 

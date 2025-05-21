@@ -1,0 +1,41 @@
+---
+title: Update File
+openapi: 'POST /clusters/files/update'
+---
+
+# POST `/clusters/files/update`
+
+Updates the contents of a file in a cluster by file ID or name. The file is replaced with the new upload.
+
+## Request
+- **Body (multipart/form-data):**
+  - `cluster` (string, required): Cluster name or ID
+  - `fileId` (string, optional): File ID
+  - `fileName` (string, optional): File name
+  - `file` (file, required): New file to upload (max 1GB, supported types enforced)
+- **Headers:**
+  - `Authorization: Bearer <token>` or `Authorization: ApiKey <key>`
+
+### Example (cURL)
+```bash
+curl -X POST https://api.nebulacloud.app/clusters/files/update \
+  -H "Authorization: Bearer <token>" \
+  -F cluster=my-cluster \
+  -F fileName=document.pdf \
+  -F file=@updated.pdf
+```
+
+## Response
+```json
+{
+  "fileId": "abc123",
+  "fileName": "document.pdf",
+  "filePath": "my-cluster/abc123",
+  "message": "File updated successfully"
+}
+```
+
+## Error Responses
+- `400`: File size exceeds 1GB or unsupported file type
+- `404`: File or cluster not found
+- `500`: Internal server error 
