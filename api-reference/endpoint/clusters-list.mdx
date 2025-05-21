@@ -1,0 +1,61 @@
+---
+title: List Clusters
+path: /clusters/list
+---
+
+List all clusters in a project. Requires authentication.
+
+## Endpoint
+
+`POST /clusters/list`
+
+## Description
+Lists all clusters for the authenticated user's project. Returns an array of cluster objects and a count.
+
+## Request
+
+**Headers:**
+- `Authorization: Bearer <token>` or `Authorization: ApiKey <api_key>`
+
+**Body:**
+```json
+{}
+```
+
+## Example cURL
+
+```bash
+curl -X POST https://api.nebulacloud.app/clusters/list \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+## Success Response
+
+**Status:** `200 OK`
+
+```json
+{
+  "clusters": [
+    {
+      "id": "uuid",
+      "name": "my-cluster",
+      "description": "A test cluster",
+      "project_id": "uuid",
+      "user_id": "uuid",
+      "status": "allocating"
+    }
+    // ... more clusters ...
+  ],
+  "count": 1
+}
+```
+
+## Error Responses
+
+| Status | Description | Example |
+|--------|-------------|---------|
+| 400    | Missing project_id or invalid request | `{ "detail": "project_id required for non-api-key users" }` |
+
+--- 

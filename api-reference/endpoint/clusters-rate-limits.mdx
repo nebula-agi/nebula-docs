@@ -1,0 +1,51 @@
+---
+title: Cluster Rate Limits
+path: /clusters/{cluster_id}/rate-limits
+---
+
+Get rate limit and quota information for a cluster. Requires authentication.
+
+## Endpoint
+
+`GET /clusters/{cluster_id}/rate-limits`
+
+## Description
+Returns the current rate limit and quota usage for a cluster, including total space used, bytes processed, and plan quotas.
+
+## Request
+
+**Headers:**
+- `Authorization: Bearer <token>` or `Authorization: ApiKey <api_key>`
+
+**Path Parameters:**
+- `cluster_id` (string, required): The cluster's unique ID.
+
+## Example cURL
+
+```bash
+curl -X GET https://api.nebulacloud.app/clusters/123e4567-e89b-12d3-a456-426614174000/rate-limits \
+  -H "Authorization: Bearer <token>"
+```
+
+## Success Response
+
+**Status:** `200 OK`
+
+```json
+{
+  "totalSpaceUsed": 123456789,
+  "bytesProcessed": 987654321,
+  "totalSpaceAllowed": 1073741824,
+  "bytesProcessingAllowed": 1073741824
+}
+```
+
+## Error Responses
+
+| Status | Description | Example |
+|--------|-------------|---------|
+| 404    | Cluster not found or missing project_id | `{ "detail": "Cluster not found or missing project_id." }` |
+| 403    | No active subscription | `{ "detail": "No active subscription for this project. Please upgrade your plan." }` |
+| 500    | Internal error | `{ "detail": "Error fetching rate limits: ..." }` |
+
+--- 

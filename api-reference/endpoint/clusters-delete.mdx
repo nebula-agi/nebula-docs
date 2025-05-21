@@ -1,0 +1,58 @@
+---
+title: Delete Cluster
+path: /clusters/delete
+---
+
+Delete a cluster from a project. Requires authentication and appropriate permissions (owner or project admin).
+
+## Endpoint
+
+`POST /clusters/delete`
+
+## Description
+Deletes a cluster by name or ID from the authenticated user's project. Only the cluster owner or a project admin can delete a cluster. This operation also deletes all files in the cluster and its associated Neo4j database.
+
+## Request
+
+**Headers:**
+- `Authorization: Bearer <token>` or `Authorization: ApiKey <api_key>`
+
+**Body:**
+```json
+{
+  "cluster": "string" // Required. Cluster name or ID.
+}
+```
+
+## Example cURL
+
+```bash
+curl -X POST https://api.nebulacloud.app/clusters/delete \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "cluster": "my-cluster"
+  }'
+```
+
+## Success Response
+
+**Status:** `200 OK`
+
+```json
+{
+  "message": "Cluster deleted successfully",
+  "clusterId": "uuid"
+}
+```
+
+## Error Responses
+
+| Status | Description | Example |
+|--------|-------------|---------|
+| 400    | Missing project_id or invalid request | `{ "detail": "project_id required for non-api-key users" }` |
+| 404    | Cluster not found | `{ "detail": "Cluster not found." }` |
+| 403    | Insufficient permissions | `{ "detail": "You do not have permission to delete this cluster." }` |
+| 500    | Internal error | `{ "detail": "Failed to delete cluster." }` |
+
+--- 

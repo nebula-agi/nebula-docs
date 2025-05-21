@@ -44,7 +44,13 @@
               "api-reference/endpoint/clusters-files-list",
               "api-reference/endpoint/clusters-files-delete",
               "api-reference/endpoint/clusters-files-rename",
-              "api-reference/endpoint/clusters-files-update"
+              "api-reference/endpoint/clusters-files-update",
+              "api-reference/endpoint/clusters-create",
+              "api-reference/endpoint/clusters-delete",
+              "api-reference/endpoint/clusters-rename",
+              "api-reference/endpoint/clusters-list",
+              "api-reference/endpoint/clusters-status",
+              "api-reference/endpoint/clusters-rate-limits"
             ]
           }
         ]
