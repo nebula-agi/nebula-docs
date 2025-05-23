@@ -9,8 +9,8 @@
   },
   "favicon": 
   {
-      "dark": "/logo/dark.png",
-      "light": "/logo/light.png"
+      "dark": "/logo/light.png",
+      "light": "/logo/dark.png"
    },
   "navigation": {
     "tabs": [
@@ -36,21 +36,44 @@
             ]
           },
           {
-            "group": "Endpoint Examples",
+            "group": "Cluster Management Endpoints",
             "pages": [
-              "api-reference/endpoint/health",
+              "api-reference/endpoint/clusters-create",
+              "api-reference/endpoint/clusters-delete",
+              "api-reference/endpoint/clusters-rename",
+              "api-reference/endpoint/clusters-list",
+              "api-reference/endpoint/clusters-status"
+            ]
+          },
+          {
+            "group": "Cluster File Management Endpoints",
+            "pages": [
               "api-reference/endpoint/clusters-files-upload",
               "api-reference/endpoint/clusters-files-download",
               "api-reference/endpoint/clusters-files-list",
               "api-reference/endpoint/clusters-files-delete",
               "api-reference/endpoint/clusters-files-rename",
-              "api-reference/endpoint/clusters-files-update",
-              "api-reference/endpoint/clusters-create",
-              "api-reference/endpoint/clusters-delete",
-              "api-reference/endpoint/clusters-rename",
-              "api-reference/endpoint/clusters-list",
-              "api-reference/endpoint/clusters-status",
+              "api-reference/endpoint/clusters-files-update"
+            ]
+          },
+          {
+            "group": "Query/Retrieval Endpoints",
+            "pages": [
+              "api-reference/endpoint/query",
+              "api-reference/endpoint/query-stream"
+            ]
+          },
+          {
+            "group": "Rate limit Endpoints",
+            "pages": [
+              "api-reference/endpoint/project-rate-limits",
               "api-reference/endpoint/clusters-rate-limits"
+            ]
+          },
+          {
+            "group": "Server Status Endpoints",
+            "pages": [
+              "api-reference/endpoint/health"
             ]
           }
         ]

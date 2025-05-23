@@ -1,33 +1,24 @@
 ---
 title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+description: 'Nebula Cloud API Reference Overview'
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+# Nebula Cloud API Reference
 
-## Welcome
+Welcome to the Nebula Cloud API documentation. Here you'll find a comprehensive reference for all available API endpoints, grouped by functionality:
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
-
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+- **Cluster Management Endpoints**: Create, delete, rename, list, and get the status of clusters.
+- **Cluster File Management Endpoints**: Upload, download, list, delete, rename, and update files within clusters.
+- **Query/Retrieval Endpoints**: Query documents in clusters, including streaming support.
+- **Rate Limit Endpoints**: Retrieve project and cluster quota/rate limit information.
+- **Server Status Endpoints**: Check the health/status of the API server.
 
 ## Authentication
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+All API endpoints require authentication using an API key. Include the appropriate header in your requests:
 
-```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
 ```
+Authorization: Bearer <api_key>
+```
+
+Refer to each endpoint's documentation for required parameters and example requests.
