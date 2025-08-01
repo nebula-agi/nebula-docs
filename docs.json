@@ -36,23 +36,43 @@
             ]
           },
           {
-            "group": "Core Operations",
+            "group": "System Operations",
             "pages": [
-              "api-reference/system",
-              "api-reference/documents"
+              "api-reference/endpoint/health",
+              "api-reference/endpoint/config",
+              "api-reference/endpoint/status"
             ]
           },
           {
-            "group": "User & Collection Management",
+            "group": "Document Management",
             "pages": [
-              "api-reference/users",
+              "api-reference/endpoint/documents-create",
+              "api-reference/endpoint/documents-list",
+              "api-reference/endpoint/documents-get",
+              "api-reference/endpoint/documents-delete"
+            ]
+          },
+          {
+            "group": "User Management",
+            "pages": [
+              "api-reference/users"
+            ]
+          },
+          {
+            "group": "Collection Management",
+            "pages": [
               "api-reference/collections"
             ]
           },
           {
             "group": "Search & Retrieval",
             "pages": [
-              "api-reference/retrieval",
+              "api-reference/retrieval"
+            ]
+          },
+          {
+            "group": "Conversations",
+            "pages": [
               "api-reference/conversations"
             ]
           },

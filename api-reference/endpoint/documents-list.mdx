@@ -1,0 +1,107 @@
+---
+title: 'List Documents'
+description: 'Retrieve a list of documents'
+---
+
+# List Documents
+
+Retrieve a list of documents.
+
+<RequestExample>
+```bash
+curl -X GET "https://api.r2r.ai/v3/documents?limit=10&offset=0" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": {
+    "results": [
+      {
+        "id": "b4ac4dd6-5f27-596e-a55b-7cf242ca30aa",
+        "title": "My Document",
+        "created_at": "2024-01-15T10:30:00Z",
+        "updated_at": "2024-01-15T10:35:00Z",
+        "status": "completed",
+        "metadata": {
+          "author": "John Doe",
+          "category": "research"
+        },
+        "collections": [
+          {
+            "id": "uuid1",
+            "name": "Research Papers"
+          }
+        ]
+      }
+    ],
+    "total": 150,
+    "offset": 0,
+    "limit": 10
+  }
+}
+```
+</ResponseExample>
+
+**Endpoint:** `GET /documents`
+
+**Description:** Retrieve a paginated list of documents accessible to the authenticated user.
+
+**Authentication:** Required
+
+**Query Parameters:**
+- `ids` (array, optional): List of specific document IDs to retrieve
+- `offset` (integer, optional): Number of documents to skip. Default: 0
+- `limit` (integer, optional): Maximum number of documents to return. Default: 100, Max: 1000
+- `include_summary_embeddings` (boolean, optional): Include document summary embeddings. Default: false
+- `owner_only` (boolean, optional): Return only documents owned by the user. Default: false
+
+**Response Fields:**
+- `results` (array): List of document objects
+- `total` (integer): Total number of documents
+- `offset` (integer): Current offset
+- `limit` (integer): Current limit
+
+## Error Codes
+
+| Code | Description |
+|------|-------------|
+| `401` | Unauthorized - Invalid or missing API key |
+| `403` | Forbidden - Insufficient permissions |
+| `500` | Internal Server Error - System error |
+
+## Rate Limiting
+
+List/Get: 100 requests per minute
+
+## SDK Examples
+
+### Python
+
+```python
+from r2r import R2RClient
+
+client = R2RClient(api_key="your-api-key")
+
+# List documents
+documents = client.documents.list(limit=10, offset=0)
+for doc in documents['results']:
+    print(f"Title: {doc['title']}, Status: {doc['status']}")
+```
+
+### JavaScript
+
+```javascript
+const { R2RClient } = require('r2r-js');
+
+const client = new R2RClient('your-api-key');
+
+// List documents
+const documents = await client.documents.list({ limit: 10, offset: 0 });
+documents.results.forEach(doc => {
+    console.log(`Title: ${doc.title}, Status: ${doc.status}`);
+});
+``` 

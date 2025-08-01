@@ -1,0 +1,105 @@
+---
+title: 'Get Document'
+description: 'Retrieve a specific document by ID'
+---
+
+# Get Document
+
+Retrieve a specific document by ID.
+
+<RequestExample>
+```bash
+curl -X GET "https://api.r2r.ai/v3/documents/b4ac4dd6-5f27-596e-a55b-7cf242ca30aa" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": {
+    "id": "b4ac4dd6-5f27-596e-a55b-7cf242ca30aa",
+    "title": "My Document",
+    "content": "Document content...",
+    "summary": "Document summary...",
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T10:35:00Z",
+    "status": "completed",
+    "metadata": {
+      "author": "John Doe",
+      "category": "research"
+    },
+    "collections": [
+      {
+        "id": "uuid1",
+        "name": "Research Papers"
+      }
+    ],
+    "chunks_count": 25,
+    "file_size": 1024000
+  }
+}
+```
+</ResponseExample>
+
+**Endpoint:** `GET /documents/{id}`
+
+**Description:** Retrieve detailed information about a specific document.
+
+**Authentication:** Required
+
+**Path Parameters:**
+- `id` (UUID, required): The ID of the document to retrieve
+
+**Response Fields:**
+- `id` (string): Document ID
+- `title` (string): Document title
+- `content` (string): Document content
+- `summary` (string): Document summary
+- `created_at` (string): Creation timestamp
+- `updated_at` (string): Last update timestamp
+- `status` (string): Processing status
+- `metadata` (object): Document metadata
+- `collections` (array): Associated collections
+- `chunks_count` (integer): Number of text chunks
+- `file_size` (integer): File size in bytes
+
+## Error Codes
+
+| Code | Description |
+|------|-------------|
+| `401` | Unauthorized - Invalid or missing API key |
+| `403` | Forbidden - Insufficient permissions |
+| `404` | Not Found - Document not found |
+| `500` | Internal Server Error - System error |
+
+## Rate Limiting
+
+List/Get: 100 requests per minute
+
+## SDK Examples
+
+### Python
+
+```python
+from r2r import R2RClient
+
+client = R2RClient(api_key="your-api-key")
+
+# Get document details
+doc = client.documents.retrieve(id="document-id")
+print(f"Content: {doc['content'][:100]}...")
+```
+
+### JavaScript
+
+```javascript
+const { R2RClient } = require('r2r-js');
+
+const client = new R2RClient('your-api-key');
+
+// Get document details
+const doc = await client.documents.retrieve({ id: 'document-id' });
+console.log(`Content: ${doc.content.substring(0, 100)}...`);
+``` 

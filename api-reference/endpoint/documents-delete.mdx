@@ -1,0 +1,79 @@
+---
+title: 'Delete Document'
+description: 'Delete a specific document'
+---
+
+# Delete Document
+
+Delete a specific document.
+
+<RequestExample>
+```bash
+curl -X DELETE "https://api.r2r.ai/v3/documents/b4ac4dd6-5f27-596e-a55b-7cf242ca30aa" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": {
+    "deleted": true,
+    "message": "Document deleted successfully"
+  }
+}
+```
+</ResponseExample>
+
+**Endpoint:** `DELETE /documents/{id}`
+
+**Description:** Delete a specific document and all associated data.
+
+**Authentication:** Required
+
+**Path Parameters:**
+- `id` (UUID, required): The ID of the document to delete
+
+**Response Fields:**
+- `deleted` (boolean): Whether the document was successfully deleted
+- `message` (string): Status message
+
+## Error Codes
+
+| Code | Description |
+|------|-------------|
+| `401` | Unauthorized - Invalid or missing API key |
+| `403` | Forbidden - Insufficient permissions |
+| `404` | Not Found - Document not found |
+| `500` | Internal Server Error - System error |
+
+## Rate Limiting
+
+Delete: 20 requests per minute
+
+## SDK Examples
+
+### Python
+
+```python
+from r2r import R2RClient
+
+client = R2RClient(api_key="your-api-key")
+
+# Delete a document
+response = client.documents.delete(id="document-id")
+print(f"Deleted: {response['deleted']}")
+```
+
+### JavaScript
+
+```javascript
+const { R2RClient } = require('r2r-js');
+
+const client = new R2RClient('your-api-key');
+
+// Delete a document
+const response = await client.documents.delete({ id: 'document-id' });
+console.log(`Deleted: ${response.deleted}`);
+``` 

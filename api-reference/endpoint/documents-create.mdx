@@ -1,0 +1,110 @@
+---
+title: 'Create Document'
+description: 'Upload and process a new document'
+---
+
+# Create Document
+
+Upload and process a new document.
+
+<RequestExample>
+```bash
+curl -X POST "https://api.r2r.ai/v3/documents" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@document.pdf" \
+  -F 'metadata={"title": "My Document", "author": "John Doe"}' \
+  -F 'collection_ids=["uuid1", "uuid2"]' \
+  -F 'ingestion_mode=hi-res'
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": {
+    "document_id": "b4ac4dd6-5f27-596e-a55b-7cf242ca30aa",
+    "status": "processing",
+    "message": "Document uploaded successfully and queued for processing"
+  }
+}
+```
+</ResponseExample>
+
+**Endpoint:** `POST /documents`
+
+**Description:** Upload and process a new document. The document will be chunked, embedded, and indexed for retrieval.
+
+**Authentication:** Required
+
+**Request Parameters:**
+- `file` (file, optional): The file to upload. Exactly one of `file`, `raw_text`, or `chunks` must be provided.
+- `raw_text` (string, optional): Raw text content to ingest.
+- `chunks` (array, optional): Pre-processed text chunks to ingest.
+- `id` (UUID, optional): Custom document ID. If not provided, a new ID will be generated.
+- `collection_ids` (array, optional): Collection IDs to associate with the document.
+- `metadata` (object, optional): Metadata to associate with the document.
+- `ingestion_mode` (string, optional): Ingestion mode. Default: `custom`.
+- `ingestion_config` (object, optional): Custom ingestion configuration.
+- `run_with_orchestration` (boolean, optional): Whether to run with orchestration. Default: `true`.
+
+**Response Fields:**
+- `document_id` (string): The unique identifier of the created document
+- `status` (string): Processing status ("processing", "completed", "failed")
+- `message` (string): Status message
+
+## Ingestion Modes
+
+- **`hi-res`**: Thorough ingestion with full summaries and enrichment
+- **`ocr`**: OCR via Mistral and full summaries
+- **`fast`**: Quick ingestion with minimal enrichment and no summaries
+- **`custom`**: Full control via `ingestion_config`
+
+## Error Codes
+
+| Code | Description |
+|------|-------------|
+| `400` | Bad Request - Invalid request parameters |
+| `401` | Unauthorized - Invalid or missing API key |
+| `413` | Payload Too Large - File size exceeds limit |
+| `422` | Unprocessable Entity - Invalid file format or content |
+| `500` | Internal Server Error - Processing error |
+
+## Rate Limiting
+
+Upload: 10 requests per minute
+
+## SDK Examples
+
+### Python
+
+```python
+from r2r import R2RClient
+
+client = R2RClient(api_key="your-api-key")
+
+# Upload a document
+response = client.documents.create(
+    file_path="document.pdf",
+    metadata={"title": "My Document", "author": "John Doe"},
+    ingestion_mode="hi-res"
+)
+print(f"Document ID: {response['document_id']}")
+```
+
+### JavaScript
+
+```javascript
+const { R2RClient } = require('r2r-js');
+
+const client = new R2RClient('your-api-key');
+
+// Upload a document
+const response = await client.documents.create({
+    file: { path: 'document.pdf', name: 'document.pdf' },
+    metadata: { title: 'My Document', author: 'John Doe' },
+    ingestionMode: 'hi-res'
+});
+console.log(`Document ID: ${response.document_id}`);
+``` 

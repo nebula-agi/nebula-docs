@@ -1,0 +1,75 @@
+---
+title: 'Health Check'
+description: 'Check the health status of the R2R system'
+---
+
+# Health Check
+
+Check the health status of the R2R system.
+
+<RequestExample>
+```bash
+curl -X GET "https://api.r2r.ai/v3/health" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": {
+    "status": "healthy",
+    "timestamp": "2024-01-15T10:30:00Z",
+    "version": "1.0.0"
+  }
+}
+```
+</ResponseExample>
+
+**Endpoint:** `GET /health`
+
+**Description:** Returns the current health status of the R2R system, including system status, timestamp, and version information.
+
+**Authentication:** Not required
+
+**Response Fields:**
+- `status` (string): System health status ("healthy", "degraded", "unhealthy")
+- `timestamp` (string): ISO 8601 timestamp of the health check
+- `version` (string): Current system version
+
+## Error Codes
+
+| Code | Description |
+|------|-------------|
+| `500` | Internal Server Error - System error |
+
+## Rate Limiting
+
+Health check: 100 requests per minute
+
+## SDK Examples
+
+### Python
+
+```python
+from r2r import R2RClient
+
+client = R2RClient(api_key="your-api-key")
+
+# Check system health
+health = client.system.health()
+print(f"System status: {health['status']}")
+```
+
+### JavaScript
+
+```javascript
+const { R2RClient } = require('r2r-js');
+
+const client = new R2RClient('your-api-key');
+
+// Check system health
+const health = await client.system.health();
+console.log(`System status: ${health.status}`);
+``` 
