@@ -1,0 +1,943 @@
+---
+title: 'Document Management'
+description: 'Upload, process, and manage documents with support for various file formats and processing options'
+---
+
+# Document Management
+
+The Documents API allows you to upload, process, and manage documents in the R2R platform. Documents are the foundation of your knowledge base and can be processed with various ingestion modes and configurations.
+
+## Overview
+
+Documents can be uploaded in multiple formats:
+- **File upload**: Upload files directly (PDF, DOCX, TXT, HTML, etc.)
+- **Raw text**: Provide text content directly
+- **Pre-processed chunks**: Upload already chunked text content
+
+## Ingestion Modes
+
+R2R supports different ingestion modes for processing documents:
+
+- **`hi-res`**: Thorough ingestion with full summaries and enrichment
+- **`ocr`**: OCR via Mistral and full summaries
+- **`fast`**: Quick ingestion with minimal enrichment and no summaries
+- **`custom`**: Full control via `ingestion_config`
+
+## Endpoints
+
+### Create Document
+
+Upload and process a new document.
+
+<RequestExample>
+```bash
+curl -X POST "https://api.r2r.ai/v3/documents" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@document.pdf" \
+  -F 'metadata={"title": "My Document", "author": "John Doe"}' \
+  -F 'collection_ids=["uuid1", "uuid2"]' \
+  -F 'ingestion_mode=hi-res'
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": {
+    "document_id": "b4ac4dd6-5f27-596e-a55b-7cf242ca30aa",
+    "status": "processing",
+    "message": "Document uploaded successfully and queued for processing"
+  }
+}
+```
+</ResponseExample>
+
+**Endpoint:** `POST /documents`
+
+**Description:** Upload and process a new document. The document will be chunked, embedded, and indexed for retrieval.
+
+**Authentication:** Required
+
+**Request Parameters:**
+- `file` (file, optional): The file to upload. Exactly one of `file`, `raw_text`, or `chunks` must be provided.
+- `raw_text` (string, optional): Raw text content to ingest.
+- `chunks` (array, optional): Pre-processed text chunks to ingest.
+- `id` (UUID, optional): Custom document ID. If not provided, a new ID will be generated.
+- `collection_ids` (array, optional): Collection IDs to associate with the document.
+- `metadata` (object, optional): Metadata to associate with the document.
+- `ingestion_mode` (string, optional): Ingestion mode. Default: `custom`.
+- `ingestion_config` (object, optional): Custom ingestion configuration.
+- `run_with_orchestration` (boolean, optional): Whether to run with orchestration. Default: `true`.
+
+**Response Fields:**
+- `document_id` (string): The unique identifier of the created document
+- `status` (string): Processing status ("processing", "completed", "failed")
+- `message` (string): Status message
+
+---
+
+### List Documents
+
+Retrieve a list of documents.
+
+<RequestExample>
+```bash
+curl -X GET "https://api.r2r.ai/v3/documents?limit=10&offset=0" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": {
+    "results": [
+      {
+        "id": "b4ac4dd6-5f27-596e-a55b-7cf242ca30aa",
+        "title": "My Document",
+        "created_at": "2024-01-15T10:30:00Z",
+        "updated_at": "2024-01-15T10:35:00Z",
+        "status": "completed",
+        "metadata": {
+          "author": "John Doe",
+          "category": "research"
+        },
+        "collections": [
+          {
+            "id": "uuid1",
+            "name": "Research Papers"
+          }
+        ]
+      }
+    ],
+    "total": 150,
+    "offset": 0,
+    "limit": 10
+  }
+}
+```
+</ResponseExample>
+
+**Endpoint:** `GET /documents`
+
+**Description:** Retrieve a paginated list of documents accessible to the authenticated user.
+
+**Authentication:** Required
+
+**Query Parameters:**
+- `ids` (array, optional): List of specific document IDs to retrieve
+- `offset` (integer, optional): Number of documents to skip. Default: 0
+- `limit` (integer, optional): Maximum number of documents to return. Default: 100, Max: 1000
+- `include_summary_embeddings` (boolean, optional): Include document summary embeddings. Default: false
+- `owner_only` (boolean, optional): Return only documents owned by the user. Default: false
+
+**Response Fields:**
+- `results` (array): List of document objects
+- `total` (integer): Total number of documents
+- `offset` (integer): Current offset
+- `limit` (integer): Current limit
+
+---
+
+### Get Document
+
+Retrieve a specific document by ID.
+
+<RequestExample>
+```bash
+curl -X GET "https://api.r2r.ai/v3/documents/b4ac4dd6-5f27-596e-a55b-7cf242ca30aa" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": {
+    "id": "b4ac4dd6-5f27-596e-a55b-7cf242ca30aa",
+    "title": "My Document",
+    "content": "Document content...",
+    "summary": "Document summary...",
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T10:35:00Z",
+    "status": "completed",
+    "metadata": {
+      "author": "John Doe",
+      "category": "research"
+    },
+    "collections": [
+      {
+        "id": "uuid1",
+        "name": "Research Papers"
+      }
+    ],
+    "chunks_count": 25,
+    "file_size": 1024000
+  }
+}
+```
+</ResponseExample>
+
+**Endpoint:** `GET /documents/{id}`
+
+**Description:** Retrieve detailed information about a specific document.
+
+**Authentication:** Required
+
+**Path Parameters:**
+- `id` (UUID, required): The ID of the document to retrieve
+
+**Response Fields:**
+- `id` (string): Document ID
+- `title` (string): Document title
+- `content` (string): Document content
+- `summary` (string): Document summary
+- `created_at` (string): Creation timestamp
+- `updated_at` (string): Last update timestamp
+- `status` (string): Processing status
+- `metadata` (object): Document metadata
+- `collections` (array): Associated collections
+- `chunks_count` (integer): Number of text chunks
+- `file_size` (integer): File size in bytes
+
+---
+
+### Update Document Metadata
+
+Update metadata for a specific document.
+
+<RequestExample>
+```bash
+curl -X PATCH "https://api.r2r.ai/v3/documents/b4ac4dd6-5f27-596e-a55b-7cf242ca30aa/metadata" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '[
+    {"key": "author", "value": "Jane Smith"},
+    {"key": "category", "value": "technical"}
+  ]'
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": {
+    "id": "b4ac4dd6-5f27-596e-a55b-7cf242ca30aa",
+    "metadata": [
+      {"key": "author", "value": "Jane Smith"},
+      {"key": "category", "value": "technical"},
+      {"key": "title", "value": "My Document"}
+    ]
+  }
+}
+```
+</ResponseExample>
+
+**Endpoint:** `PATCH /documents/{id}/metadata`
+
+**Description:** Append metadata to an existing document.
+
+**Authentication:** Required
+
+**Path Parameters:**
+- `id` (UUID, required): The ID of the document
+
+**Request Body:**
+- `metadata` (array, required): Array of metadata key-value pairs
+
+---
+
+### Replace Document Metadata
+
+Replace all metadata for a specific document.
+
+<RequestExample>
+```bash
+curl -X PUT "https://api.r2r.ai/v3/documents/b4ac4dd6-5f27-596e-a55b-7cf242ca30aa/metadata" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '[
+    {"key": "author", "value": "Jane Smith"},
+    {"key": "category", "value": "technical"}
+  ]'
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": {
+    "id": "b4ac4dd6-5f27-596e-a55b-7cf242ca30aa",
+    "metadata": [
+      {"key": "author", "value": "Jane Smith"},
+      {"key": "category", "value": "technical"}
+    ]
+  }
+}
+```
+</ResponseExample>
+
+**Endpoint:** `PUT /documents/{id}/metadata`
+
+**Description:** Replace all metadata for an existing document.
+
+**Authentication:** Required
+
+**Path Parameters:**
+- `id` (UUID, required): The ID of the document
+
+**Request Body:**
+- `metadata` (array, required): Array of metadata key-value pairs
+
+---
+
+### Get Document Chunks
+
+Retrieve text chunks for a specific document.
+
+<RequestExample>
+```bash
+curl -X GET "https://api.r2r.ai/v3/documents/b4ac4dd6-5f27-596e-a55b-7cf242ca30aa/chunks?limit=10&offset=0" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": {
+    "results": [
+      {
+        "id": "chunk-uuid-1",
+        "content": "This is the first chunk of text...",
+        "metadata": {
+          "page": 1,
+          "section": "introduction"
+        },
+        "embedding": [0.1, 0.2, 0.3, ...]
+      }
+    ],
+    "total": 25,
+    "offset": 0,
+    "limit": 10
+  }
+}
+```
+</ResponseExample>
+
+**Endpoint:** `GET /documents/{id}/chunks`
+
+**Description:** Retrieve text chunks extracted from a document.
+
+**Authentication:** Required
+
+**Path Parameters:**
+- `id` (UUID, required): The ID of the document
+
+**Query Parameters:**
+- `offset` (integer, optional): Number of chunks to skip. Default: 0
+- `limit` (integer, optional): Maximum number of chunks to return. Default: 100, Max: 1000
+
+---
+
+### Download Document File
+
+Download the original document file.
+
+<RequestExample>
+```bash
+curl -X GET "https://api.r2r.ai/v3/documents/b4ac4dd6-5f27-596e-a55b-7cf242ca30aa/file" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  --output document.pdf
+```
+</RequestExample>
+
+**Endpoint:** `GET /documents/{id}/file`
+
+**Description:** Download the original document file.
+
+**Authentication:** Required
+
+**Path Parameters:**
+- `id` (UUID, required): The ID of the document
+
+**Response:** File download (binary)
+
+---
+
+### Export Documents
+
+Export documents to CSV format.
+
+<RequestExample>
+```bash
+curl -X POST "https://api.r2r.ai/v3/documents/export" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "columns": ["id", "title", "created_at"],
+    "include_header": true
+  }' \
+  --output documents.csv
+```
+</RequestExample>
+
+**Endpoint:** `POST /documents/export`
+
+**Description:** Export documents to CSV format with specified columns.
+
+**Authentication:** Required (Superuser only)
+
+**Request Body:**
+- `columns` (array, optional): Specific columns to export
+- `filters` (object, optional): Filters to apply to the export
+- `include_header` (boolean, optional): Whether to include column headers. Default: true
+
+**Response:** CSV file download
+
+---
+
+### Download Multiple Documents
+
+Download multiple documents as a ZIP file.
+
+<RequestExample>
+```bash
+curl -X GET "https://api.r2r.ai/v3/documents/download_zip?document_ids=uuid1,uuid2&start_date=2024-01-01&end_date=2024-12-31" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  --output documents.zip
+```
+</RequestExample>
+
+**Endpoint:** `GET /documents/download_zip`
+
+**Description:** Download multiple documents as a ZIP file.
+
+**Authentication:** Required
+
+**Query Parameters:**
+- `document_ids` (array, optional): List of document IDs to include
+- `start_date` (datetime, optional): Filter documents created on or after this date
+- `end_date` (datetime, optional): Filter documents created before this date
+
+**Response:** ZIP file download
+
+---
+
+### Delete Document
+
+Delete a specific document.
+
+<RequestExample>
+```bash
+curl -X DELETE "https://api.r2r.ai/v3/documents/b4ac4dd6-5f27-596e-a55b-7cf242ca30aa" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": {
+    "deleted": true,
+    "message": "Document deleted successfully"
+  }
+}
+```
+</ResponseExample>
+
+**Endpoint:** `DELETE /documents/{id}`
+
+**Description:** Delete a specific document and all associated data.
+
+**Authentication:** Required
+
+**Path Parameters:**
+- `id` (UUID, required): The ID of the document to delete
+
+---
+
+### Delete Documents by Filter
+
+Delete multiple documents based on filters.
+
+<RequestExample>
+```bash
+curl -X DELETE "https://api.r2r.ai/v3/documents/by-filter" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "filters": {
+      "document_type": {"$eq": "txt"},
+      "created_at": {"$lt": "2023-01-01T00:00:00Z"}
+    }
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": {
+    "deleted_count": 15,
+    "message": "15 documents deleted successfully"
+  }
+}
+```
+</ResponseExample>
+
+**Endpoint:** `DELETE /documents/by-filter`
+
+**Description:** Delete multiple documents based on specified filters.
+
+**Authentication:** Required
+
+**Request Body:**
+- `filters` (object, required): JSON-encoded filters
+
+---
+
+### Get Document Collections
+
+List collections associated with a document.
+
+<RequestExample>
+```bash
+curl -X GET "https://api.r2r.ai/v3/documents/b4ac4dd6-5f27-596e-a55b-7cf242ca30aa/collections?limit=10&offset=0" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": {
+    "results": [
+      {
+        "id": "uuid1",
+        "name": "Research Papers",
+        "description": "Collection of research papers"
+      }
+    ],
+    "total": 3,
+    "offset": 0,
+    "limit": 10
+  }
+}
+```
+</ResponseExample>
+
+**Endpoint:** `GET /documents/{id}/collections`
+
+**Description:** List all collections associated with a specific document.
+
+**Authentication:** Required
+
+**Path Parameters:**
+- `id` (UUID, required): The ID of the document
+
+**Query Parameters:**
+- `offset` (integer, optional): Number of collections to skip. Default: 0
+- `limit` (integer, optional): Maximum number of collections to return. Default: 100, Max: 1000
+
+---
+
+### Extract Entities and Relationships
+
+Extract entities and relationships from a document.
+
+<RequestExample>
+```bash
+curl -X POST "https://api.r2r.ai/v3/documents/b4ac4dd6-5f27-596e-a55b-7cf242ca30aa/extract" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "settings": {
+      "entity_types": ["PERSON", "ORGANIZATION", "LOCATION"],
+      "relationship_types": ["WORKS_FOR", "LOCATED_IN"]
+    },
+    "run_with_orchestration": true
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": {
+    "message": "Entity extraction task queued successfully",
+    "task_id": "task-uuid-123"
+  }
+}
+```
+</ResponseExample>
+
+**Endpoint:** `POST /documents/{id}/extract`
+
+**Description:** Extract entities and relationships from a document for knowledge graph construction.
+
+**Authentication:** Required
+
+**Path Parameters:**
+- `id` (UUID, required): The ID of the document
+
+**Request Body:**
+- `settings` (object, optional): Graph creation settings
+- `run_with_orchestration` (boolean, optional): Whether to run with orchestration. Default: true
+
+---
+
+### Deduplicate Entities
+
+Deduplicate entities extracted from a document.
+
+<RequestExample>
+```bash
+curl -X POST "https://api.r2r.ai/v3/documents/b4ac4dd6-5f27-596e-a55b-7cf242ca30aa/deduplicate" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "settings": {
+      "similarity_threshold": 0.8
+    },
+    "run_with_orchestration": true
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": {
+    "message": "Entity deduplication task queued successfully",
+    "task_id": "task-uuid-456"
+  }
+}
+```
+</ResponseExample>
+
+**Endpoint:** `POST /documents/{id}/deduplicate`
+
+**Description:** Deduplicate entities extracted from a document.
+
+**Authentication:** Required
+
+**Path Parameters:**
+- `id` (UUID, required): The ID of the document
+
+**Request Body:**
+- `settings` (object, optional): Graph creation settings
+- `run_with_orchestration` (boolean, optional): Whether to run with orchestration. Default: true
+
+---
+
+### Get Document Entities
+
+List entities extracted from a document.
+
+<RequestExample>
+```bash
+curl -X GET "https://api.r2r.ai/v3/documents/b4ac4dd6-5f27-596e-a55b-7cf242ca30aa/entities?limit=10&offset=0" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": {
+    "results": [
+      {
+        "id": "entity-uuid-1",
+        "name": "John Doe",
+        "type": "PERSON",
+        "description": "Software engineer",
+        "metadata": {
+          "confidence": 0.95
+        }
+      }
+    ],
+    "total": 25,
+    "offset": 0,
+    "limit": 10
+  }
+}
+```
+</ResponseExample>
+
+**Endpoint:** `GET /documents/{id}/entities`
+
+**Description:** List entities extracted from a specific document.
+
+**Authentication:** Required
+
+**Path Parameters:**
+- `id` (UUID, required): The ID of the document
+
+**Query Parameters:**
+- `offset` (integer, optional): Number of entities to skip. Default: 0
+- `limit` (integer, optional): Maximum number of entities to return. Default: 100, Max: 1000
+- `include_embeddings` (boolean, optional): Whether to include vector embeddings. Default: false
+
+---
+
+### Export Document Entities
+
+Export document entities to CSV format.
+
+<RequestExample>
+```bash
+curl -X POST "https://api.r2r.ai/v3/documents/b4ac4dd6-5f27-596e-a55b-7cf242ca30aa/entities/export" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "columns": ["id", "name", "type"],
+    "include_header": true
+  }' \
+  --output entities.csv
+```
+</RequestExample>
+
+**Endpoint:** `POST /documents/{id}/entities/export`
+
+**Description:** Export entities from a document to CSV format.
+
+**Authentication:** Required
+
+**Path Parameters:**
+- `id` (UUID, required): The ID of the document
+
+**Request Body:**
+- `columns` (array, optional): Specific columns to export
+- `filters` (object, optional): Filters to apply to the export
+- `include_header` (boolean, optional): Whether to include column headers. Default: true
+
+**Response:** CSV file download
+
+---
+
+### Get Document Relationships
+
+List relationships extracted from a document.
+
+<RequestExample>
+```bash
+curl -X GET "https://api.r2r.ai/v3/documents/b4ac4dd6-5f27-596e-a55b-7cf242ca30aa/relationships?limit=10&offset=0" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": {
+    "results": [
+      {
+        "id": "relationship-uuid-1",
+        "subject": "John Doe",
+        "subject_id": "entity-uuid-1",
+        "predicate": "WORKS_FOR",
+        "object": "Tech Corp",
+        "object_id": "entity-uuid-2",
+        "description": "John Doe works for Tech Corp",
+        "weight": 0.9
+      }
+    ],
+    "total": 15,
+    "offset": 0,
+    "limit": 10
+  }
+}
+```
+</ResponseExample>
+
+**Endpoint:** `GET /documents/{id}/relationships`
+
+**Description:** List relationships extracted from a specific document.
+
+**Authentication:** Required
+
+**Path Parameters:**
+- `id` (UUID, required): The ID of the document
+
+**Query Parameters:**
+- `offset` (integer, optional): Number of relationships to skip. Default: 0
+- `limit` (integer, optional): Maximum number of relationships to return. Default: 100, Max: 1000
+- `entity_names` (array, optional): Filter relationships by specific entity names
+- `relationship_types` (array, optional): Filter relationships by specific relationship types
+
+---
+
+### Export Document Relationships
+
+Export document relationships to CSV format.
+
+<RequestExample>
+```bash
+curl -X POST "https://api.r2r.ai/v3/documents/b4ac4dd6-5f27-596e-a55b-7cf242ca30aa/relationships/export" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "columns": ["id", "subject", "predicate", "object"],
+    "include_header": true
+  }' \
+  --output relationships.csv
+```
+</RequestExample>
+
+**Endpoint:** `POST /documents/{id}/relationships/export`
+
+**Description:** Export relationships from a document to CSV format.
+
+**Authentication:** Required
+
+**Path Parameters:**
+- `id` (UUID, required): The ID of the document
+
+**Request Body:**
+- `columns` (array, optional): Specific columns to export
+- `filters` (object, optional): Filters to apply to the export
+- `include_header` (boolean, optional): Whether to include column headers. Default: true
+
+**Response:** CSV file download
+
+## Error Codes
+
+| Code | Description |
+|------|-------------|
+| `400` | Bad Request - Invalid request parameters |
+| `401` | Unauthorized - Invalid or missing API key |
+| `403` | Forbidden - Insufficient permissions |
+| `404` | Not Found - Document not found |
+| `413` | Payload Too Large - File size exceeds limit |
+| `422` | Unprocessable Entity - Invalid file format or content |
+| `500` | Internal Server Error - Processing error |
+
+## Rate Limiting
+
+Document endpoints are subject to rate limiting:
+- Upload: 10 requests per minute
+- List/Get: 100 requests per minute
+- Export: 5 requests per minute
+- Delete: 20 requests per minute
+
+## File Format Support
+
+R2R supports the following file formats:
+
+| Format | Extension | Description |
+|--------|-----------|-------------|
+| PDF | `.pdf` | Portable Document Format |
+| Word | `.docx`, `.doc` | Microsoft Word documents |
+| Text | `.txt` | Plain text files |
+| HTML | `.html`, `.htm` | HTML documents |
+| Markdown | `.md` | Markdown files |
+| CSV | `.csv` | Comma-separated values |
+| JSON | `.json` | JSON files |
+| XML | `.xml` | XML documents |
+| RTF | `.rtf` | Rich Text Format |
+| Images | `.png`, `.jpg`, `.jpeg` | Images (with OCR) |
+
+## SDK Examples
+
+### Python
+
+```python
+from r2r import R2RClient
+
+client = R2RClient(api_key="your-api-key")
+
+# Upload a document
+response = client.documents.create(
+    file_path="document.pdf",
+    metadata={"title": "My Document", "author": "John Doe"},
+    ingestion_mode="hi-res"
+)
+print(f"Document ID: {response['document_id']}")
+
+# List documents
+documents = client.documents.list(limit=10, offset=0)
+for doc in documents['results']:
+    print(f"Title: {doc['title']}, Status: {doc['status']}")
+
+# Get document details
+doc = client.documents.retrieve(id="document-id")
+print(f"Content: {doc['content'][:100]}...")
+
+# Update metadata
+client.documents.append_metadata(
+    id="document-id",
+    metadata=[{"key": "category", "value": "research"}]
+)
+
+# Get document chunks
+chunks = client.documents.list_chunks(id="document-id")
+print(f"Number of chunks: {len(chunks['results'])}")
+
+# Extract entities
+client.documents.extract(id="document-id")
+
+# Get entities
+entities = client.documents.list_entities(id="document-id")
+for entity in entities['results']:
+    print(f"Entity: {entity['name']} ({entity['type']})")
+```
+
+### JavaScript
+
+```javascript
+const { R2RClient } = require('r2r-js');
+
+const client = new R2RClient('your-api-key');
+
+// Upload a document
+const response = await client.documents.create({
+    file: { path: 'document.pdf', name: 'document.pdf' },
+    metadata: { title: 'My Document', author: 'John Doe' },
+    ingestionMode: 'hi-res'
+});
+console.log(`Document ID: ${response.document_id}`);
+
+// List documents
+const documents = await client.documents.list({ limit: 10, offset: 0 });
+documents.results.forEach(doc => {
+    console.log(`Title: ${doc.title}, Status: ${doc.status}`);
+});
+
+// Get document details
+const doc = await client.documents.retrieve({ id: 'document-id' });
+console.log(`Content: ${doc.content.substring(0, 100)}...`);
+
+// Update metadata
+await client.documents.appendMetadata({
+    id: 'document-id',
+    metadata: [{ key: 'category', value: 'research' }]
+});
+
+// Get document chunks
+const chunks = await client.documents.listChunks({ id: 'document-id' });
+console.log(`Number of chunks: ${chunks.results.length}`);
+
+// Extract entities
+await client.documents.extract({ id: 'document-id' });
+
+// Get entities
+const entities = await client.documents.listEntities({ id: 'document-id' });
+entities.results.forEach(entity => {
+    console.log(`Entity: ${entity.name} (${entity.type})`);
+});
+``` 
