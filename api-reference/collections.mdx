@@ -1,0 +1,54 @@
+---
+title: 'Collection Management'
+description: 'Create, manage, and organize document collections for better content organization'
+---
+
+# Collection Management
+
+The Collections API allows you to create, manage, and organize document collections in the R2R platform. Collections help you organize your documents into logical groups for better content management and retrieval.
+
+## Overview
+
+Collections provide a way to:
+
+- **Organize Documents**: Group related documents together
+- **Manage Access**: Control who can access specific collections
+- **Improve Search**: Search within specific collections
+- **Scale Content**: Handle large numbers of documents efficiently
+
+## Endpoints
+
+### Collection Management
+
+- `POST /collections` - Create a new collection
+- `GET /collections` - List collections
+- `GET /collections/{id}` - Get collection details
+- `POST /collections/{id}` - Update collection
+- `DELETE /collections/{id}` - Delete collection
+- `GET /collections/name/{collection_name}` - Get a collection by name
+
+### Collection Export
+
+- `POST /collections/export` - Export collections to CSV
+
+### Document Management
+
+- `POST /collections/{id}/documents/{document_id}` - Add document to collection
+- `GET /collections/{id}/documents` - List documents in collection
+- `DELETE /collections/{id}/documents/{document_id}` - Remove document from collection
+
+### User Management
+
+- `GET /collections/{id}/users` - List users in collection
+- `POST /collections/{id}/users/{user_id}` - Add user to collection
+- `DELETE /collections/{id}/users/{user_id}` - Remove user from collection
+
+## Documentation Status
+
+⚠️ **This documentation is currently being written.** 
+
+The Collections API contains 12 endpoints for collection management. This documentation will be completed as part of the comprehensive R2R API documentation effort.
+
+**Estimated completion**: Next 1-2 days
+
+For now, please refer to the [R2R API Reference Overview](./r2r-api-reference) for general information about the API structure and authentication. 

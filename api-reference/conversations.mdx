@@ -1,0 +1,43 @@
+---
+title: 'Conversation Management'
+description: 'Manage chat conversations, messages, and conversation history'
+---
+
+# Conversation Management
+
+The Conversations API allows you to manage chat conversations, messages, and conversation history in the R2R platform. This enables building conversational interfaces and maintaining chat sessions.
+
+## Overview
+
+The Conversations API provides:
+
+- **Conversation Management**: Create, update, and delete conversations
+- **Message Handling**: Add, retrieve, and manage messages within conversations
+- **History Tracking**: Maintain conversation history and context
+- **Multi-user Support**: Support for multiple participants in conversations
+
+## Endpoints
+
+### Conversation Management
+
+- `POST /conversations` - Create conversation
+- `GET /conversations` - List conversations
+- `GET /conversations/{id}` - Get conversation
+- `POST /conversations/{id}` - Update conversation
+- `DELETE /conversations/{id}` - Delete conversation
+
+### Message Management
+
+- `POST /conversations/{id}/messages` - Add message to conversation
+- `GET /conversations/{id}/messages` - List conversation messages
+- `DELETE /conversations/{id}/messages/{message_id}` - Delete message
+
+## Documentation Status
+
+⚠️ **This documentation is currently being written.** 
+
+The Conversations API contains 8 endpoints for conversation and message management. This documentation will be completed as part of the comprehensive R2R API documentation effort.
+
+**Estimated completion**: Next 3-5 days
+
+For now, please refer to the [R2R API Reference Overview](./r2r-api-reference) for general information about the API structure and authentication. 

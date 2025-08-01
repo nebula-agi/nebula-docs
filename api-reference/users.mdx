@@ -1,0 +1,73 @@
+---
+title: 'User Management'
+description: 'Complete user lifecycle management including registration, authentication, and profile management'
+---
+
+# User Management
+
+The Users API provides complete user lifecycle management including registration, authentication, authorization, and profile management.
+
+## Overview
+
+The Users API handles all aspects of user management in the R2R platform:
+
+- **Authentication**: Login, logout, token management
+- **Registration**: User creation and email verification
+- **Profile Management**: User details, preferences, and settings
+- **Authorization**: API key management and permissions
+- **Password Management**: Password changes and resets
+
+## Endpoints
+
+### Authentication
+
+- `POST /users/login` - User login
+- `POST /users/logout` - User logout
+- `POST /users/refresh-token` - Refresh access token
+
+### Registration & Verification
+
+- `POST /users` - Create user (register)
+- `POST /users/verify-email` - Verify email address
+- `POST /users/send-verification-email` - Send verification email
+
+### Password Management
+
+- `POST /users/change-password` - Change password
+- `POST /users/request-password-reset` - Request password reset
+- `POST /users/reset-password` - Reset password
+
+### User Management
+
+- `GET /users` - List users
+- `GET /users/{id}` - Get user details
+- `POST /users/{id}` - Update user
+- `DELETE /users/{id}` - Delete user
+- `POST /users/export` - Export users to CSV
+
+### User Collections
+
+- `GET /users/{id}/collections` - Get user collections
+- `POST /users/{id}/collections/{collection_id}` - Add user to collection
+- `DELETE /users/{id}/collections/{collection_id}` - Remove user from collection
+
+### User Resources
+
+- `GET /users/{id}/documents` - Get user documents
+- `GET /users/{id}/conversations` - Get user conversations
+
+### API Key Management
+
+- `GET /users/{id}/api-keys` - Get user API keys
+- `POST /users/{id}/api-keys` - Create API key
+- `DELETE /users/{id}/api-keys/{key_id}` - Delete API key
+
+## Documentation Status
+
+⚠️ **This documentation is currently being written.** 
+
+The Users API contains 20+ endpoints for complete user management. This documentation will be completed as part of the comprehensive R2R API documentation effort.
+
+**Estimated completion**: Next 1-2 days
+
+For now, please refer to the [R2R API Reference Overview](./r2r-api-reference) for general information about the API structure and authentication. 

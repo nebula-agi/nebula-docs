@@ -30,50 +30,52 @@
         "tab": "API Reference",
         "groups": [
           {
-            "group": "API Documentation",
+            "group": "Overview",
             "pages": [
-              "api-reference/introduction"
+              "api-reference/r2r-api-reference"
             ]
           },
           {
-            "group": "Cluster Management Endpoints",
+            "group": "Core Operations",
             "pages": [
-              "api-reference/endpoint/clusters-create",
-              "api-reference/endpoint/clusters-delete",
-              "api-reference/endpoint/clusters-rename",
-              "api-reference/endpoint/clusters-list",
-              "api-reference/endpoint/clusters-status"
+              "api-reference/system",
+              "api-reference/documents"
             ]
           },
           {
-            "group": "Cluster File Management Endpoints",
+            "group": "User & Collection Management",
             "pages": [
-              "api-reference/endpoint/clusters-files-upload",
-              "api-reference/endpoint/clusters-files-download",
-              "api-reference/endpoint/clusters-files-list",
-              "api-reference/endpoint/clusters-files-delete",
-              "api-reference/endpoint/clusters-files-rename",
-              "api-reference/endpoint/clusters-files-update"
+              "api-reference/users",
+              "api-reference/collections"
             ]
           },
           {
-            "group": "Query/Retrieval Endpoints",
+            "group": "Search & Retrieval",
             "pages": [
-              "api-reference/endpoint/query",
-              "api-reference/endpoint/query-stream"
+              "api-reference/retrieval",
+              "api-reference/conversations"
             ]
           },
           {
-            "group": "Rate limit Endpoints",
+            "group": "Knowledge Graph",
             "pages": [
-              "api-reference/endpoint/project-rate-limits",
-              "api-reference/endpoint/clusters-rate-limits"
+              "api-reference/graph"
             ]
           },
           {
-            "group": "Server Status Endpoints",
+            "group": "Advanced Features",
             "pages": [
-              "api-reference/endpoint/health"
+              "api-reference/chunks",
+              "api-reference/indices",
+              "api-reference/prompts"
+            ]
+          },
+          {
+            "group": "Specialized Endpoints",
+            "pages": [
+              "api-reference/episodes",
+              "api-reference/contradictions",
+              "api-reference/temporal-events"
             ]
           }
         ]

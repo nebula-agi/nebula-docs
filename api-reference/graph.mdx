@@ -1,0 +1,65 @@
+---
+title: 'Knowledge Graph'
+description: 'Build and manage knowledge graphs with entities, relationships, and communities'
+---
+
+# Knowledge Graph
+
+The Graph API enables you to build and manage knowledge graphs in the R2R platform. Knowledge graphs represent information as a network of entities and relationships, enabling powerful semantic search and AI applications.
+
+## Overview
+
+The Graph API provides:
+
+- **Entity Management**: Create, update, and manage entities in the knowledge graph
+- **Relationship Management**: Define and manage relationships between entities
+- **Community Detection**: Automatically identify and manage entity communities
+- **Graph Operations**: Build, reset, and maintain knowledge graphs
+- **Export Capabilities**: Export graph data for analysis and visualization
+
+## Endpoints
+
+### Graph Management
+
+- `GET /graphs` - List graphs
+- `GET /graphs/{collection_id}` - Get graph details
+- `POST /graphs/{collection_id}` - Update graph
+- `POST /graphs/{collection_id}/reset` - Reset graph
+- `POST /graphs/{collection_id}/pull` - Pull latest entities
+
+### Entity Management
+
+- `GET /graphs/{collection_id}/entities` - List graph entities
+- `POST /graphs/{collection_id}/entities` - Create entity
+- `GET /graphs/{collection_id}/entities/{entity_id}` - Get entity
+- `POST /graphs/{collection_id}/entities/{entity_id}` - Update entity
+- `DELETE /graphs/{collection_id}/entities/{entity_id}` - Delete entity
+- `POST /graphs/{collection_id}/entities/export` - Export entities
+
+### Relationship Management
+
+- `POST /graphs/{collection_id}/relationships` - Create relationship
+- `GET /graphs/{collection_id}/relationships/{relationship_id}` - Get relationship
+- `POST /graphs/{collection_id}/relationships/{relationship_id}` - Update relationship
+- `DELETE /graphs/{collection_id}/relationships/{relationship_id}` - Delete relationship
+- `POST /graphs/{collection_id}/relationships/export` - Export relationships
+
+### Community Management
+
+- `POST /graphs/{collection_id}/communities/build` - Build communities
+- `POST /graphs/{collection_id}/communities` - Create community
+- `GET /graphs/{collection_id}/communities` - List communities
+- `GET /graphs/{collection_id}/communities/{community_id}` - Get community
+- `POST /graphs/{collection_id}/communities/{community_id}` - Update community
+- `DELETE /graphs/{collection_id}/communities/{community_id}` - Delete community
+- `POST /graphs/{collection_id}/communities/export` - Export communities
+
+## Documentation Status
+
+⚠️ **This documentation is currently being written.** 
+
+The Graph API contains 20+ endpoints for knowledge graph management. This documentation will be completed as part of the comprehensive R2R API documentation effort.
+
+**Estimated completion**: Next 3-5 days
+
+For now, please refer to the [R2R API Reference Overview](./r2r-api-reference) for general information about the API structure and authentication. 
