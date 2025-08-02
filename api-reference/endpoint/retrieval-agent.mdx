@@ -1,0 +1,182 @@
+---
+title: 'RAG-powered Conversational Agent'
+openapi: 'POST /v3/retrieval/agent'
+---
+
+# RAG-powered Conversational Agent
+
+Interact with a conversational agent powered by RAG and reasoning capabilities.
+
+<RequestExample>
+```bash
+curl -X POST "https://api.r2r.ai/v3/retrieval/agent" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "message": {
+      "role": "user",
+      "content": "Do a deep analysis of the philosophical implications of DeepSeek R1"
+    },
+    "mode": "rag",
+    "rag_tools": ["web_search", "search_file_knowledge", "get_file_content"],
+    "search_settings": {
+      "limit": 20
+    },
+    "rag_generation_config": {
+      "model": "anthropic/claude-3-5-sonnet-20241022",
+      "extended_thinking": true,
+      "temperature": 1,
+      "max_tokens": 16000
+    }
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": {
+    "answer": "Based on my analysis of DeepSeek R1...",
+    "conversation_id": "conv-123",
+    "conversation_name": "Analysis of DeepSeek R1",
+    "sources": [
+      {
+        "id": "chunk-123",
+        "text": "DeepSeek R1 is a reasoning model...",
+        "metadata": {
+          "document_id": "b4ac4dd6-5f27-596e-a55b-7cf242ca30aa"
+        },
+        "score": 0.95
+      }
+    ],
+    "tool_calls": [
+      {
+        "tool": "web_search",
+        "input": "DeepSeek R1 philosophical implications",
+        "output": "Search results..."
+      }
+    ]
+  }
+}
+```
+</ResponseExample>
+
+**Description:** Interact with a conversational agent that can perform RAG-powered analysis, reasoning, and research. The agent can use various tools including web search, file analysis, and reasoning capabilities.
+
+**Authentication:** Required
+
+**Request Body:**
+- `message` (object, required): Current message to process
+  - `role` (string): Message role ("user", "assistant", "system")
+  - `content` (string): Message content
+- `mode` (string, optional, default: "rag"): Agent mode
+  - `rag`: Standard retrieval-augmented generation
+  - `research`: Deep analysis with reasoning capabilities
+- `search_mode` (string, optional, default: "custom"): Search mode for retrieval
+- `search_settings` (object, optional): Search configuration
+- `rag_generation_config` (object, optional): Configuration for RAG generation
+- `research_generation_config` (object, optional): Configuration for research mode
+- `rag_tools` (array, optional): Tools for RAG mode
+  - `web_search`: Web search capabilities
+  - `web_scrape`: Web scraping
+  - `search_file_descriptions`: Search file descriptions
+  - `search_file_knowledge`: Search file knowledge
+  - `get_file_content`: Get file content
+- `research_tools` (array, optional): Tools for research mode
+  - `rag`: RAG capabilities
+  - `reasoning`: Reasoning capabilities
+  - `critique`: Critique capabilities
+  - `python_executor`: Python code execution
+- `conversation_id` (string, optional): ID for conversation continuity
+- `max_tool_context_length` (integer, optional, default: 32768): Maximum tool context length
+- `use_system_context` (boolean, optional, default: true): Use extended prompt
+- `needs_initial_conversation_name` (boolean, optional): Auto-assign conversation name
+
+**Response Fields:**
+- `answer` (string): Generated response
+- `conversation_id` (string): Conversation identifier
+- `conversation_name` (string): Conversation name
+- `sources` (array): Source chunks used
+- `tool_calls` (array): Tool calls made during processing
+
+## Error Codes
+
+| Code | Description |
+|------|-------------|
+| `400` | Bad Request - Invalid message or configuration |
+| `401` | Unauthorized - Invalid or missing API key |
+| `500` | Internal Server Error - System error |
+
+## Rate Limiting
+
+Agent interactions: Rate limited
+
+## Available Tools
+
+### RAG Tools
+- `web_search`: Search the web for information
+- `web_scrape`: Scrape web content
+- `search_file_descriptions`: Search file descriptions
+- `search_file_knowledge`: Search file knowledge
+- `get_file_content`: Get file content
+
+### Research Tools
+- `rag`: RAG capabilities
+- `reasoning`: Advanced reasoning
+- `critique`: Critical analysis
+- `python_executor`: Execute Python code
+
+## SDK Examples
+
+### Python
+
+```python
+from r2r import R2RClient
+
+client = R2RClient(api_key="your-api-key")
+
+# Agent interaction
+response = client.retrieval.agent(
+    message={
+        "role": "user",
+        "content": "Do a deep analysis of the philosophical implications of DeepSeek R1"
+    },
+    mode="rag",
+    rag_tools=["web_search", "search_file_knowledge", "get_file_content"],
+    search_settings={"limit": 20},
+    rag_generation_config={
+        "model": "anthropic/claude-3-5-sonnet-20241022",
+        "extended_thinking": True,
+        "temperature": 1,
+        "max_tokens": 16000
+    }
+)
+print(f"Answer: {response['answer']}")
+```
+
+### JavaScript
+
+```javascript
+const { r2rClient } = require("r2r-js");
+
+const client = new r2rClient("your-api-key");
+
+// Agent interaction
+const response = await client.retrieval.agent({
+    message: {
+        role: "user",
+        content: "Do a deep analysis of the philosophical implications of DeepSeek R1"
+    },
+    mode: "rag",
+    ragTools: ["web_search", "search_file_knowledge", "get_file_content"],
+    searchSettings: { limit: 20 },
+    ragGenerationConfig: {
+        model: "anthropic/claude-3-5-sonnet-20241022",
+        extendedThinking: true,
+        temperature: 1,
+        maxTokens: 16000
+    }
+});
+console.log(`Answer: ${response.answer}`);
+``` 

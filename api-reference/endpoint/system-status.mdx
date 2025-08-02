@@ -1,0 +1,79 @@
+---
+title: 'System Status'
+openapi: 'GET /v3/system/status'
+---
+
+# System Status
+
+Get detailed system status and performance metrics.
+
+<RequestExample>
+```bash
+curl -X GET "https://api.r2r.ai/v3/system/status" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": {
+    "start_time": "2024-01-15T10:30:00Z",
+    "uptime_seconds": 3600.5,
+    "cpu_usage": 45.2,
+    "memory_usage": 67.8
+  }
+}
+```
+</ResponseExample>
+
+**Description:** Returns detailed system status including uptime, CPU usage, and memory usage. Only accessible by authorized users.
+
+**Authentication:** Required (Authorized users only)
+
+**Response Fields:**
+- `start_time` (string): ISO 8601 timestamp when the system started
+- `uptime_seconds` (number): System uptime in seconds
+- `cpu_usage` (number): Current CPU usage percentage
+- `memory_usage` (number): Current memory usage percentage
+
+## Error Codes
+
+| Code | Description |
+|------|-------------|
+| `403` | Forbidden - Only authorized users can access this endpoint |
+| `401` | Unauthorized - Invalid or missing API key |
+| `500` | Internal Server Error - System error |
+
+## Rate Limiting
+
+System status: Rate limited
+
+## SDK Examples
+
+### Python
+
+```python
+from r2r import R2RClient
+
+client = R2RClient(api_key="your-api-key")
+
+# Get system status
+status = client.system.status()
+print(f"CPU Usage: {status['cpu_usage']}%")
+print(f"Memory Usage: {status['memory_usage']}%")
+```
+
+### JavaScript
+
+```javascript
+const { r2rClient } = require("r2r-js");
+
+const client = new r2rClient("your-api-key");
+
+// Get system status
+const status = await client.system.status();
+console.log(`CPU Usage: ${status.cpu_usage}%`);
+console.log(`Memory Usage: ${status.memory_usage}%`);
+``` 

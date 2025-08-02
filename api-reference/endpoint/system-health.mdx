@@ -1,6 +1,6 @@
 ---
 title: 'Health Check'
-openapi: 'GET /health'
+openapi: 'GET /v3/health'
 ---
 
 # Health Check
@@ -19,22 +19,18 @@ curl -X GET "https://api.r2r.ai/v3/health" \
 {
   "success": true,
   "data": {
-    "status": "healthy",
-    "timestamp": "2024-01-15T10:30:00Z",
-    "version": "1.0.0"
+    "message": "ok"
   }
 }
 ```
 </ResponseExample>
 
-**Description:** Returns the current health status of the R2R system, including system status, timestamp, and version information.
+**Description:** Returns the current health status of the R2R system.
 
 **Authentication:** Not required
 
 **Response Fields:**
-- `status` (string): System health status ("healthy", "degraded", "unhealthy")
-- `timestamp` (string): ISO 8601 timestamp of the health check
-- `version` (string): Current system version
+- `message` (string): Health status message ("ok")
 
 ## Error Codes
 
@@ -44,7 +40,7 @@ curl -X GET "https://api.r2r.ai/v3/health" \
 
 ## Rate Limiting
 
-Health check: 100 requests per minute
+Health check: No rate limiting
 
 ## SDK Examples
 
@@ -57,17 +53,17 @@ client = R2RClient(api_key="your-api-key")
 
 # Check system health
 health = client.system.health()
-print(f"System status: {health['status']}")
+print(f"System status: {health['message']}")
 ```
 
 ### JavaScript
 
 ```javascript
-const { R2RClient } = require('r2r-js');
+const { r2rClient } = require("r2r-js");
 
-const client = new R2RClient('your-api-key');
+const client = new r2rClient("your-api-key");
 
 // Check system health
 const health = await client.system.health();
-console.log(`System status: ${health.status}`);
+console.log(`System status: ${health.message}`);
 ``` 

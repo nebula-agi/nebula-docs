@@ -1,0 +1,143 @@
+---
+title: 'RAG Query'
+openapi: 'POST /v3/retrieval/rag'
+---
+
+# RAG Query
+
+Generate responses using Retrieval-Augmented Generation (RAG) over your documents.
+
+<RequestExample>
+```bash
+curl -X POST "https://api.r2r.ai/v3/retrieval/rag" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "What is DeepSeek R1?",
+    "search_mode": "basic",
+    "search_settings": {
+      "limit": 10
+    },
+    "rag_generation_config": {
+      "model": "anthropic/claude-3-5-sonnet-20241022",
+      "temperature": 0.7,
+      "max_tokens": 1000
+    }
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": {
+    "answer": "DeepSeek R1 is a reasoning model that...",
+    "sources": [
+      {
+        "id": "chunk-123",
+        "text": "DeepSeek R1 is a reasoning model that...",
+        "metadata": {
+          "document_id": "b4ac4dd6-5f27-596e-a55b-7cf242ca30aa",
+          "chunk_index": 5
+        },
+        "score": 0.95
+      }
+    ],
+    "search_results": {
+      "results": [...],
+      "total": 1
+    }
+  }
+}
+```
+</ResponseExample>
+
+**Description:** Generates responses using Retrieval-Augmented Generation (RAG) by searching your documents for relevant context and using an LLM to generate an answer based on that context.
+
+**Authentication:** Required
+
+**Request Body:**
+- `query` (string, required): The question or query to answer
+- `search_mode` (string, optional, default: "custom"): Pre-configured search modes:
+  - `basic`: A simple semantic-based search
+  - `advanced`: A more powerful hybrid search combining semantic and full-text
+  - `custom`: Full control via `search_settings`
+- `search_settings` (object, optional): Search configuration
+  - `limit` (integer, optional): Maximum number of results to return
+  - `filters` (object, optional): Filter criteria using operators like `eq`, `neq`, `gt`, `gte`, `lt`, `lte`, `like`, `ilike`, `in`, `nin`
+- `rag_generation_config` (object, optional): Configuration for RAG generation
+  - `model` (string, optional): LLM model to use
+  - `temperature` (number, optional): Sampling temperature
+  - `max_tokens` (integer, optional): Maximum tokens to generate
+  - `stream` (boolean, optional): Whether to stream the response
+- `task_prompt` (string, optional): Optional custom prompt to override default
+- `include_title_if_available` (boolean, optional, default: false): Include document titles in responses when available
+- `include_web_search` (boolean, optional, default: false): Include web search results provided to the LLM
+
+**Response Fields:**
+- `answer` (string): Generated answer based on retrieved context
+- `sources` (array): Array of source chunks used for generation
+  - `id` (string): Chunk identifier
+  - `text` (string): Chunk text content
+  - `metadata` (object): Chunk metadata
+  - `score` (number): Search relevance score
+- `search_results` (object): Full search results
+  - `results` (array): Array of search results
+  - `total` (integer): Total number of results
+
+## Error Codes
+
+| Code | Description |
+|------|-------------|
+| `400` | Bad Request - Invalid query or configuration |
+| `401` | Unauthorized - Invalid or missing API key |
+| `500` | Internal Server Error - System error |
+
+## Rate Limiting
+
+RAG queries: Rate limited
+
+## SDK Examples
+
+### Python
+
+```python
+from r2r import R2RClient
+
+client = R2RClient(api_key="your-api-key")
+
+# RAG query
+response = client.retrieval.rag(
+    query="What is DeepSeek R1?",
+    search_mode="basic",
+    search_settings={"limit": 10},
+    rag_generation_config={
+        "model": "anthropic/claude-3-5-sonnet-20241022",
+        "temperature": 0.7,
+        "max_tokens": 1000
+    }
+)
+print(f"Answer: {response['answer']}")
+```
+
+### JavaScript
+
+```javascript
+const { r2rClient } = require("r2r-js");
+
+const client = new r2rClient("your-api-key");
+
+// RAG query
+const response = await client.retrieval.rag({
+    query: "What is DeepSeek R1?",
+    searchMode: "basic",
+    searchSettings: { limit: 10 },
+    ragGenerationConfig: {
+        model: "anthropic/claude-3-5-sonnet-20241022",
+        temperature: 0.7,
+        maxTokens: 1000
+    }
+});
+console.log(`Answer: ${response.answer}`);
+``` 

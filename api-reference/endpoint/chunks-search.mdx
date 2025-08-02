@@ -1,0 +1,134 @@
+---
+title: 'Search Chunks'
+openapi: 'POST /v3/chunks/search'
+---
+
+# Search Chunks
+
+Perform semantic search over all stored chunks.
+
+<RequestExample>
+```bash
+curl -X POST "https://api.r2r.ai/v3/chunks/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "search query",
+    "search_settings": {
+      "limit": 10,
+      "filters": {
+        "document_id": {"eq": "b4ac4dd6-5f27-596e-a55b-7cf242ca30aa"}
+      }
+    }
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": {
+    "results": [
+      {
+        "id": "chunk-123",
+        "text": "This is the chunk content that matches the query...",
+        "metadata": {
+          "document_id": "b4ac4dd6-5f27-596e-a55b-7cf242ca30aa",
+          "chunk_index": 5
+        },
+        "score": 0.95,
+        "embedding": [0.1, 0.2, 0.3, ...]
+      }
+    ],
+    "total": 1
+  }
+}
+```
+</ResponseExample>
+
+**Description:** Performs a semantic search query over all stored chunks. This endpoint allows for complex filtering of search results using PostgreSQL-based queries. Filters can be applied to various fields such as document_id, and internal metadata values.
+
+**Authentication:** Required
+
+**Request Body:**
+- `query` (string, required): The search query to perform
+- `search_settings` (object, optional): Search configuration
+  - `limit` (integer, optional): Maximum number of results to return
+  - `filters` (object, optional): Filter criteria using operators like `eq`, `neq`, `gt`, `gte`, `lt`, `lte`, `like`, `ilike`, `in`, `nin`
+
+**Response Fields:**
+- `results` (array): Array of chunk objects
+  - `id` (string): Unique identifier for the chunk
+  - `text` (string): Chunk text content
+  - `metadata` (object): Chunk metadata
+  - `score` (number): Search relevance score
+  - `embedding` (array): Vector embedding (if requested)
+- `total` (integer): Total number of matching chunks
+
+## Error Codes
+
+| Code | Description |
+|------|-------------|
+| `400` | Bad Request - Invalid search query or settings |
+| `401` | Unauthorized - Invalid or missing API key |
+| `500` | Internal Server Error - System error |
+
+## Rate Limiting
+
+Chunk search: Rate limited
+
+## Filter Operators
+
+- `eq`: Equal to
+- `neq`: Not equal to
+- `gt`: Greater than
+- `gte`: Greater than or equal to
+- `lt`: Less than
+- `lte`: Less than or equal to
+- `like`: Pattern matching
+- `ilike`: Case-insensitive pattern matching
+- `in`: In array
+- `nin`: Not in array
+
+## SDK Examples
+
+### Python
+
+```python
+from r2r import R2RClient
+
+client = R2RClient(api_key="your-api-key")
+
+# Search chunks
+response = client.chunks.search(
+    query="search query",
+    search_settings={
+        "limit": 10,
+        "filters": {
+            "document_id": {"eq": "b4ac4dd6-5f27-596e-a55b-7cf242ca30aa"}
+        }
+    }
+)
+print(f"Found {len(response['results'])} chunks")
+```
+
+### JavaScript
+
+```javascript
+const { r2rClient } = require("r2r-js");
+
+const client = new r2rClient("your-api-key");
+
+// Search chunks
+const response = await client.chunks.search({
+    query: "search query",
+    searchSettings: {
+        limit: 10,
+        filters: {
+            document_id: { eq: "b4ac4dd6-5f27-596e-a55b-7cf242ca30aa" }
+        }
+    }
+});
+console.log(`Found ${response.results.length} chunks`);
+``` 

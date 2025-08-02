@@ -1,11 +1,11 @@
 ---
 title: 'Get Document'
-description: 'Retrieve a specific document by ID'
+openapi: 'GET /v3/documents/{id}'
 ---
 
 # Get Document
 
-Retrieve a specific document by ID.
+Retrieve details of a specific document by ID.
 
 <RequestExample>
 ```bash
@@ -20,63 +20,46 @@ curl -X GET "https://api.r2r.ai/v3/documents/b4ac4dd6-5f27-596e-a55b-7cf242ca30a
   "success": true,
   "data": {
     "id": "b4ac4dd6-5f27-596e-a55b-7cf242ca30aa",
-    "title": "My Document",
-    "content": "Document content...",
-    "summary": "Document summary...",
-    "created_at": "2024-01-15T10:30:00Z",
-    "updated_at": "2024-01-15T10:35:00Z",
-    "status": "completed",
+    "title": "Sample Document",
+    "content": "This is the document content...",
     "metadata": {
       "author": "John Doe",
-      "category": "research"
+      "created_date": "2024-01-15"
     },
-    "collections": [
-      {
-        "id": "uuid1",
-        "name": "Research Papers"
-      }
-    ],
-    "chunks_count": 25,
-    "file_size": 1024000
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T10:30:00Z"
   }
 }
 ```
 </ResponseExample>
 
-**Endpoint:** `GET /documents/{id}`
-
-**Description:** Retrieve detailed information about a specific document.
+**Description:** Returns detailed information about a specific document. Users can access documents they own or documents in collections they are members of.
 
 **Authentication:** Required
 
 **Path Parameters:**
-- `id` (UUID, required): The ID of the document to retrieve
+- `id` (string, required): The unique identifier of the document
 
 **Response Fields:**
-- `id` (string): Document ID
+- `id` (string): Unique identifier for the document
 - `title` (string): Document title
 - `content` (string): Document content
-- `summary` (string): Document summary
-- `created_at` (string): Creation timestamp
-- `updated_at` (string): Last update timestamp
-- `status` (string): Processing status
 - `metadata` (object): Document metadata
-- `collections` (array): Associated collections
-- `chunks_count` (integer): Number of text chunks
-- `file_size` (integer): File size in bytes
+- `created_at` (string): ISO 8601 timestamp when the document was created
+- `updated_at` (string): ISO 8601 timestamp when the document was last updated
 
 ## Error Codes
 
 | Code | Description |
 |------|-------------|
+| `404` | Not Found - Document does not exist |
+| `403` | Forbidden - User does not have access to this document |
 | `401` | Unauthorized - Invalid or missing API key |
-| `403` | Forbidden - Insufficient permissions |
-| `404` | Not Found - Document not found |
 | `500` | Internal Server Error - System error |
 
 ## Rate Limiting
 
-List/Get: 100 requests per minute
+Document retrieval: Rate limited
 
 ## SDK Examples
 
@@ -88,18 +71,20 @@ from r2r import R2RClient
 client = R2RClient(api_key="your-api-key")
 
 # Get document details
-doc = client.documents.retrieve(id="document-id")
-print(f"Content: {doc['content'][:100]}...")
+result = client.documents.retrieve("b4ac4dd6-5f27-596e-a55b-7cf242ca30aa")
+print(f"Document title: {result['title']}")
 ```
 
 ### JavaScript
 
 ```javascript
-const { R2RClient } = require('r2r-js');
+const { r2rClient } = require("r2r-js");
 
-const client = new R2RClient('your-api-key');
+const client = new r2rClient("your-api-key");
 
 // Get document details
-const doc = await client.documents.retrieve({ id: 'document-id' });
-console.log(`Content: ${doc.content.substring(0, 100)}...`);
+const response = await client.documents.retrieve({
+    id: "b4ac4dd6-5f27-596e-a55b-7cf242ca30aa"
+});
+console.log(`Document title: ${response.title}`);
 ``` 

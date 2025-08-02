@@ -1,0 +1,141 @@
+---
+title: 'Search R2R'
+openapi: 'POST /v3/retrieval/search'
+---
+
+# Search R2R
+
+Perform semantic search over your documents and retrieve relevant chunks.
+
+<RequestExample>
+```bash
+curl -X POST "https://api.r2r.ai/v3/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "What is DeepSeek R1?",
+    "search_mode": "basic",
+    "search_settings": {
+      "limit": 10,
+      "filters": {
+        "document_id": {"eq": "b4ac4dd6-5f27-596e-a55b-7cf242ca30aa"}
+      }
+    }
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": {
+    "results": [
+      {
+        "id": "chunk-123",
+        "text": "DeepSeek R1 is a reasoning model that...",
+        "metadata": {
+          "document_id": "b4ac4dd6-5f27-596e-a55b-7cf242ca30aa",
+          "chunk_index": 5
+        },
+        "score": 0.95,
+        "embedding": [0.1, 0.2, 0.3, ...]
+      }
+    ],
+    "total": 1
+  }
+}
+```
+</ResponseExample>
+
+**Description:** Performs semantic search over all stored chunks in your documents. This endpoint allows for complex filtering of search results using PostgreSQL-based queries. Filters can be applied to various fields such as document_id, and internal metadata values.
+
+**Authentication:** Required
+
+**Request Body:**
+- `query` (string, required): Search query to find relevant documents
+- `search_mode` (string, optional, default: "custom"): Pre-configured search modes:
+  - `basic`: A simple semantic-based search
+  - `advanced`: A more powerful hybrid search combining semantic and full-text
+  - `custom`: Full control via `search_settings`
+- `search_settings` (object, optional): Search configuration
+  - `limit` (integer, optional): Maximum number of results to return
+  - `filters` (object, optional): Filter criteria using operators like `eq`, `neq`, `gt`, `gte`, `lt`, `lte`, `like`, `ilike`, `in`, `nin`
+
+**Response Fields:**
+- `results` (array): Array of chunk objects
+  - `id` (string): Unique identifier for the chunk
+  - `text` (string): Chunk text content
+  - `metadata` (object): Chunk metadata
+  - `score` (number): Search relevance score
+  - `embedding` (array): Vector embedding (if requested)
+- `total` (integer): Total number of matching chunks
+
+## Error Codes
+
+| Code | Description |
+|------|-------------|
+| `400` | Bad Request - Invalid search query or settings |
+| `401` | Unauthorized - Invalid or missing API key |
+| `500` | Internal Server Error - System error |
+
+## Rate Limiting
+
+Retrieval search: Rate limited
+
+## Filter Operators
+
+- `eq`: Equal to
+- `neq`: Not equal to
+- `gt`: Greater than
+- `gte`: Greater than or equal to
+- `lt`: Less than
+- `lte`: Less than or equal to
+- `like`: Pattern matching
+- `ilike`: Case-insensitive pattern matching
+- `in`: In array
+- `nin`: Not in array
+
+## SDK Examples
+
+### Python
+
+```python
+from r2r import R2RClient
+
+client = R2RClient(api_key="your-api-key")
+
+# Search documents
+response = client.retrieval.search(
+    query="What is DeepSeek R1?",
+    search_mode="basic",
+    search_settings={
+        "limit": 10,
+        "filters": {
+            "document_id": {"eq": "b4ac4dd6-5f27-596e-a55b-7cf242ca30aa"}
+        }
+    }
+)
+print(f"Found {len(response['results'])} chunks")
+```
+
+### JavaScript
+
+```javascript
+const { r2rClient } = require("r2r-js");
+
+const client = new r2rClient("your-api-key");
+
+// Search documents
+const response = await client.retrieval.search({
+    query: "What is DeepSeek R1?",
+    searchMode: "basic",
+    searchSettings: {
+        limit: 10,
+        filters: {
+            document_id: { eq: "b4ac4dd6-5f27-596e-a55b-7cf242ca30aa" }
+        }
+    }
+});
+console.log(`Found ${response.results.length} chunks`);
+``` 

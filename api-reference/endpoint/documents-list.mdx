@@ -1,15 +1,15 @@
 ---
 title: 'List Documents'
-description: 'Retrieve a list of documents'
+openapi: 'GET /v3/documents'
 ---
 
 # List Documents
 
-Retrieve a list of documents.
+Retrieve a list of documents accessible to the authenticated user.
 
 <RequestExample>
 ```bash
-curl -X GET "https://api.r2r.ai/v3/documents?limit=10&offset=0" \
+curl -X GET "https://api.r2r.ai/v3/documents?offset=0&limit=10&owner_only=false" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 </RequestExample>
@@ -22,23 +22,17 @@ curl -X GET "https://api.r2r.ai/v3/documents?limit=10&offset=0" \
     "results": [
       {
         "id": "b4ac4dd6-5f27-596e-a55b-7cf242ca30aa",
-        "title": "My Document",
-        "created_at": "2024-01-15T10:30:00Z",
-        "updated_at": "2024-01-15T10:35:00Z",
-        "status": "completed",
+        "title": "Sample Document",
+        "content": "This is the document content...",
         "metadata": {
           "author": "John Doe",
-          "category": "research"
+          "created_date": "2024-01-15"
         },
-        "collections": [
-          {
-            "id": "uuid1",
-            "name": "Research Papers"
-          }
-        ]
+        "created_at": "2024-01-15T10:30:00Z",
+        "updated_at": "2024-01-15T10:30:00Z"
       }
     ],
-    "total": 150,
+    "total": 1,
     "offset": 0,
     "limit": 10
   }
@@ -46,21 +40,25 @@ curl -X GET "https://api.r2r.ai/v3/documents?limit=10&offset=0" \
 ```
 </ResponseExample>
 
-**Endpoint:** `GET /documents`
-
-**Description:** Retrieve a paginated list of documents accessible to the authenticated user.
+**Description:** Returns a paginated list of documents that the authenticated user has access to. Users can see documents they own and documents in collections they are members of.
 
 **Authentication:** Required
 
 **Query Parameters:**
-- `ids` (array, optional): List of specific document IDs to retrieve
-- `offset` (integer, optional): Number of documents to skip. Default: 0
-- `limit` (integer, optional): Maximum number of documents to return. Default: 100, Max: 1000
-- `include_summary_embeddings` (boolean, optional): Include document summary embeddings. Default: false
-- `owner_only` (boolean, optional): Return only documents owned by the user. Default: false
+- `ids` (array of strings, optional): A list of document IDs to retrieve. If not provided, all accessible documents will be returned.
+- `offset` (integer, optional, default: 0): Number of objects to skip. Must be >= 0.
+- `limit` (integer, optional, default: 100): Limit on the number of objects to return. Must be between 1 and 1000.
+- `include_summary_embeddings` (boolean, optional, default: false): Whether to include embeddings of each document summary.
+- `owner_only` (boolean, optional, default: false): If true, only returns documents owned by the user, not all accessible documents.
 
 **Response Fields:**
-- `results` (array): List of document objects
+- `results` (array): Array of document objects
+  - `id` (string): Unique identifier for the document
+  - `title` (string): Document title
+  - `content` (string): Document content
+  - `metadata` (object): Document metadata
+  - `created_at` (string): ISO 8601 timestamp when the document was created
+  - `updated_at` (string): ISO 8601 timestamp when the document was last updated
 - `total` (integer): Total number of documents
 - `offset` (integer): Current offset
 - `limit` (integer): Current limit
@@ -69,13 +67,13 @@ curl -X GET "https://api.r2r.ai/v3/documents?limit=10&offset=0" \
 
 | Code | Description |
 |------|-------------|
+| `400` | Bad Request - Invalid query parameters |
 | `401` | Unauthorized - Invalid or missing API key |
-| `403` | Forbidden - Insufficient permissions |
 | `500` | Internal Server Error - System error |
 
 ## Rate Limiting
 
-List/Get: 100 requests per minute
+Document listing: Rate limited
 
 ## SDK Examples
 
@@ -87,21 +85,26 @@ from r2r import R2RClient
 client = R2RClient(api_key="your-api-key")
 
 # List documents
-documents = client.documents.list(limit=10, offset=0)
-for doc in documents['results']:
-    print(f"Title: {doc['title']}, Status: {doc['status']}")
+result = client.documents.list(
+    offset=0,
+    limit=10,
+    owner_only=False
+)
+print(f"Found {result['total']} documents")
 ```
 
 ### JavaScript
 
 ```javascript
-const { R2RClient } = require('r2r-js');
+const { r2rClient } = require("r2r-js");
 
-const client = new R2RClient('your-api-key');
+const client = new r2rClient("your-api-key");
 
 // List documents
-const documents = await client.documents.list({ limit: 10, offset: 0 });
-documents.results.forEach(doc => {
-    console.log(`Title: ${doc.title}, Status: ${doc.status}`);
+const response = await client.documents.list({
+    offset: 0,
+    limit: 10,
+    ownerOnly: false
 });
+console.log(`Found ${response.total} documents`);
 ``` 

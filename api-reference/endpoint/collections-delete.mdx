@@ -1,0 +1,78 @@
+---
+title: 'Delete Collection'
+openapi: 'DELETE /v3/collections/{id}'
+---
+
+# Delete Collection
+
+Delete a collection and all its associated data.
+
+<RequestExample>
+```bash
+curl -X DELETE "https://api.r2r.ai/v3/collections/123e4567-e89b-12d3-a456-426614174000" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": true
+}
+```
+</ResponseExample>
+
+**Description:** Permanently deletes a collection and all its associated documents, chunks, and metadata. This action cannot be undone. Only the collection owner can delete the collection.
+
+**Authentication:** Required
+
+**Path Parameters:**
+- `id` (string, required): The unique identifier of the collection to delete
+
+**Response Fields:**
+- `data` (boolean): True if the collection was successfully deleted
+
+## Error Codes
+
+| Code | Description |
+|------|-------------|
+| `404` | Not Found - Collection does not exist |
+| `403` | Forbidden - User is not the owner of this collection |
+| `401` | Unauthorized - Invalid or missing API key |
+| `500` | Internal Server Error - System error |
+
+## Rate Limiting
+
+Collection deletion: Rate limited
+
+## SDK Examples
+
+### Python
+
+```python
+from r2r import R2RClient
+
+client = R2RClient(api_key="your-api-key")
+
+# Delete collection
+result = client.collections.delete("123e4567-e89b-12d3-a456-426614174000")
+if result:
+    print("Collection deleted successfully")
+```
+
+### JavaScript
+
+```javascript
+const { r2rClient } = require("r2r-js");
+
+const client = new r2rClient("your-api-key");
+
+// Delete collection
+const response = await client.collections.delete({
+    id: "123e4567-e89b-12d3-a456-426614174000"
+});
+if (response) {
+    console.log("Collection deleted successfully");
+}
+``` 

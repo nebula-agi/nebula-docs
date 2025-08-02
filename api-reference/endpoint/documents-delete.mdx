@@ -1,11 +1,11 @@
 ---
 title: 'Delete Document'
-description: 'Delete a specific document'
+openapi: 'DELETE /v3/documents/{id}'
 ---
 
 # Delete Document
 
-Delete a specific document.
+Delete a document and all its associated data.
 
 <RequestExample>
 ```bash
@@ -18,39 +18,33 @@ curl -X DELETE "https://api.r2r.ai/v3/documents/b4ac4dd6-5f27-596e-a55b-7cf242ca
 ```json
 {
   "success": true,
-  "data": {
-    "deleted": true,
-    "message": "Document deleted successfully"
-  }
+  "data": true
 }
 ```
 </ResponseExample>
 
-**Endpoint:** `DELETE /documents/{id}`
-
-**Description:** Delete a specific document and all associated data.
+**Description:** Permanently deletes a document and all its associated chunks, embeddings, and metadata. This action cannot be undone. Only the document owner can delete the document.
 
 **Authentication:** Required
 
 **Path Parameters:**
-- `id` (UUID, required): The ID of the document to delete
+- `id` (string, required): The unique identifier of the document to delete
 
 **Response Fields:**
-- `deleted` (boolean): Whether the document was successfully deleted
-- `message` (string): Status message
+- `data` (boolean): True if the document was successfully deleted
 
 ## Error Codes
 
 | Code | Description |
 |------|-------------|
+| `404` | Not Found - Document does not exist |
+| `403` | Forbidden - User is not the owner of this document |
 | `401` | Unauthorized - Invalid or missing API key |
-| `403` | Forbidden - Insufficient permissions |
-| `404` | Not Found - Document not found |
 | `500` | Internal Server Error - System error |
 
 ## Rate Limiting
 
-Delete: 20 requests per minute
+Document deletion: Rate limited
 
 ## SDK Examples
 
@@ -61,19 +55,24 @@ from r2r import R2RClient
 
 client = R2RClient(api_key="your-api-key")
 
-# Delete a document
-response = client.documents.delete(id="document-id")
-print(f"Deleted: {response['deleted']}")
+# Delete document
+result = client.documents.delete("b4ac4dd6-5f27-596e-a55b-7cf242ca30aa")
+if result:
+    print("Document deleted successfully")
 ```
 
 ### JavaScript
 
 ```javascript
-const { R2RClient } = require('r2r-js');
+const { r2rClient } = require("r2r-js");
 
-const client = new R2RClient('your-api-key');
+const client = new r2rClient("your-api-key");
 
-// Delete a document
-const response = await client.documents.delete({ id: 'document-id' });
-console.log(`Deleted: ${response.deleted}`);
+// Delete document
+const response = await client.documents.delete({
+    id: "b4ac4dd6-5f27-596e-a55b-7cf242ca30aa"
+});
+if (response) {
+    console.log("Document deleted successfully");
+}
 ``` 
