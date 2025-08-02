@@ -5,7 +5,7 @@ openapi: 'GET /v3/chunks/{id}'
 
 # Get Chunk
 
-Retrieve details of a specific chunk by ID.
+Retrieve a specific chunk by its ID.
 
 <RequestExample>
 ```bash
@@ -24,7 +24,7 @@ curl -X GET "https://api.r2r.ai/v3/chunks/b4ac4dd6-5f27-596e-a55b-7cf242ca30aa" 
     "metadata": {
       "document_id": "doc-123",
       "chunk_index": 5,
-      "page_number": 2
+      "created_at": "2024-01-15T10:30:00Z"
     },
     "embedding": [0.1, 0.2, 0.3, ...],
     "created_at": "2024-01-15T10:30:00Z",
@@ -34,7 +34,7 @@ curl -X GET "https://api.r2r.ai/v3/chunks/b4ac4dd6-5f27-596e-a55b-7cf242ca30aa" 
 ```
 </ResponseExample>
 
-**Description:** Returns detailed information about a specific chunk, including its text content, metadata, and vector embedding.
+**Description:** Returns the chunk's content, metadata, and associated document/collection information. Users can only retrieve chunks they own or have access to through collections.
 
 **Authentication:** Required
 
@@ -44,8 +44,8 @@ curl -X GET "https://api.r2r.ai/v3/chunks/b4ac4dd6-5f27-596e-a55b-7cf242ca30aa" 
 **Response Fields:**
 - `id` (string): Unique identifier for the chunk
 - `text` (string): Chunk text content
-- `metadata` (object): Chunk metadata
-- `embedding` (array): Vector embedding
+- `metadata` (object): Chunk metadata including document_id, chunk_index, etc.
+- `embedding` (array): Vector embedding of the chunk
 - `created_at` (string): ISO 8601 timestamp when the chunk was created
 - `updated_at` (string): ISO 8601 timestamp when the chunk was last updated
 

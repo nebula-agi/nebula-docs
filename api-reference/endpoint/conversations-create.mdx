@@ -1,0 +1,88 @@
+---
+title: 'Create Conversation'
+openapi: 'POST /v3/conversations'
+---
+
+# Create Conversation
+
+Create a new conversation for the authenticated user.
+
+<RequestExample>
+```bash
+curl -X POST "https://api.r2r.ai/v3/conversations" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "name": "My New Conversation"
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": {
+    "id": "123e4567-e89b-12d3-a456-426614174000",
+    "name": "My New Conversation",
+    "user_id": "user-123",
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T10:30:00Z"
+  }
+}
+```
+</ResponseExample>
+
+**Description:** Initializes a new conversation for the authenticated user. The conversation can be used to store and manage chat messages.
+
+**Authentication:** Required
+
+**Request Body:**
+- `name` (string, optional): The name of the conversation
+
+**Response Fields:**
+- `id` (string): Unique identifier for the conversation
+- `name` (string): Conversation name
+- `user_id` (string): ID of the user who created the conversation
+- `created_at` (string): ISO 8601 timestamp when the conversation was created
+- `updated_at` (string): ISO 8601 timestamp when the conversation was last updated
+
+## Error Codes
+
+| Code | Description |
+|------|-------------|
+| `400` | Bad Request - Invalid request body |
+| `401` | Unauthorized - Invalid or missing API key |
+| `500` | Internal Server Error - System error |
+
+## Rate Limiting
+
+Conversation creation: Rate limited
+
+## SDK Examples
+
+### Python
+
+```python
+from r2r import R2RClient
+
+client = R2RClient(api_key="your-api-key")
+
+# Create conversation
+result = client.conversations.create(name="My New Conversation")
+print(f"Created conversation: {result['id']}")
+```
+
+### JavaScript
+
+```javascript
+const { r2rClient } = require("r2r-js");
+
+const client = new r2rClient("your-api-key");
+
+// Create conversation
+const response = await client.conversations.create({
+    name: "My New Conversation"
+});
+console.log(`Created conversation: ${response.id}`);
+``` 

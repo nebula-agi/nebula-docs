@@ -1,0 +1,78 @@
+---
+title: 'Delete Conversation'
+openapi: 'DELETE /v3/conversations/{id}'
+---
+
+# Delete Conversation
+
+Delete a conversation and all its associated messages.
+
+<RequestExample>
+```bash
+curl -X DELETE "https://api.r2r.ai/v3/conversations/123e4567-e89b-12d3-a456-426614174000" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+</RequestExample>
+
+<ResponseExample>
+```json
+{
+  "success": true,
+  "data": true
+}
+```
+</ResponseExample>
+
+**Description:** Permanently deletes a conversation and all its associated messages. This action cannot be undone. Only the conversation owner can delete the conversation.
+
+**Authentication:** Required
+
+**Path Parameters:**
+- `id` (string, required): The unique identifier of the conversation to delete
+
+**Response Fields:**
+- `data` (boolean): True if the conversation was successfully deleted
+
+## Error Codes
+
+| Code | Description |
+|------|-------------|
+| `404` | Not Found - Conversation does not exist |
+| `403` | Forbidden - User is not the owner of this conversation |
+| `401` | Unauthorized - Invalid or missing API key |
+| `500` | Internal Server Error - System error |
+
+## Rate Limiting
+
+Conversation deletion: Rate limited
+
+## SDK Examples
+
+### Python
+
+```python
+from r2r import R2RClient
+
+client = R2RClient(api_key="your-api-key")
+
+# Delete conversation
+result = client.conversations.delete("123e4567-e89b-12d3-a456-426614174000")
+if result:
+    print("Conversation deleted successfully")
+```
+
+### JavaScript
+
+```javascript
+const { r2rClient } = require("r2r-js");
+
+const client = new r2rClient("your-api-key");
+
+// Delete conversation
+const response = await client.conversations.delete({
+    id: "123e4567-e89b-12d3-a456-426614174000"
+});
+if (response) {
+    console.log("Conversation deleted successfully");
+}
+``` 

@@ -9,7 +9,7 @@ Retrieve a list of chunks with optional filtering.
 
 <RequestExample>
 ```bash
-curl -X GET "https://api.r2r.ai/v3/chunks?offset=0&limit=10&include_vectors=false&metadata_filter={\"document_id\":\"b4ac4dd6-5f27-596e-a55b-7cf242ca30aa\"}" \
+curl -X GET "https://api.r2r.ai/v3/chunks?offset=0&limit=10&include_vectors=false" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 </RequestExample>
@@ -24,9 +24,10 @@ curl -X GET "https://api.r2r.ai/v3/chunks?offset=0&limit=10&include_vectors=fals
         "id": "chunk-123",
         "text": "This is the chunk content...",
         "metadata": {
-          "document_id": "b4ac4dd6-5f27-596e-a55b-7cf242ca30aa",
+          "document_id": "doc-123",
           "chunk_index": 5
         },
+        "embedding": [0.1, 0.2, 0.3, ...],
         "created_at": "2024-01-15T10:30:00Z",
         "updated_at": "2024-01-15T10:30:00Z"
       }
@@ -39,12 +40,12 @@ curl -X GET "https://api.r2r.ai/v3/chunks?offset=0&limit=10&include_vectors=fals
 ```
 </ResponseExample>
 
-**Description:** Returns a paginated list of chunks with optional filtering by metadata. Users can access chunks from documents they own or documents in collections they are members of.
+**Description:** Returns a paginated list of chunks that the authenticated user has access to. Users can see chunks from documents they own or documents in collections they are members of.
 
 **Authentication:** Required
 
 **Query Parameters:**
-- `metadata_filter` (string, optional): JSON string to filter chunks by metadata
+- `metadata_filter` (string, optional): Filter by metadata in JSON format
 - `include_vectors` (boolean, optional, default: false): Whether to include vector embeddings in the response
 - `offset` (integer, optional, default: 0): Number of objects to skip. Must be >= 0.
 - `limit` (integer, optional, default: 100): Limit on the number of objects to return. Must be between 1 and 1000.
@@ -84,7 +85,7 @@ client = R2RClient(api_key="your-api-key")
 
 # List chunks
 result = client.chunks.list(
-    metadata_filter={"document_id": "b4ac4dd6-5f27-596e-a55b-7cf242ca30aa"},
+    metadata_filter={"document_id": "doc-123"},
     include_vectors=False,
     offset=0,
     limit=10
@@ -101,7 +102,7 @@ const client = new r2rClient("your-api-key");
 
 // List chunks
 const response = await client.chunks.list({
-    metadataFilter: { document_id: "b4ac4dd6-5f27-596e-a55b-7cf242ca30aa" },
+    metadataFilter: { document_id: "doc-123" },
     includeVectors: false,
     offset: 0,
     limit: 10
