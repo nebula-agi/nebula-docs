@@ -1,43 +1,361 @@
 ---
-title: 'Conversation Management'
-description: 'Manage chat conversations, messages, and conversation history'
+title: 'Conversations API Reference'
+description: 'Complete API reference for conversations operations in Nebula'
 ---
 
-# Conversation Management
+# Conversations API Reference
 
-The Conversations API allows you to manage chat conversations, messages, and conversation history in the R2R platform. This enables building conversational interfaces and maintaining chat sessions.
+This page provides detailed information about all conversations-related API endpoints in Nebula.
 
-## Overview
+## Base URL
 
-The Conversations API provides:
+All API endpoints are relative to: `https://api.nebulacloud.app`
 
-- **Conversation Management**: Create, update, and delete conversations
-- **Message Handling**: Add, retrieve, and manage messages within conversations
-- **History Tracking**: Maintain conversation history and context
-- **Multi-user Support**: Support for multiple participants in conversations
+## Authentication
 
-## Endpoints
+All requests require authentication using either:
+- **API Key**: `Authorization: ApiKey your-api-key`
+- **JWT Token**: `Authorization: Bearer your-jwt-token`
 
-### Conversation Management
+## Conversations Operations
 
-- `POST /conversations` - Create conversation
-- `GET /conversations` - List conversations
-- `GET /conversations/{id}` - Get conversation
-- `POST /conversations/{id}` - Update conversation
-- `DELETE /conversations/{id}` - Delete conversation
+### List Conversations
 
-### Message Management
+Retrieve a list of conversations.
 
-- `POST /conversations/{id}/messages` - Add message to conversation
-- `GET /conversations/{id}/messages` - List conversation messages
-- `DELETE /conversations/{id}/messages/{message_id}` - Delete message
+```http
+GET /api/v1/conversations
+```
 
-## Documentation Status
+**Parameters:**
+- `limit` (integer, optional): Number of conversations to return. Defaults to 50
+- `offset` (integer, optional): Number of conversations to skip. Defaults to 0
 
-⚠️ **This documentation is currently being written.** 
+**Response:**
+```json
+{
+  "conversations": [
+    {
+      "id": "conversation-uuid",
+      "title": "Research Discussion",
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "message_count": 15,
+      "metadata": {
+        "topic": "research",
+        "participants": 2
+      }
+    }
+  ],
+  "total": 100,
+  "limit": 50,
+  "offset": 0
+}
+```
 
-The Conversations API contains 8 endpoints for conversation and message management. This documentation will be completed as part of the comprehensive R2R API documentation effort.
+### Create Conversation
 
-**Estimated completion**: Next 3-5 days
+Create a new conversation.
 
-For now, please refer to the [R2R API Reference Overview](./r2r-api-reference) for general information about the API structure and authentication. 
+```http
+POST /api/v1/conversations
+```
+
+**Request Body:**
+```json
+{
+  "title": "New Conversation",
+  "metadata": {
+    "topic": "general",
+    "participants": 1
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "id": "conversation-uuid",
+  "title": "New Conversation",
+  "created_at": "2024-01-01T00:00:00Z",
+  "updated_at": "2024-01-01T00:00:00Z",
+  "message_count": 0,
+  "metadata": {
+    "topic": "general",
+    "participants": 1
+  }
+}
+```
+
+### Get Conversation
+
+Retrieve conversation details and messages.
+
+```http
+GET /api/v1/conversations/{conversation_id}
+```
+
+**Parameters:**
+- `conversation_id` (string, required): The ID of the conversation
+
+**Response:**
+```json
+{
+  "id": "conversation-uuid",
+  "title": "Research Discussion",
+  "created_at": "2024-01-01T00:00:00Z",
+  "updated_at": "2024-01-01T00:00:00Z",
+  "message_count": 15,
+  "metadata": {
+    "topic": "research",
+    "participants": 2
+  },
+  "messages": [
+    {
+      "id": "message-uuid",
+      "content": "Hello, how can I help you with your research?",
+      "role": "assistant",
+      "created_at": "2024-01-01T00:00:00Z",
+      "metadata": {
+        "tokens": 15,
+        "model": "gpt-4"
+      }
+    }
+  ]
+}
+```
+
+### Update Conversation
+
+Update conversation metadata.
+
+```http
+PUT /api/v1/conversations/{conversation_id}
+```
+
+**Parameters:**
+- `conversation_id` (string, required): The ID of the conversation
+
+**Request Body:**
+```json
+{
+  "title": "Updated Conversation Title",
+  "metadata": {
+    "topic": "updated-topic",
+    "participants": 3
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "id": "conversation-uuid",
+  "title": "Updated Conversation Title",
+  "updated_at": "2024-01-01T00:00:00Z",
+  "metadata": {
+    "topic": "updated-topic",
+    "participants": 3
+  }
+}
+```
+
+### Delete Conversation
+
+Delete a conversation and all its messages.
+
+```http
+DELETE /api/v1/conversations/{conversation_id}
+```
+
+**Parameters:**
+- `conversation_id` (string, required): The ID of the conversation
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Conversation deleted successfully",
+  "deleted_messages": 15
+}
+```
+
+### Send Message
+
+Send a message in a conversation.
+
+```http
+POST /api/v1/conversations/{conversation_id}/messages
+```
+
+**Parameters:**
+- `conversation_id` (string, required): The ID of the conversation
+
+**Request Body:**
+```json
+{
+  "content": "What can you tell me about machine learning?",
+  "role": "user",
+  "metadata": {
+    "source": "web",
+    "user_id": "user-uuid"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "id": "message-uuid",
+  "content": "What can you tell me about machine learning?",
+  "role": "user",
+  "created_at": "2024-01-01T00:00:00Z",
+  "metadata": {
+    "source": "web",
+    "user_id": "user-uuid"
+  }
+}
+```
+
+### Chat with AI
+
+Send a message and get an AI response.
+
+```http
+POST /api/v1/conversations/{conversation_id}/chat
+```
+
+**Parameters:**
+- `conversation_id` (string, required): The ID of the conversation
+
+**Request Body:**
+```json
+{
+  "message": "What can you tell me about machine learning?",
+  "context": {
+    "collection_id": "collection-uuid",
+    "documents": ["doc1", "doc2"]
+  },
+  "options": {
+    "model": "gpt-4",
+    "temperature": 0.7,
+    "max_tokens": 1000
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "user_message": {
+    "id": "user-message-uuid",
+    "content": "What can you tell me about machine learning?",
+    "role": "user",
+    "created_at": "2024-01-01T00:00:00Z"
+  },
+  "assistant_message": {
+    "id": "assistant-message-uuid",
+    "content": "Machine learning is a subset of artificial intelligence...",
+    "role": "assistant",
+    "created_at": "2024-01-01T00:00:00Z",
+    "metadata": {
+      "tokens": 150,
+      "model": "gpt-4",
+      "sources": ["doc1", "doc2"]
+    }
+  }
+}
+```
+
+### Get Message History
+
+Retrieve message history for a conversation.
+
+```http
+GET /api/v1/conversations/{conversation_id}/messages
+```
+
+**Parameters:**
+- `conversation_id` (string, required): The ID of the conversation
+- `limit` (integer, optional): Number of messages to return. Defaults to 50
+- `offset` (integer, optional): Number of messages to skip. Defaults to 0
+
+**Response:**
+```json
+{
+  "messages": [
+    {
+      "id": "message-uuid",
+      "content": "Hello, how can I help you?",
+      "role": "assistant",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "total": 15,
+  "limit": 50,
+  "offset": 0
+}
+```
+
+## Error Responses
+
+### 400 Bad Request
+```json
+{
+  "error": "Invalid request parameters",
+  "details": "Message content cannot be empty"
+}
+```
+
+### 401 Unauthorized
+```json
+{
+  "error": "Authentication required",
+  "message": "Valid API key or JWT token required"
+}
+```
+
+### 403 Forbidden
+```json
+{
+  "error": "Insufficient permissions",
+  "message": "You don't have permission to access this resource"
+}
+```
+
+### 404 Not Found
+```json
+{
+  "error": "Conversation not found",
+  "message": "The specified conversation does not exist"
+}
+```
+
+### 429 Too Many Requests
+```json
+{
+  "error": "Rate limit exceeded",
+  "message": "Too many requests, please try again later"
+}
+```
+
+## Rate Limits
+
+- **Create/Delete**: 10 requests per minute per API key
+- **List/Get**: 200 requests per minute per API key
+- **Update**: 50 requests per minute per API key
+- **Chat**: 30 requests per minute per API key
+- **Send Message**: 100 requests per minute per API key
+
+## Message Roles
+
+- **user**: Messages sent by the user
+- **assistant**: Messages sent by the AI assistant
+- **system**: System messages (reserved)
+
+## AI Models
+
+Available models for chat responses:
+- **gpt-4**: Latest GPT-4 model (recommended)
+- **gpt-3.5-turbo**: Fast and cost-effective
+- **claude-3**: Anthropic's Claude model 

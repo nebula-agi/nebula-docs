@@ -1,44 +1,407 @@
 ---
-title: 'Retrieval Operations'
-description: 'Perform search operations, RAG queries, and generate embeddings'
+title: 'Retrieval API Reference'
+description: 'Complete API reference for retrieval operations in Nebula'
 ---
 
-# Retrieval Operations
+# Retrieval API Reference
 
-The Retrieval API provides the core search and retrieval functionality for the R2R platform. This includes semantic search, RAG (Retrieval-Augmented Generation) queries, conversational agents, and embedding generation.
+This page provides detailed information about all retrieval-related API endpoints in Nebula.
 
-## Overview
+## Base URL
 
-The Retrieval API enables:
+All API endpoints are relative to: `https://api.nebulacloud.app`
 
-- **Semantic Search**: Find relevant documents using natural language queries
-- **RAG Queries**: Generate responses based on retrieved context
-- **Conversational Agents**: Build AI agents that can search and respond
-- **Embedding Generation**: Create vector embeddings for text
-- **Message Completions**: Generate text completions with context
+## Authentication
 
-## Endpoints
+All requests require authentication using either:
+- **API Key**: `Authorization: ApiKey your-api-key`
+- **JWT Token**: `Authorization: Bearer your-jwt-token`
 
-### Search & Retrieval
+## Retrieval Operations
 
-- `POST /retrieval/search` - Search R2R
-- `POST /retrieval/rag` - RAG Query
+### Search Documents
 
-### AI & Generation
+Search for documents using semantic search.
 
-- `POST /retrieval/agent` - RAG-powered Conversational Agent
-- `POST /retrieval/completion` - Generate Message Completions
+```http
+POST /api/v1/retrieval/search
+```
 
-### Embeddings
+**Request Body:**
+```json
+{
+  "query": "machine learning algorithms",
+  "collection_id": "collection-uuid",
+  "options": {
+    "limit": 10,
+    "threshold": 0.7,
+    "include_metadata": true
+  }
+}
+```
 
-- `POST /retrieval/embedding` - Generate Embeddings
+**Response:**
+```json
+{
+  "results": [
+    {
+      "document_id": "doc-uuid",
+      "score": 0.95,
+      "content": "This paper discusses various machine learning algorithms...",
+      "metadata": {
+        "title": "Machine Learning Fundamentals",
+        "author": "John Doe",
+        "date": "2024-01-01"
+      },
+      "highlights": [
+        {
+          "text": "machine learning algorithms",
+          "start": 45,
+          "end": 70
+        }
+      ]
+    }
+  ],
+  "total": 25,
+  "query_time": 0.15
+}
+```
 
-## Documentation Status
+### RAG Query
 
-⚠️ **This documentation is currently being written.** 
+Perform a Retrieval-Augmented Generation query.
 
-The Retrieval API contains 5 core endpoints for search and AI operations. This documentation will be completed as part of the comprehensive R2R API documentation effort.
+```http
+POST /api/v1/retrieval/rag
+```
 
-**Estimated completion**: Next 1-2 days
+**Request Body:**
+```json
+{
+  "query": "What are the main types of machine learning algorithms?",
+  "collection_id": "collection-uuid",
+  "options": {
+    "model": "gpt-4",
+    "temperature": 0.7,
+    "max_tokens": 1000,
+    "top_k": 5,
+    "include_sources": true
+  }
+}
+```
 
-For now, please refer to the [R2R API Reference Overview](./r2r-api-reference) for general information about the API structure and authentication. 
+**Response:**
+```json
+{
+  "answer": "There are three main types of machine learning algorithms: supervised learning, unsupervised learning, and reinforcement learning...",
+  "sources": [
+    {
+      "document_id": "doc-uuid",
+      "title": "Machine Learning Fundamentals",
+      "content": "Supervised learning algorithms learn from labeled training data...",
+      "score": 0.95
+    }
+  ],
+  "metadata": {
+    "model": "gpt-4",
+    "tokens_used": 150,
+    "query_time": 2.3
+  }
+}
+```
+
+### Similar Documents
+
+Find documents similar to a given document.
+
+```http
+POST /api/v1/retrieval/similar
+```
+
+**Request Body:**
+```json
+{
+  "document_id": "doc-uuid",
+  "collection_id": "collection-uuid",
+  "options": {
+    "limit": 10,
+    "threshold": 0.6
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "results": [
+    {
+      "document_id": "similar-doc-uuid",
+      "score": 0.88,
+      "title": "Advanced Machine Learning Techniques",
+      "content": "This document covers advanced topics in machine learning...",
+      "metadata": {
+        "author": "Jane Smith",
+        "date": "2024-01-15"
+      }
+    }
+  ],
+  "query_time": 0.12
+}
+```
+
+### Semantic Search
+
+Search for documents using vector similarity.
+
+```http
+POST /api/v1/retrieval/semantic
+```
+
+**Request Body:**
+```json
+{
+  "query": "artificial intelligence applications",
+  "collection_id": "collection-uuid",
+  "options": {
+    "limit": 20,
+    "threshold": 0.5,
+    "filters": {
+      "date_range": {
+        "start": "2023-01-01",
+        "end": "2024-12-31"
+      },
+      "author": "John Doe"
+    }
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "results": [
+    {
+      "document_id": "doc-uuid",
+      "score": 0.92,
+      "title": "AI Applications in Healthcare",
+      "content": "Artificial intelligence is revolutionizing healthcare...",
+      "metadata": {
+        "author": "John Doe",
+        "date": "2024-01-01",
+        "category": "healthcare"
+      }
+    }
+  ],
+  "total": 15,
+  "query_time": 0.08
+}
+```
+
+### Hybrid Search
+
+Combine keyword and semantic search.
+
+```http
+POST /api/v1/retrieval/hybrid
+```
+
+**Request Body:**
+```json
+{
+  "query": "machine learning neural networks",
+  "collection_id": "collection-uuid",
+  "options": {
+    "limit": 15,
+    "semantic_weight": 0.7,
+    "keyword_weight": 0.3,
+    "threshold": 0.6
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "results": [
+    {
+      "document_id": "doc-uuid",
+      "semantic_score": 0.95,
+      "keyword_score": 0.88,
+      "combined_score": 0.93,
+      "title": "Neural Networks in Machine Learning",
+      "content": "Neural networks are a fundamental component of modern machine learning...",
+      "metadata": {
+        "author": "Dr. Smith",
+        "date": "2024-01-10"
+      }
+    }
+  ],
+  "total": 12,
+  "query_time": 0.18
+}
+```
+
+### Get Document Embeddings
+
+Retrieve embeddings for a document.
+
+```http
+GET /api/v1/retrieval/embeddings/{document_id}
+```
+
+**Parameters:**
+- `document_id` (string, required): The ID of the document
+
+**Response:**
+```json
+{
+  "document_id": "doc-uuid",
+  "embeddings": {
+    "model": "text-embedding-ada-002",
+    "dimensions": 1536,
+    "vectors": [
+      [0.1, 0.2, 0.3, ...],
+      [0.4, 0.5, 0.6, ...]
+    ],
+    "chunks": [
+      {
+        "text": "First chunk of the document...",
+        "start": 0,
+        "end": 512
+      }
+    ]
+  },
+  "created_at": "2024-01-01T00:00:00Z"
+}
+```
+
+### Update Document Embeddings
+
+Update embeddings for a document.
+
+```http
+POST /api/v1/retrieval/embeddings/{document_id}
+```
+
+**Parameters:**
+- `document_id` (string, required): The ID of the document
+
+**Request Body:**
+```json
+{
+  "model": "text-embedding-ada-002",
+  "chunk_size": 512,
+  "overlap": 50
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Document embeddings updated successfully",
+  "chunks_processed": 5,
+  "processing_time": 2.1
+}
+```
+
+### Get Search Statistics
+
+Retrieve search statistics for a collection.
+
+```http
+GET /api/v1/retrieval/stats/{collection_id}
+```
+
+**Parameters:**
+- `collection_id` (string, required): The ID of the collection
+
+**Response:**
+```json
+{
+  "collection_id": "collection-uuid",
+  "statistics": {
+    "total_documents": 1000,
+    "total_embeddings": 5000,
+    "avg_document_length": 2500,
+    "search_queries_today": 150,
+    "avg_query_time": 0.12
+  },
+  "popular_queries": [
+    {
+      "query": "machine learning",
+      "count": 25,
+      "avg_score": 0.85
+    }
+  ],
+  "last_updated": "2024-01-01T00:00:00Z"
+}
+```
+
+## Error Responses
+
+### 400 Bad Request
+```json
+{
+  "error": "Invalid request parameters",
+  "details": "Query cannot be empty"
+}
+```
+
+### 401 Unauthorized
+```json
+{
+  "error": "Authentication required",
+  "message": "Valid API key or JWT token required"
+}
+```
+
+### 403 Forbidden
+```json
+{
+  "error": "Insufficient permissions",
+  "message": "You don't have permission to access this resource"
+}
+```
+
+### 404 Not Found
+```json
+{
+  "error": "Collection not found",
+  "message": "The specified collection does not exist"
+}
+```
+
+### 422 Unprocessable Entity
+```json
+{
+  "error": "Invalid query",
+  "details": "Query contains unsupported characters"
+}
+```
+
+## Rate Limits
+
+- **Search/RAG**: 100 requests per minute per API key
+- **Similar Documents**: 50 requests per minute per API key
+- **Embeddings**: 20 requests per minute per API key
+- **Statistics**: 200 requests per minute per API key
+
+## Search Options
+
+### Model Options
+- **text-embedding-ada-002**: OpenAI's embedding model (default)
+- **text-embedding-3-small**: Smaller, faster embedding model
+- **text-embedding-3-large**: Larger, more accurate embedding model
+
+### Filter Options
+- **date_range**: Filter by document date
+- **author**: Filter by document author
+- **category**: Filter by document category
+- **tags**: Filter by document tags
+- **file_type**: Filter by file type
+
+### Scoring Options
+- **semantic_weight**: Weight for semantic similarity (0.0-1.0)
+- **keyword_weight**: Weight for keyword matching (0.0-1.0)
+- **threshold**: Minimum similarity score (0.0-1.0) 

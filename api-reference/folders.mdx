@@ -1,0 +1,286 @@
+---
+title: 'Folders API Reference'
+description: 'Complete API reference for folder operations in Nebula'
+---
+
+# Folders API Reference
+
+This page provides detailed information about all folder-related API endpoints in Nebula.
+
+## Base URL
+
+All API endpoints are relative to: `https://api.nebulacloud.app`
+
+## Authentication
+
+All requests require authentication using either:
+- **API Key**: `Authorization: ApiKey your-api-key`
+- **JWT Token**: `Authorization: Bearer your-jwt-token`
+
+## Folder Operations
+
+### List Folders
+
+Retrieve a list of folders in a cluster.
+
+```http
+GET /api/v1/clusters/{cluster_id}/folders
+```
+
+**Parameters:**
+- `cluster_id` (string, required): The ID of the cluster
+- `parent_id` (string, optional): The parent folder ID. Defaults to "ROOT"
+
+**Response:**
+```json
+{
+  "folders": [
+    {
+      "id": "folder-uuid",
+      "name": "Documents",
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "parent_id": "parent-folder-uuid",
+      "cluster_id": "cluster-uuid",
+      "file_count": 5,
+      "folder_count": 2
+    }
+  ]
+}
+```
+
+### Create Folder
+
+Create a new folder in a cluster.
+
+```http
+POST /api/v1/clusters/{cluster_id}/folders
+```
+
+**Parameters:**
+- `cluster_id` (string, required): The ID of the cluster
+
+**Request Body:**
+```json
+{
+  "name": "New Folder",
+  "parent_id": "parent-folder-uuid"
+}
+```
+
+**Response:**
+```json
+{
+  "id": "folder-uuid",
+  "name": "New Folder",
+  "created_at": "2024-01-01T00:00:00Z",
+  "updated_at": "2024-01-01T00:00:00Z",
+  "parent_id": "parent-folder-uuid",
+  "cluster_id": "cluster-uuid"
+}
+```
+
+### Get Folder
+
+Retrieve folder metadata and contents.
+
+```http
+GET /api/v1/folders/{folder_id}
+```
+
+**Parameters:**
+- `folder_id` (string, required): The ID of the folder
+
+**Response:**
+```json
+{
+  "id": "folder-uuid",
+  "name": "Documents",
+  "created_at": "2024-01-01T00:00:00Z",
+  "updated_at": "2024-01-01T00:00:00Z",
+  "parent_id": "parent-folder-uuid",
+  "cluster_id": "cluster-uuid",
+  "files": [
+    {
+      "id": "file-uuid",
+      "name": "document.pdf",
+      "size": 1024000,
+      "content_type": "application/pdf",
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "folders": [
+    {
+      "id": "subfolder-uuid",
+      "name": "Subfolder",
+      "created_at": "2024-01-01T00:00:00Z",
+      "file_count": 3,
+      "folder_count": 0
+    }
+  ]
+}
+```
+
+### Delete Folder
+
+Delete a folder and all its contents.
+
+```http
+DELETE /api/v1/folders/{folder_id}
+```
+
+**Parameters:**
+- `folder_id` (string, required): The ID of the folder
+- `recursive` (boolean, optional): Whether to delete subfolders. Defaults to false
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Folder deleted successfully",
+  "deleted_files": 5,
+  "deleted_folders": 2
+}
+```
+
+### Move Folder
+
+Move a folder to a different parent.
+
+```http
+PUT /api/v1/folders/{folder_id}/move
+```
+
+**Parameters:**
+- `folder_id` (string, required): The ID of the folder
+
+**Request Body:**
+```json
+{
+  "parent_id": "new-parent-folder-uuid"
+}
+```
+
+**Response:**
+```json
+{
+  "id": "folder-uuid",
+  "name": "Documents",
+  "parent_id": "new-parent-folder-uuid",
+  "updated_at": "2024-01-01T00:00:00Z"
+}
+```
+
+### Rename Folder
+
+Rename a folder.
+
+```http
+PUT /api/v1/folders/{folder_id}/rename
+```
+
+**Parameters:**
+- `folder_id` (string, required): The ID of the folder
+
+**Request Body:**
+```json
+{
+  "name": "New Folder Name"
+}
+```
+
+**Response:**
+```json
+{
+  "id": "folder-uuid",
+  "name": "New Folder Name",
+  "updated_at": "2024-01-01T00:00:00Z"
+}
+```
+
+### Get Folder Tree
+
+Get the complete folder hierarchy for a cluster.
+
+```http
+GET /api/v1/clusters/{cluster_id}/folders/tree
+```
+
+**Parameters:**
+- `cluster_id` (string, required): The ID of the cluster
+
+**Response:**
+```json
+{
+  "folders": [
+    {
+      "id": "folder-uuid",
+      "name": "Documents",
+      "parent_id": "ROOT",
+      "children": [
+        {
+          "id": "subfolder-uuid",
+          "name": "Work",
+          "parent_id": "folder-uuid",
+          "children": []
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Error Responses
+
+### 400 Bad Request
+```json
+{
+  "error": "Invalid request parameters",
+  "details": "Folder name cannot be empty"
+}
+```
+
+### 401 Unauthorized
+```json
+{
+  "error": "Authentication required",
+  "message": "Valid API key or JWT token required"
+}
+```
+
+### 403 Forbidden
+```json
+{
+  "error": "Insufficient permissions",
+  "message": "You don't have permission to access this resource"
+}
+```
+
+### 404 Not Found
+```json
+{
+  "error": "Folder not found",
+  "message": "The specified folder does not exist"
+}
+```
+
+### 409 Conflict
+```json
+{
+  "error": "Folder already exists",
+  "message": "A folder with this name already exists in the parent directory"
+}
+```
+
+## Rate Limits
+
+- **Create/Delete**: 50 requests per minute per API key
+- **List/Get**: 1000 requests per minute per API key
+- **Move/Rename**: 100 requests per minute per API key
+
+## Folder Naming Rules
+
+- **Maximum length**: 255 characters
+- **Allowed characters**: Letters, numbers, spaces, hyphens, underscores
+- **Reserved names**: Cannot use "ROOT" as folder name
+- **Case sensitivity**: Folder names are case-sensitive 

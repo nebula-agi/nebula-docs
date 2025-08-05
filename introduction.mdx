@@ -1,0 +1,147 @@
+---
+title: 'Introduction'
+description: 'Welcome to Nebula API - A comprehensive file storage and retrieval system with AI-powered capabilities'
+---
+
+# Welcome to Nebula API
+
+Nebula is a powerful file storage and retrieval system that combines traditional file operations with advanced AI capabilities including Retrieval-Augmented Generation (RAG), knowledge graphs, and conversational AI.
+
+
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card
+    title="File Operations"
+    href="/guides/file-operations"
+  >
+    Upload, download, organize, and manage files with full CRUD operations and folder hierarchies.
+  </Card>
+  <Card
+    title="API Key Management"
+    href="/api-keys"
+  >
+    Granular permissions system with cluster-based access control and secure API key management.
+  </Card>
+  <Card
+    title="Document Processing"
+    href="/guides/collections"
+  >
+    AI-powered document analysis with automatic entity extraction and relationship mapping.
+  </Card>
+  <Card
+    title="Knowledge Graphs"
+    href="/guides/graphs"
+  >
+    Build and query knowledge graphs to discover connections and insights in your data.
+  </Card>
+  <Card
+    title="Conversational AI"
+    href="/guides/conversations"
+  >
+    Create intelligent chatbots and conversational interfaces powered by your data.
+  </Card>
+  <Card
+    title="RAG Applications"
+    href="/guides/retrieval-augmented-generation"
+  >
+    Build retrieval-augmented generation applications with context-aware AI responses.
+  </Card>
+</CardGroup>
+
+## Architecture
+
+Nebula is built on a modern, scalable architecture:
+
+<CardGroup cols={3}>
+  <Card title="Storage Layer">
+    <ul>
+      <li>AWS S3 for file storage</li>
+      <li>DynamoDB for metadata</li>
+      <li>Supabase for authentication</li>
+    </ul>
+  </Card>
+  <Card title="API Layer">
+    <ul>
+      <li>RESTful API endpoints</li>
+      <li>Multiple client libraries</li>
+      <li>Granular permissions</li>
+    </ul>
+  </Card>
+  <Card title="AI Layer">
+    <ul>
+      <li>Document processing</li>
+      <li>Entity extraction</li>
+      <li>Knowledge graph generation</li>
+    </ul>
+  </Card>
+</CardGroup>
+
+## Quick Start
+
+Get started with Nebula in just a few steps:
+
+```bash
+# Install the Python client
+pip install nebula-client
+
+# Or use Node.js
+npm install @oronila/nebula-client
+
+# Or use Go
+go get github.com/oronila/nebula-client-go
+```
+
+```python
+from nebula import NebulaClient
+
+# Initialize client
+client = NebulaClient(api_key="your-api-key")
+
+# Upload a file
+result = client.upload_file(
+    cluster_id="your-cluster-id",
+    file_path="document.pdf"
+)
+
+# Process with AI
+entities = client.documents.extract(id=result.file_id)
+```
+
+## Client Libraries
+
+Nebula provides official client libraries for multiple programming languages:
+
+<CardGroup cols={3}>
+  <Card
+    title="Python"
+    href="/clients/python"
+  >
+    Full-featured Python client with async support
+  </Card>
+  <Card
+    title="Node.js"
+    href="/clients/nodejs"
+  >
+    TypeScript/JavaScript client with comprehensive types
+  </Card>
+  <Card
+    title="Go"
+    href="/clients/go"
+  >
+    High-performance Go client for server applications
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+- [Quick Start Guide](/quickstart) - Get up and running in minutes
+- [Authentication](/authentication) - Learn about API keys and authentication
+- [API Reference](/api-reference/overview) - Explore all available endpoints
+- [Examples](/examples/basic-file-operations) - See practical usage examples
+
+## Support
+
+- **Email**: [Contact support](mailto:support@nebulacloud.app)
+ 

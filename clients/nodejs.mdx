@@ -1,0 +1,721 @@
+---
+title: 'Node.js Client'
+description: 'Official Node.js client library for the Nebula API'
+---
+
+# Node.js Client
+
+The official Node.js client library for the Nebula API provides a TypeScript-first interface for interacting with Nebula's file storage and AI capabilities.
+
+## Installation
+
+```bash
+npm install @oronila/nebula-client
+```
+
+## Quick Start
+
+```javascript
+const { NebulaClient } = require('@oronila/nebula-client');
+
+// Initialize the client
+const client = new NebulaClient({
+  apiKey: 'your-api-key-here'
+});
+
+// Upload a file
+const result = await client.uploadFile({
+  clusterId: 'your-cluster-id',
+  filePath: 'document.pdf'
+});
+
+// List files in a cluster
+const files = await client.listFiles({
+  clusterId: 'your-cluster-id'
+});
+
+// Download a file
+await client.downloadFile({
+  clusterId: 'your-cluster-id',
+  fileId: 'file-id',
+  outputPath: 'downloaded_file.pdf'
+});
+```
+
+## Configuration
+
+### Basic Configuration
+
+```javascript
+const { NebulaClient } = require('@oronila/nebula-client');
+
+// Initialize with API key
+const client = new NebulaClient({
+  apiKey: 'neb_abcdef123456789'
+});
+
+// Initialize with custom base URL (for development/testing)
+const client = new NebulaClient({
+  apiKey: 'your-api-key',
+  baseUrl: 'https://custom-api.nebulacloud.app'
+});
+```
+
+### Environment Variables
+
+```javascript
+const { NebulaClient } = require('@oronila/nebula-client');
+
+// Load from environment variable
+const client = new NebulaClient({
+  apiKey: process.env.NEBULA_API_KEY
+});
+
+// Or use dotenv
+require('dotenv').config();
+const client = new NebulaClient({
+  apiKey: process.env.NEBULA_API_KEY
+});
+```
+
+### TypeScript Support
+
+```typescript
+import { NebulaClient, ClientOptions } from '@oronila/nebula-client';
+
+const options: ClientOptions = {
+  apiKey: process.env.NEBULA_API_KEY!,
+  baseUrl: 'https://api.nebulacloud.app'
+};
+
+const client = new NebulaClient(options);
+```
+
+## File Operations
+
+### Upload Files
+
+```javascript
+// Upload a file to the root folder
+const result = await client.uploadFile({
+  clusterId: 'your-cluster-id',
+  filePath: 'document.pdf'
+});
+
+// Upload to a specific folder
+const result = await client.uploadFile({
+  clusterId: 'your-cluster-id',
+  filePath: 'document.pdf',
+  folderId: 'folder-uuid'
+});
+
+// Upload with custom content type
+const result = await client.uploadFile({
+  clusterId: 'your-cluster-id',
+  filePath: 'document.pdf',
+  contentType: 'application/pdf'
+});
+```
+
+### Download Files
+
+```javascript
+// Download to a specific path
+await client.downloadFile({
+  clusterId: 'your-cluster-id',
+  fileId: 'file-uuid',
+  outputPath: 'downloaded_file.pdf'
+});
+
+// Download to a directory (uses original filename)
+await client.downloadFile({
+  clusterId: 'your-cluster-id',
+  fileId: 'file-uuid',
+  outputPath: './downloads/'
+});
+```
+
+### List Files
+
+```javascript
+// List files in root folder
+const files = await client.listFiles({
+  clusterId: 'your-cluster-id'
+});
+
+// List files in a specific folder
+const files = await client.listFiles({
+  clusterId: 'your-cluster-id',
+  folderId: 'folder-uuid'
+});
+```
+
+### Create Folders
+
+```javascript
+// Create folder in root
+const folder = await client.createFolder({
+  clusterId: 'your-cluster-id',
+  folderName: 'New Folder'
+});
+
+// Create folder in a specific parent folder
+const folder = await client.createFolder({
+  clusterId: 'your-cluster-id',
+  folderName: 'Subfolder',
+  parentFolderId: 'parent-folder-uuid'
+});
+```
+
+### Delete Files and Folders
+
+```javascript
+// Delete a single file
+await client.deleteFiles({
+  clusterId: 'your-cluster-id',
+  fileIds: ['file-uuid']
+});
+
+// Delete multiple files/folders
+await client.deleteFiles({
+  clusterId: 'your-cluster-id',
+  fileIds: ['file-uuid-1', 'file-uuid-2', 'folder-uuid']
+});
+```
+
+### Move Files and Folders
+
+```javascript
+// Move files to a different folder
+await client.moveFiles({
+  clusterId: 'your-cluster-id',
+  fileIds: ['file-uuid-1', 'file-uuid-2'],
+  targetFolderId: 'destination-folder-uuid'
+});
+```
+
+### Rename Files and Folders
+
+```javascript
+// Rename a file or folder
+await client.renameFile({
+  clusterId: 'your-cluster-id',
+  fileId: 'file-uuid',
+  newName: 'New File Name.pdf'
+});
+```
+
+## Document Processing
+
+### Extract Entities
+
+```javascript
+// Extract entities from a document
+const entities = await client.documents.extract({
+  id: 'file-uuid'
+});
+
+// The response contains extracted entities and relationships
+console.log(`Extracted ${entities.entities.length} entities`);
+console.log(`Found ${entities.relationships.length} relationships`);
+```
+
+### List Entities
+
+```javascript
+// Get all entities from a document
+const entities = await client.documents.listEntities({
+  id: 'file-uuid'
+});
+
+entities.forEach(entity => {
+  console.log(`Entity: ${entity.name} (${entity.type})`);
+});
+```
+
+### List Relationships
+
+```javascript
+// Get all relationships from a document
+const relationships = await client.documents.listRelationships({
+  id: 'file-uuid'
+});
+
+relationships.forEach(rel => {
+  console.log(`Relationship: ${rel.source} -> ${rel.target} (${rel.type})`);
+});
+```
+
+## Collections
+
+### Create Collections
+
+```javascript
+// Create a new collection
+const collection = await client.collections.create({
+  name: 'Research Papers',
+  description: 'Collection of research documents'
+});
+```
+
+### Add Documents to Collections
+
+```javascript
+// Add a document to a collection
+await client.collections.addDocument({
+  id: 'collection-uuid',
+  documentId: 'file-uuid'
+});
+```
+
+### List Collections
+
+```javascript
+// Get all collections
+const collections = await client.collections.listCollections();
+
+collections.forEach(collection => {
+  console.log(`Collection: ${collection.name}`);
+});
+```
+
+## Conversations
+
+### Create Conversations
+
+```javascript
+// Create a conversation based on a collection
+const conversation = await client.conversations.create({
+  collectionId: 'collection-uuid'
+});
+```
+
+### Send Messages
+
+```javascript
+// Send a message to a conversation
+const response = await client.conversations.chat({
+  id: 'conversation-uuid',
+  message: 'What are the main findings in the research papers?'
+});
+
+console.log(`AI Response: ${response.completion}`);
+```
+
+### List Conversations
+
+```javascript
+// Get all conversations
+const conversations = await client.conversations.retrieve({
+  id: 'collection-uuid'
+});
+
+conversations.forEach(conv => {
+  console.log(`Conversation: ${conv.id}`);
+});
+```
+
+## Graphs
+
+### List Graphs
+
+```javascript
+// Get all graphs
+const graphs = await client.graphs.list();
+
+graphs.forEach(graph => {
+  console.log(`Graph: ${graph.collectionId}`);
+});
+```
+
+### Get Graph Details
+
+```javascript
+// Get details of a specific graph
+const details = await client.graphs.retrieve({
+  collectionId: 'collection-uuid'
+});
+console.log(`Graph details: ${details}`);
+```
+
+### List Graph Entities
+
+```javascript
+// Get entities in a graph
+const entities = await client.graphs.listEntities({
+  collectionId: 'collection-uuid'
+});
+
+entities.forEach(entity => {
+  console.log(`Entity: ${entity.name}`);
+});
+```
+
+### List Graph Relationships
+
+```javascript
+// Get relationships in a graph
+const relationships = await client.graphs.listRelationships({
+  collectionId: 'collection-uuid'
+});
+
+relationships.forEach(rel => {
+  console.log(`Relationship: ${rel.source} -> ${rel.target}`);
+});
+```
+
+## Retrieval
+
+### RAG (Retrieval-Augmented Generation)
+
+```javascript
+// Perform RAG query
+const ragResponse = await client.retrieval.rag({
+  query: 'What are the main findings?',
+  ragGenerationConfig: {
+    model: 'gpt-4o-mini',
+    temperature: 0.0
+  }
+});
+
+console.log(`Generated answer: ${ragResponse.generatedAnswer}`);
+console.log(`Search results: ${ragResponse.searchResults}`);
+```
+
+## System Operations
+
+### Health Check
+
+```javascript
+// Check API health
+const health = await client.system.health();
+console.log(`API Status: ${health}`);
+```
+
+## Error Handling
+
+### Basic Error Handling
+
+```javascript
+try {
+  const files = await client.listFiles({
+    clusterId: 'your-cluster-id'
+  });
+} catch (error) {
+  console.error('Error:', error);
+}
+```
+
+### Specific Error Handling
+
+```javascript
+try {
+  const files = await client.listFiles({
+    clusterId: 'your-cluster-id'
+  });
+} catch (error) {
+  if (error.response?.status === 401) {
+    console.error('Authentication failed. Check your API key.');
+  } else if (error.response?.status === 403) {
+    console.error('Insufficient permissions.');
+  } else if (error.response?.status === 404) {
+    console.error('Cluster not found.');
+  } else {
+    console.error('Error:', error);
+  }
+}
+```
+
+### Custom Error Handler
+
+```javascript
+class NebulaErrorHandler {
+  static handle(error) {
+    if (error.response) {
+      const { status, data } = error.response;
+      
+      switch (status) {
+        case 401:
+          throw new Error('Authentication failed. Check your API key.');
+        case 403:
+          throw new Error('Insufficient permissions for this operation.');
+        case 404:
+          throw new Error('Resource not found.');
+        case 429:
+          throw new Error('Rate limit exceeded. Please try again later.');
+        case 500:
+          throw new Error('Internal server error. Please try again later.');
+        default:
+          throw new Error(`HTTP ${status}: ${data?.message || 'Unknown error'}`);
+      }
+    } else if (error.request) {
+      throw new Error('Network error. Please check your connection.');
+    } else {
+      throw new Error(`Request error: ${error.message}`);
+    }
+  }
+}
+
+// Usage
+try {
+  const files = await client.listFiles({
+    clusterId: 'your-cluster-id'
+  });
+} catch (error) {
+  NebulaErrorHandler.handle(error);
+}
+```
+
+## Advanced Usage
+
+### Custom Headers
+
+```javascript
+// The client automatically handles authentication headers
+// You can add custom headers if needed
+const axios = require('axios');
+
+const headers = {
+  'Authorization': `ApiKey ${apiKey}`,
+  'Content-Type': 'application/json',
+  'X-Custom-Header': 'custom-value'
+};
+
+const response = await axios.get(
+  `${client.baseUrl}/clusters/${clusterId}/files/list`,
+  { headers }
+);
+```
+
+### Batch Operations
+
+```javascript
+// Upload multiple files
+const filesToUpload = ['file1.pdf', 'file2.pdf', 'file3.pdf'];
+const uploadedFiles = [];
+
+for (const filePath of filesToUpload) {
+  try {
+    const result = await client.uploadFile({
+      clusterId: 'your-cluster-id',
+      filePath: filePath
+    });
+    uploadedFiles.push(result);
+    console.log(`Uploaded: ${filePath}`);
+  } catch (error) {
+    console.error(`Failed to upload ${filePath}:`, error);
+  }
+}
+
+console.log(`Successfully uploaded ${uploadedFiles.length} files`);
+```
+
+### Promise.all for Parallel Operations
+
+```javascript
+// Upload multiple files in parallel
+const filesToUpload = ['file1.pdf', 'file2.pdf', 'file3.pdf'];
+
+const uploadPromises = filesToUpload.map(filePath =>
+  client.uploadFile({
+    clusterId: 'your-cluster-id',
+    filePath: filePath
+  })
+);
+
+try {
+  const results = await Promise.all(uploadPromises);
+  console.log(`Successfully uploaded ${results.length} files`);
+} catch (error) {
+  console.error('One or more uploads failed:', error);
+}
+```
+
+### Retry Logic
+
+```javascript
+async function retryOperation(operation, maxRetries = 3) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      if (attempt === maxRetries) {
+        throw error;
+      }
+      
+      // Wait before retrying (exponential backoff)
+      const delay = Math.pow(2, attempt) * 1000;
+      await new Promise(resolve => setTimeout(resolve, delay));
+      
+      console.log(`Retry attempt ${attempt + 1} after ${delay}ms`);
+    }
+  }
+}
+
+// Usage
+const files = await retryOperation(() =>
+  client.listFiles({
+    clusterId: 'your-cluster-id'
+  })
+);
+```
+
+## Complete Example
+
+```javascript
+const { NebulaClient } = require('@oronila/nebula-client');
+
+async function main() {
+  // Initialize client
+  const client = new NebulaClient({
+    apiKey: process.env.NEBULA_API_KEY
+  });
+  
+  const clusterId = 'your-cluster-id';
+  
+  try {
+    // Upload a document
+    console.log('Uploading document...');
+    const result = await client.uploadFile({
+      clusterId: clusterId,
+      filePath: 'research_paper.pdf'
+    });
+    console.log('Uploaded:', result);
+    
+    // Extract entities
+    console.log('Extracting entities...');
+    const entities = await client.documents.extract({
+      id: result.fileId
+    });
+    console.log(`Extracted ${entities.entities.length} entities`);
+    
+    // Create a collection
+    console.log('Creating collection...');
+    const collection = await client.collections.create({
+      name: 'Research Papers',
+      description: 'Collection of research documents'
+    });
+    
+    // Add document to collection
+    await client.collections.addDocument({
+      id: collection.id,
+      documentId: result.fileId
+    });
+    
+    // Create a conversation
+    console.log('Creating conversation...');
+    const conversation = await client.conversations.create({
+      collectionId: collection.id
+    });
+    
+    // Ask questions
+    console.log('Asking questions...');
+    const response = await client.conversations.chat({
+      id: conversation.id,
+      message: 'What are the main findings in this research paper?'
+    });
+    
+    console.log(`AI Response: ${response.completion}`);
+    
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+main().catch(console.error);
+```
+
+## API Reference
+
+### NebulaClient
+
+The main client class for interacting with the Nebula API.
+
+#### Constructor
+
+```javascript
+new NebulaClient(options: ClientOptions)
+```
+
+**Parameters:**
+- `options.apiKey` (string): Your Nebula API key
+- `options.baseUrl` (string, optional): Custom API base URL. Defaults to production URL.
+
+#### File Operations
+
+- `uploadFile(params)` - Upload a file
+- `downloadFile(params)` - Download a file
+- `listFiles(params)` - List files and folders
+- `createFolder(params)` - Create a folder
+- `deleteFiles(params)` - Delete files/folders
+- `moveFiles(params)` - Move files
+- `renameFile(params)` - Rename a file/folder
+
+#### Document Operations
+
+- `documents.extract(params)` - Extract entities from a document
+- `documents.listEntities(params)` - List entities in a document
+- `documents.listRelationships(params)` - List relationships in a document
+
+#### Collection Operations
+
+- `collections.create(params)` - Create a collection
+- `collections.addDocument(params)` - Add document to collection
+- `collections.listCollections()` - List all collections
+
+#### Conversation Operations
+
+- `conversations.create(params)` - Create a conversation
+- `conversations.chat(params)` - Send a message
+- `conversations.retrieve(params)` - Get conversations
+
+#### Graph Operations
+
+- `graphs.list()` - List all graphs
+- `graphs.retrieve(params)` - Get graph details
+- `graphs.listEntities(params)` - List graph entities
+- `graphs.listRelationships(params)` - List graph relationships
+
+#### Retrieval Operations
+
+- `retrieval.rag(params)` - Perform RAG query
+
+#### System Operations
+
+- `system.health()` - Check API health
+
+## TypeScript Types
+
+The library includes comprehensive TypeScript definitions:
+
+```typescript
+import {
+  NebulaClient,
+  ClientOptions,
+  UploadFileParams,
+  DownloadFileParams,
+  ListFilesParams,
+  CreateFolderParams,
+  DeleteFilesParams,
+  MoveFilesParams,
+  RenameFileParams,
+  FileMetadata,
+  UploadUrlResponse
+} from '@oronila/nebula-client';
+
+// Use with full type safety
+const client = new NebulaClient({
+  apiKey: process.env.NEBULA_API_KEY!
+});
+
+const files: FileMetadata[] = await client.listFiles({
+  clusterId: 'your-cluster-id'
+});
+```
+
+## Next Steps
+
+- [Quick Start Guide](/quickstart) - Get up and running quickly
+- [API Reference](/api-reference/overview) - Explore all available endpoints
+- [Examples](/examples/basic-file-operations) - See practical usage examples
+- [Error Handling](/guides/error-handling) - Learn about error handling patterns 

@@ -1,0 +1,840 @@
+---
+title: 'Folder Management Guide'
+description: 'Learn how to effectively manage folders and organize your files in Nebula'
+---
+
+# Folder Management Guide
+
+This guide covers best practices and techniques for managing folders and organizing your files effectively in Nebula.
+
+## Understanding Folder Structure
+
+### Hierarchical Organization
+
+Nebula uses a hierarchical folder structure similar to traditional file systems:
+
+```
+ROOT/
+├── Documents/
+│   ├── Work/
+│   │   ├── Reports/
+│   │   └── Presentations/
+│   └── Personal/
+├── Images/
+│   ├── Photos/
+│   └── Screenshots/
+└── Projects/
+    ├── Project A/
+    └── Project B/
+```
+
+### Key Concepts
+
+- **ROOT**: The top-level folder in every cluster
+- **Parent-Child Relationships**: Folders can contain other folders
+- **Path-based Navigation**: Access folders using their full path
+- **Unique Names**: Folder names must be unique within the same parent
+
+## Creating Folders
+
+### Basic Folder Creation
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    from nebula import NebulaClient
+    import os
+    
+    client = NebulaClient(api_key=os.getenv("NEBULA_API_KEY"))
+    
+    # Create a simple folder
+    folder = client.create_folder(
+        cluster_id="your-cluster-id",
+        folder_name="Documents",
+        parent_folder_id="ROOT"
+    )
+    print(f"Created folder: {folder.name} with ID: {folder.id}")
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    const { NebulaClient } = require('@oronila/nebula-client');
+    
+    const client = new NebulaClient({
+      apiKey: process.env.NEBULA_API_KEY
+    });
+    
+    // Create a simple folder
+    async function createFolder() {
+      try {
+        const folder = await client.createFolder({
+          clusterId: 'your-cluster-id',
+          folderName: 'Documents',
+          parentFolderId: 'ROOT'
+        });
+        console.log(`Created folder: ${folder.name} with ID: ${folder.id}`);
+      } catch (error) {
+        console.error('Error creating folder:', error);
+      }
+    }
+    
+    createFolder();
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    package main
+    
+    import (
+        "fmt"
+        "log"
+        "os"
+        
+        "github.com/oronila/nebula-client-go/nebulaclient"
+    )
+    
+    func main() {
+        client := nebulaclient.NewClient(os.Getenv("NEBULA_API_KEY"))
+        
+        // Create a simple folder
+        folder, err := client.CreateFolder("your-cluster-id", "Documents", "ROOT")
+        if err != nil {
+            log.Fatalf("Error creating folder: %v", err)
+        }
+        fmt.Printf("Created folder: %s with ID: %s\n", folder.Name, folder.ID)
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Creating Nested Folder Structures
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    def create_nested_structure(client, cluster_id, structure):
+        """Create a nested folder structure"""
+        created_folders = {}
+        
+        for path, folder_name in structure.items():
+            parent_id = "ROOT"
+            
+            # Create parent folders if they don't exist
+            if "/" in path:
+                parent_path = "/".join(path.split("/")[:-1])
+                if parent_path in created_folders:
+                    parent_id = created_folders[parent_path]
+            
+            try:
+                folder = client.create_folder(
+                    cluster_id=cluster_id,
+                    folder_name=folder_name,
+                    parent_folder_id=parent_id
+                )
+                created_folders[path] = folder.id
+                print(f"Created: {path}")
+            except Exception as e:
+                print(f"Error creating {path}: {e}")
+        
+        return created_folders
+    
+    # Define folder structure
+    structure = {
+        "Documents": "Documents",
+        "Documents/Work": "Work",
+        "Documents/Work/Reports": "Reports",
+        "Documents/Work/Presentations": "Presentations",
+        "Documents/Personal": "Personal",
+        "Images": "Images",
+        "Images/Photos": "Photos"
+    }
+    
+    created = create_nested_structure(client, "your-cluster-id", structure)
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    async function createNestedStructure(client, clusterId, structure) {
+      const createdFolders = {};
+      
+      for (const [path, folderName] of Object.entries(structure)) {
+        let parentId = 'ROOT';
+        
+        // Create parent folders if they don't exist
+        if (path.includes('/')) {
+          const parentPath = path.split('/').slice(0, -1).join('/');
+          if (createdFolders[parentPath]) {
+            parentId = createdFolders[parentPath];
+          }
+        }
+        
+        try {
+          const folder = await client.createFolder({
+            clusterId: clusterId,
+            folderName: folderName,
+            parentFolderId: parentId
+          });
+          createdFolders[path] = folder.id;
+          console.log(`Created: ${path}`);
+        } catch (error) {
+          console.error(`Error creating ${path}:`, error);
+        }
+      }
+      
+      return createdFolders;
+    }
+    
+    // Define folder structure
+    const structure = {
+      'Documents': 'Documents',
+      'Documents/Work': 'Work',
+      'Documents/Work/Reports': 'Reports',
+      'Documents/Work/Presentations': 'Presentations',
+      'Documents/Personal': 'Personal',
+      'Images': 'Images',
+      'Images/Photos': 'Photos'
+    };
+    
+    createNestedStructure(client, 'your-cluster-id', structure)
+      .then(created => console.log('Structure created:', created));
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    func createNestedStructure(client *nebulaclient.Client, clusterID string, structure map[string]string) map[string]string {
+        createdFolders := make(map[string]string)
+        
+        for path, folderName := range structure {
+            parentID := "ROOT"
+            
+            // Create parent folders if they don't exist
+            if strings.Contains(path, "/") {
+                pathParts := strings.Split(path, "/")
+                parentPath := strings.Join(pathParts[:len(pathParts)-1], "/")
+                if parentID, exists := createdFolders[parentPath]; exists {
+                    parentID = parentID
+                }
+            }
+            
+            folder, err := client.CreateFolder(clusterID, folderName, parentID)
+            if err != nil {
+                log.Printf("Error creating %s: %v", path, err)
+                continue
+            }
+            
+            createdFolders[path] = folder.ID
+            fmt.Printf("Created: %s\n", path)
+        }
+        
+        return createdFolders
+    }
+    
+    // Define folder structure
+    structure := map[string]string{
+        "Documents": "Documents",
+        "Documents/Work": "Work",
+        "Documents/Work/Reports": "Reports",
+        "Documents/Work/Presentations": "Presentations",
+        "Documents/Personal": "Personal",
+        "Images": "Images",
+        "Images/Photos": "Photos",
+    }
+    
+    created := createNestedStructure(client, "your-cluster-id", structure)
+    ```
+  </Tab>
+</Tabs>
+
+## Listing and Navigating Folders
+
+### List Folder Contents
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    def list_folder_contents(client, cluster_id, folder_id="ROOT"):
+        """List all files and folders in a directory"""
+        try:
+            contents = client.list_files(
+                cluster_id=cluster_id,
+                folder_id=folder_id
+            )
+            
+            print(f"Contents of folder {folder_id}:")
+            print("\nFolders:")
+            for folder in contents.get('folders', []):
+                print(f"  📁 {folder['name']} (ID: {folder['id']})")
+            
+            print("\nFiles:")
+            for file in contents.get('files', []):
+                print(f"  📄 {file['name']} ({file['size']} bytes)")
+                
+        except Exception as e:
+            print(f"Error listing folder contents: {e}")
+    
+    # List root folder
+    list_folder_contents(client, "your-cluster-id")
+    
+    # List specific folder
+    list_folder_contents(client, "your-cluster-id", "folder-uuid")
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    async function listFolderContents(client, clusterId, folderId = 'ROOT') {
+      try {
+        const contents = await client.listFiles({
+          clusterId: clusterId,
+          folderId: folderId
+        });
+        
+        console.log(`Contents of folder ${folderId}:`);
+        console.log('\nFolders:');
+        contents.folders.forEach(folder => {
+          console.log(`  📁 ${folder.name} (ID: ${folder.id})`);
+        });
+        
+        console.log('\nFiles:');
+        contents.files.forEach(file => {
+          console.log(`  📄 ${file.name} (${file.size} bytes)`);
+        });
+        
+      } catch (error) {
+        console.error('Error listing folder contents:', error);
+      }
+    }
+    
+    // List root folder
+    listFolderContents(client, 'your-cluster-id');
+    
+    // List specific folder
+    listFolderContents(client, 'your-cluster-id', 'folder-uuid');
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    func listFolderContents(client *nebulaclient.Client, clusterID, folderID string) {
+        if folderID == "" {
+            folderID = "ROOT"
+        }
+        
+        files, err := client.ListFiles(clusterID, folderID)
+        if err != nil {
+            log.Printf("Error listing folder contents: %v", err)
+            return
+        }
+        
+        fmt.Printf("Contents of folder %s:\n", folderID)
+        fmt.Println("\nFolders:")
+        for _, folder := range files {
+            if folder.Type == "folder" {
+                fmt.Printf("  📁 %s (ID: %s)\n", folder.Name, folder.ID)
+            }
+        }
+        
+        fmt.Println("\nFiles:")
+        for _, file := range files {
+            if file.Type == "file" {
+                fmt.Printf("  📄 %s (%d bytes)\n", file.Name, file.Size)
+            }
+        }
+    }
+    
+    // List root folder
+    listFolderContents(client, "your-cluster-id", "")
+    
+    // List specific folder
+    listFolderContents(client, "your-cluster-id", "folder-uuid")
+    ```
+  </Tab>
+</Tabs>
+
+### Recursive Folder Listing
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    def list_folder_recursive(client, cluster_id, folder_id="ROOT", indent=0):
+        """Recursively list all folders and files"""
+        try:
+            contents = client.list_files(
+                cluster_id=cluster_id,
+                folder_id=folder_id
+            )
+            
+            # List folders first
+            for folder in contents.get('folders', []):
+                print("  " * indent + f"📁 {folder['name']}/")
+                # Recursively list subfolders
+                list_folder_recursive(
+                    client, cluster_id, folder['id'], indent + 1
+                )
+            
+            # List files
+            for file in contents.get('files', []):
+                print("  " * indent + f"📄 {file['name']}")
+                
+        except Exception as e:
+            print(f"Error listing folder {folder_id}: {e}")
+    
+    # List entire folder structure
+    list_folder_recursive(client, "your-cluster-id")
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    async function listFolderRecursive(client, clusterId, folderId = 'ROOT', indent = 0) {
+      try {
+        const contents = await client.listFiles({
+          clusterId: clusterId,
+          folderId: folderId
+        });
+        
+        // List folders first
+        for (const folder of contents.folders) {
+          console.log('  '.repeat(indent) + `📁 ${folder.name}/`);
+          // Recursively list subfolders
+          await listFolderRecursive(client, clusterId, folder.id, indent + 1);
+        }
+        
+        // List files
+        for (const file of contents.files) {
+          console.log('  '.repeat(indent) + `📄 ${file.name}`);
+        }
+        
+      } catch (error) {
+        console.error(`Error listing folder ${folderId}:`, error);
+      }
+    }
+    
+    // List entire folder structure
+    listFolderRecursive(client, 'your-cluster-id');
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    func listFolderRecursive(client *nebulaclient.Client, clusterID, folderID string, indent int) {
+        if folderID == "" {
+            folderID = "ROOT"
+        }
+        
+        files, err := client.ListFiles(clusterID, folderID)
+        if err != nil {
+            log.Printf("Error listing folder %s: %v", folderID, err)
+            return
+        }
+        
+        // List folders first
+        for _, item := range files {
+            if item.Type == "folder" {
+                fmt.Printf("%s📁 %s/\n", strings.Repeat("  ", indent), item.Name)
+                // Recursively list subfolders
+                listFolderRecursive(client, clusterID, item.ID, indent+1)
+            }
+        }
+        
+        // List files
+        for _, item := range files {
+            if item.Type == "file" {
+                fmt.Printf("%s📄 %s\n", strings.Repeat("  ", indent), item.Name)
+            }
+        }
+    }
+    
+    // List entire folder structure
+    listFolderRecursive(client, "your-cluster-id", "", 0)
+    ```
+  </Tab>
+</Tabs>
+
+## Moving and Renaming Folders
+
+### Move Folders
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    def move_folder(client, cluster_id, folder_id, new_parent_id):
+        """Move a folder to a new parent"""
+        try:
+            result = client.move_files(
+                cluster_id=cluster_id,
+                file_ids=[folder_id],
+                new_folder_id=new_parent_id
+            )
+            print(f"Successfully moved folder to new parent")
+            return result
+        except Exception as e:
+            print(f"Error moving folder: {e}")
+            return None
+    
+    # Move a folder
+    move_folder(client, "your-cluster-id", "folder-uuid", "new-parent-uuid")
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    async function moveFolder(client, clusterId, folderId, newParentId) {
+      try {
+        const result = await client.moveFiles({
+          clusterId: clusterId,
+          fileIds: [folderId],
+          newFolderId: newParentId
+        });
+        console.log('Successfully moved folder to new parent');
+        return result;
+      } catch (error) {
+        console.error('Error moving folder:', error);
+        return null;
+      }
+    }
+    
+    // Move a folder
+    moveFolder(client, 'your-cluster-id', 'folder-uuid', 'new-parent-uuid');
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    func moveFolder(client *nebulaclient.Client, clusterID, folderID, newParentID string) error {
+        err := client.MoveFiles(clusterID, []string{folderID}, newParentID)
+        if err != nil {
+            log.Printf("Error moving folder: %v", err)
+            return err
+        }
+        fmt.Println("Successfully moved folder to new parent")
+        return nil
+    }
+    
+    // Move a folder
+    moveFolder(client, "your-cluster-id", "folder-uuid", "new-parent-uuid")
+    ```
+  </Tab>
+</Tabs>
+
+### Rename Folders
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    def rename_folder(client, cluster_id, folder_id, new_name):
+        """Rename a folder"""
+        try:
+            result = client.rename_file(
+                cluster_id=cluster_id,
+                file_id=folder_id,
+                new_name=new_name
+            )
+            print(f"Successfully renamed folder to: {new_name}")
+            return result
+        except Exception as e:
+            print(f"Error renaming folder: {e}")
+            return None
+    
+    # Rename a folder
+    rename_folder(client, "your-cluster-id", "folder-uuid", "New Folder Name")
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    async function renameFolder(client, clusterId, folderId, newName) {
+      try {
+        const result = await client.renameFile({
+          clusterId: clusterId,
+          fileId: folderId,
+          newName: newName
+        });
+        console.log(`Successfully renamed folder to: ${newName}`);
+        return result;
+      } catch (error) {
+        console.error('Error renaming folder:', error);
+        return null;
+      }
+    }
+    
+    // Rename a folder
+    renameFolder(client, 'your-cluster-id', 'folder-uuid', 'New Folder Name');
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    func renameFolder(client *nebulaclient.Client, clusterID, folderID, newName string) error {
+        err := client.RenameFile(clusterID, folderID, newName)
+        if err != nil {
+            log.Printf("Error renaming folder: %v", err)
+            return err
+        }
+        fmt.Printf("Successfully renamed folder to: %s\n", newName)
+        return nil
+    }
+    
+    // Rename a folder
+    renameFolder(client, "your-cluster-id", "folder-uuid", "New Folder Name")
+    ```
+  </Tab>
+</Tabs>
+
+## Deleting Folders
+
+### Delete Empty Folders
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    def delete_empty_folder(client, cluster_id, folder_id):
+        """Delete an empty folder"""
+        try:
+            result = client.delete_files(
+                cluster_id=cluster_id,
+                file_ids=[folder_id]
+            )
+            print(f"Successfully deleted empty folder")
+            return result
+        except Exception as e:
+            print(f"Error deleting folder: {e}")
+            return None
+    
+    # Delete an empty folder
+    delete_empty_folder(client, "your-cluster-id", "folder-uuid")
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    async function deleteEmptyFolder(client, clusterId, folderId) {
+      try {
+        const result = await client.deleteFiles({
+          clusterId: clusterId,
+          fileIds: [folderId]
+        });
+        console.log('Successfully deleted empty folder');
+        return result;
+      } catch (error) {
+        console.error('Error deleting folder:', error);
+        return null;
+      }
+    }
+    
+    // Delete an empty folder
+    deleteEmptyFolder(client, 'your-cluster-id', 'folder-uuid');
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    func deleteEmptyFolder(client *nebulaclient.Client, clusterID, folderID string) error {
+        err := client.DeleteFiles(clusterID, []string{folderID})
+        if err != nil {
+            log.Printf("Error deleting folder: %v", err)
+            return err
+        }
+        fmt.Println("Successfully deleted empty folder")
+        return nil
+    }
+    
+    // Delete an empty folder
+    deleteEmptyFolder(client, "your-cluster-id", "folder-uuid")
+    ```
+  </Tab>
+</Tabs>
+
+### Recursive Folder Deletion
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    def delete_folder_recursive(client, cluster_id, folder_id):
+        """Recursively delete a folder and all its contents"""
+        try:
+            # First, get all contents
+            contents = client.list_files(
+                cluster_id=cluster_id,
+                folder_id=folder_id
+            )
+            
+            # Delete all files
+            file_ids = [file['id'] for file in contents.get('files', [])]
+            if file_ids:
+                client.delete_files(
+                    cluster_id=cluster_id,
+                    file_ids=file_ids
+                )
+            
+            # Recursively delete subfolders
+            for folder in contents.get('folders', []):
+                delete_folder_recursive(client, cluster_id, folder['id'])
+            
+            # Finally, delete the folder itself
+            client.delete_files(
+                cluster_id=cluster_id,
+                file_ids=[folder_id]
+            )
+            
+            print(f"Successfully deleted folder and all contents")
+            
+        except Exception as e:
+            print(f"Error deleting folder recursively: {e}")
+    
+    # Delete folder and all contents
+    delete_folder_recursive(client, "your-cluster-id", "folder-uuid")
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    async function deleteFolderRecursive(client, clusterId, folderId) {
+      try {
+        // First, get all contents
+        const contents = await client.listFiles({
+          clusterId: clusterId,
+          folderId: folderId
+        });
+        
+        // Delete all files
+        const fileIds = contents.files.map(file => file.id);
+        if (fileIds.length > 0) {
+          await client.deleteFiles({
+            clusterId: clusterId,
+            fileIds: fileIds
+          });
+        }
+        
+        // Recursively delete subfolders
+        for (const folder of contents.folders) {
+          await deleteFolderRecursive(client, clusterId, folder.id);
+        }
+        
+        // Finally, delete the folder itself
+        await client.deleteFiles({
+          clusterId: clusterId,
+          fileIds: [folderId]
+        });
+        
+        console.log('Successfully deleted folder and all contents');
+        
+      } catch (error) {
+        console.error('Error deleting folder recursively:', error);
+      }
+    }
+    
+    // Delete folder and all contents
+    deleteFolderRecursive(client, 'your-cluster-id', 'folder-uuid');
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    func deleteFolderRecursive(client *nebulaclient.Client, clusterID, folderID string) error {
+        // First, get all contents
+        files, err := client.ListFiles(clusterID, folderID)
+        if err != nil {
+            return fmt.Errorf("error listing folder contents: %v", err)
+        }
+        
+        // Delete all files
+        var fileIDs []string
+        for _, item := range files {
+            if item.Type == "file" {
+                fileIDs = append(fileIDs, item.ID)
+            }
+        }
+        
+        if len(fileIDs) > 0 {
+            err = client.DeleteFiles(clusterID, fileIDs)
+            if err != nil {
+                return fmt.Errorf("error deleting files: %v", err)
+            }
+        }
+        
+        // Recursively delete subfolders
+        for _, item := range files {
+            if item.Type == "folder" {
+                err = deleteFolderRecursive(client, clusterID, item.ID)
+                if err != nil {
+                    return err
+                }
+            }
+        }
+        
+        // Finally, delete the folder itself
+        err = client.DeleteFiles(clusterID, []string{folderID})
+        if err != nil {
+            return fmt.Errorf("error deleting folder: %v", err)
+        }
+        
+        fmt.Println("Successfully deleted folder and all contents")
+        return nil
+    }
+    
+    // Delete folder and all contents
+    deleteFolderRecursive(client, "your-cluster-id", "folder-uuid")
+    ```
+  </Tab>
+</Tabs>
+
+## Best Practices
+
+### Folder Naming Conventions
+
+- **Use descriptive names**: Choose names that clearly indicate the folder's purpose
+- **Avoid special characters**: Stick to letters, numbers, spaces, hyphens, and underscores
+- **Be consistent**: Use the same naming pattern across similar folders
+- **Consider sorting**: Use prefixes or numbers if you want specific ordering
+
+### Organization Strategies
+
+1. **By Project**: Organize files by project or client
+2. **By Date**: Use date-based folders for time-sensitive content
+3. **By Type**: Group files by their type or format
+4. **By Status**: Separate active, archived, and draft content
+
+### Performance Considerations
+
+- **Limit folder depth**: Avoid deeply nested structures (more than 5-6 levels)
+- **Batch operations**: Use batch operations for multiple folder operations
+- **Cache folder IDs**: Store frequently accessed folder IDs to avoid repeated lookups
+
+### Security and Permissions
+
+- **Review permissions**: Regularly review folder access permissions
+- **Use descriptive names**: Make folder names clear for permission management
+- **Document structure**: Keep documentation of your folder organization
+
+## Common Patterns
+
+### Template Folders
+
+Create reusable folder structures for common use cases:
+
+```python
+def create_project_template(client, cluster_id, project_name):
+    """Create a standard project folder structure"""
+    template = {
+        "Documents": "Documents",
+        "Documents/Requirements": "Requirements",
+        "Documents/Design": "Design",
+        "Documents/Implementation": "Implementation",
+        "Documents/Testing": "Testing",
+        "Documents/Deployment": "Deployment",
+        "Code": "Code",
+        "Code/Source": "Source",
+        "Code/Tests": "Tests",
+        "Code/Docs": "Documentation",
+        "Assets": "Assets",
+        "Assets/Images": "Images",
+        "Assets/Data": "Data"
+    }
+    
+    # Create with project name prefix
+    structure = {f"{project_name}/{k}": v for k, v in template.items()}
+    return create_nested_structure(client, cluster_id, structure)
+```
+
+### Archive Management
+
+Implement an archiving system for old content:
+
+```python
+def archive_old_folders(client, cluster_id, cutoff_date):
+    """Move old folders to an archive location"""
+    # Implementation would check folder creation dates
+    # and move old folders to an Archive folder
+    pass
+```
+
+This guide provides comprehensive coverage of folder management in Nebula. For more advanced operations, refer to the [API Reference](/api-reference/folders) for detailed endpoint documentation. 

@@ -1,0 +1,266 @@
+---
+title: 'Files API Reference'
+description: 'Complete API reference for file operations in Nebula'
+---
+
+# Files API Reference
+
+This page provides detailed information about all file-related API endpoints in Nebula.
+
+## Base URL
+
+All API endpoints are relative to: `https://api.nebulacloud.app`
+
+## Authentication
+
+All requests require authentication using either:
+- **API Key**: `Authorization: ApiKey your-api-key`
+- **JWT Token**: `Authorization: Bearer your-jwt-token`
+
+## File Operations
+
+### List Files
+
+Retrieve a list of files in a cluster.
+
+```http
+GET /api/v1/clusters/{cluster_id}/files
+```
+
+**Parameters:**
+- `cluster_id` (string, required): The ID of the cluster
+- `folder_id` (string, optional): The folder ID to list files from. Defaults to "ROOT"
+
+**Response:**
+```json
+{
+  "files": [
+    {
+      "id": "file-uuid",
+      "name": "document.pdf",
+      "size": 1024000,
+      "content_type": "application/pdf",
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "folder_id": "folder-uuid",
+      "cluster_id": "cluster-uuid"
+    }
+  ],
+  "folders": [
+    {
+      "id": "folder-uuid",
+      "name": "Documents",
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "parent_id": "parent-folder-uuid",
+      "cluster_id": "cluster-uuid"
+    }
+  ]
+}
+```
+
+### Upload File
+
+Upload a new file to a cluster.
+
+```http
+POST /api/v1/clusters/{cluster_id}/files
+```
+
+**Parameters:**
+- `cluster_id` (string, required): The ID of the cluster
+- `folder_id` (string, optional): The folder ID to upload to. Defaults to "ROOT"
+
+**Request Body:**
+```json
+{
+  "file": "file-data",
+  "name": "document.pdf",
+  "content_type": "application/pdf"
+}
+```
+
+**Response:**
+```json
+{
+  "id": "file-uuid",
+  "name": "document.pdf",
+  "size": 1024000,
+  "content_type": "application/pdf",
+  "created_at": "2024-01-01T00:00:00Z",
+  "folder_id": "folder-uuid",
+  "cluster_id": "cluster-uuid"
+}
+```
+
+### Get File
+
+Retrieve file metadata.
+
+```http
+GET /api/v1/files/{file_id}
+```
+
+**Parameters:**
+- `file_id` (string, required): The ID of the file
+
+**Response:**
+```json
+{
+  "id": "file-uuid",
+  "name": "document.pdf",
+  "size": 1024000,
+  "content_type": "application/pdf",
+  "created_at": "2024-01-01T00:00:00Z",
+  "updated_at": "2024-01-01T00:00:00Z",
+  "folder_id": "folder-uuid",
+  "cluster_id": "cluster-uuid"
+}
+```
+
+### Download File
+
+Get a download URL for a file.
+
+```http
+GET /api/v1/files/{file_id}/download
+```
+
+**Parameters:**
+- `file_id` (string, required): The ID of the file
+
+**Response:**
+```json
+{
+  "download_url": "https://s3.amazonaws.com/bucket/file.pdf?expires=...",
+  "expires_at": "2024-01-01T01:00:00Z"
+}
+```
+
+### Delete File
+
+Delete a file from the cluster.
+
+```http
+DELETE /api/v1/files/{file_id}
+```
+
+**Parameters:**
+- `file_id` (string, required): The ID of the file
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "File deleted successfully"
+}
+```
+
+### Move File
+
+Move a file to a different folder.
+
+```http
+PUT /api/v1/files/{file_id}/move
+```
+
+**Parameters:**
+- `file_id` (string, required): The ID of the file
+
+**Request Body:**
+```json
+{
+  "folder_id": "new-folder-uuid"
+}
+```
+
+**Response:**
+```json
+{
+  "id": "file-uuid",
+  "name": "document.pdf",
+  "folder_id": "new-folder-uuid",
+  "updated_at": "2024-01-01T00:00:00Z"
+}
+```
+
+### Rename File
+
+Rename a file.
+
+```http
+PUT /api/v1/files/{file_id}/rename
+```
+
+**Parameters:**
+- `file_id` (string, required): The ID of the file
+
+**Request Body:**
+```json
+{
+  "name": "new-document-name.pdf"
+}
+```
+
+**Response:**
+```json
+{
+  "id": "file-uuid",
+  "name": "new-document-name.pdf",
+  "updated_at": "2024-01-01T00:00:00Z"
+}
+```
+
+## Error Responses
+
+### 400 Bad Request
+```json
+{
+  "error": "Invalid request parameters",
+  "details": "File name cannot be empty"
+}
+```
+
+### 401 Unauthorized
+```json
+{
+  "error": "Authentication required",
+  "message": "Valid API key or JWT token required"
+}
+```
+
+### 403 Forbidden
+```json
+{
+  "error": "Insufficient permissions",
+  "message": "You don't have permission to access this resource"
+}
+```
+
+### 404 Not Found
+```json
+{
+  "error": "File not found",
+  "message": "The specified file does not exist"
+}
+```
+
+### 413 Payload Too Large
+```json
+{
+  "error": "File too large",
+  "message": "File size exceeds maximum allowed limit"
+}
+```
+
+## Rate Limits
+
+- **Upload**: 100 requests per minute per API key
+- **Download**: 1000 requests per minute per API key
+- **List/Get**: 2000 requests per minute per API key
+
+## File Size Limits
+
+- **Maximum file size**: 100 MB per file
+- **Supported formats**: All file types
+- **Recommended formats**: PDF, DOC, DOCX, TXT, CSV, JSON, XML, Images (JPG, PNG, GIF, SVG) 

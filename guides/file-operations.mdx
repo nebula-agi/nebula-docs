@@ -1,0 +1,944 @@
+---
+title: 'File Operations'
+description: 'Complete guide to file operations in Nebula API'
+---
+
+# File Operations
+
+Nebula provides comprehensive file management capabilities including upload, download, organization, and metadata management. This guide covers all aspects of working with files in Nebula.
+
+## Overview
+
+Nebula's file system is organized into clusters, which act as isolated storage spaces. Within each cluster, files are organized in a hierarchical folder structure.
+
+### Key Concepts
+
+- **Clusters**: Isolated storage spaces with their own permissions
+- **Folders**: Hierarchical organization within clusters
+- **Files**: Individual files with metadata and content
+- **Permissions**: Granular access control at the cluster level
+
+## File Upload
+
+### Basic Upload
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    from nebula import NebulaClient
+    
+    client = NebulaClient(api_key="your-api-key")
+    
+    # Upload a file to the root folder
+    result = client.upload_file(
+        cluster_id="your-cluster-id",
+        file_path="document.pdf"
+    )
+    
+    print(f"File uploaded: {result.file_id}")
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    const { NebulaClient } = require('@oronila/nebula-client');
+    
+    const client = new NebulaClient({
+      apiKey: 'your-api-key'
+    });
+    
+    // Upload a file to the root folder
+    const result = await client.uploadFile({
+      clusterId: 'your-cluster-id',
+      filePath: 'document.pdf'
+    });
+    
+    console.log(`File uploaded: ${result.fileId}`);
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    import "github.com/oronila/nebula-client-go/nebulaclient"
+    
+    client := nebulaclient.NewClient("your-api-key")
+    
+    // Upload a file to the root folder
+    file, err := os.Open("document.pdf")
+    if err != nil {
+        log.Fatalf("Error opening file: %v", err)
+    }
+    defer file.Close()
+    
+    result, err := client.UploadFile("your-cluster-id", file, "document.pdf", "ROOT")
+    if err != nil {
+        log.Fatalf("Error uploading file: %v", err)
+    }
+    
+    fmt.Printf("File uploaded: %s\n", result.ID)
+    ```
+  </Tab>
+</Tabs>
+
+### Upload to Specific Folder
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    # Upload to a specific folder
+    result = client.upload_file(
+        cluster_id="your-cluster-id",
+        file_path="document.pdf",
+        folder_id="folder-uuid"
+    )
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    // Upload to a specific folder
+    const result = await client.uploadFile({
+      clusterId: 'your-cluster-id',
+      filePath: 'document.pdf',
+      folderId: 'folder-uuid'
+    });
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    // Upload to a specific folder
+    result, err := client.UploadFile("your-cluster-id", file, "document.pdf", "folder-uuid")
+    ```
+  </Tab>
+</Tabs>
+
+### Upload with Custom Content Type
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    # Upload with custom content type
+    result = client.upload_file(
+        cluster_id="your-cluster-id",
+        file_path="document.pdf",
+        content_type="application/pdf"
+    )
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    // Upload with custom content type
+    const result = await client.uploadFile({
+      clusterId: 'your-cluster-id',
+      filePath: 'document.pdf',
+      contentType: 'application/pdf'
+    });
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    // Content type is automatically determined from file extension
+    result, err := client.UploadFile("your-cluster-id", file, "document.pdf", "ROOT")
+    ```
+  </Tab>
+</Tabs>
+
+### Batch Upload
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    import os
+    
+    # Upload multiple files
+    files_to_upload = ["file1.pdf", "file2.pdf", "file3.pdf"]
+    uploaded_files = []
+    
+    for file_path in files_to_upload:
+        try:
+            result = client.upload_file(
+                cluster_id="your-cluster-id",
+                file_path=file_path
+            )
+            uploaded_files.append(result)
+            print(f"Uploaded: {file_path}")
+        except Exception as e:
+            print(f"Failed to upload {file_path}: {e}")
+    
+    print(f"Successfully uploaded {len(uploaded_files)} files")
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    // Upload multiple files
+    const filesToUpload = ['file1.pdf', 'file2.pdf', 'file3.pdf'];
+    const uploadedFiles = [];
+    
+    for (const filePath of filesToUpload) {
+      try {
+        const result = await client.uploadFile({
+          clusterId: 'your-cluster-id',
+          filePath: filePath
+        });
+        uploadedFiles.push(result);
+        console.log(`Uploaded: ${filePath}`);
+      } catch (error) {
+        console.error(`Failed to upload ${filePath}:`, error);
+      }
+    }
+    
+    console.log(`Successfully uploaded ${uploadedFiles.length} files`);
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    // Upload multiple files
+    filesToUpload := []string{"file1.pdf", "file2.pdf", "file3.pdf"}
+    uploadedFiles := make([]*nebulaclient.File, 0)
+    
+    for _, filePath := range filesToUpload {
+        file, err := os.Open(filePath)
+        if err != nil {
+            log.Printf("Error opening %s: %v", filePath, err)
+            continue
+        }
+        
+        result, err := client.UploadFile("your-cluster-id", file, filepath.Base(filePath), "ROOT")
+        file.Close()
+        
+        if err != nil {
+            log.Printf("Failed to upload %s: %v", filePath, err)
+            continue
+        }
+        
+        uploadedFiles = append(uploadedFiles, result)
+        fmt.Printf("Uploaded: %s\n", filePath)
+    }
+    
+    fmt.Printf("Successfully uploaded %d files\n", len(uploadedFiles))
+    ```
+  </Tab>
+</Tabs>
+
+## File Download
+
+### Basic Download
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    # Download to a specific path
+    client.download_file(
+        cluster_id="your-cluster-id",
+        file_id="file-uuid",
+        output_path="downloaded_file.pdf"
+    )
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    // Download to a specific path
+    await client.downloadFile({
+      clusterId: 'your-cluster-id',
+      fileId: 'file-uuid',
+      outputPath: 'downloaded_file.pdf'
+    });
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    // Download to a specific path
+    err := client.DownloadFile("your-cluster-id", "file-uuid", "downloaded_file.pdf")
+    if err != nil {
+        log.Fatalf("Error downloading file: %v", err)
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Download to Directory
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    # Download to a directory (uses original filename)
+    client.download_file(
+        cluster_id="your-cluster-id",
+        file_id="file-uuid",
+        output_path="./downloads/"
+    )
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    // Download to a directory (uses original filename)
+    await client.downloadFile({
+      clusterId: 'your-cluster-id',
+      fileId: 'file-uuid',
+      outputPath: './downloads/'
+    });
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    // Download to a directory (uses original filename)
+    err := client.DownloadFile("your-cluster-id", "file-uuid", "./downloads/")
+    ```
+  </Tab>
+</Tabs>
+
+## File Listing
+
+### List Files in Root
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    # List files in root folder
+    files = client.list_files(cluster_id="your-cluster-id")
+    
+    for file in files:
+        print(f"File: {file.name} ({file.type}) - Size: {file.size} bytes")
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    // List files in root folder
+    const files = await client.listFiles({
+      clusterId: 'your-cluster-id'
+    });
+    
+    files.forEach(file => {
+      console.log(`File: ${file.name} (${file.type}) - Size: ${file.size} bytes`);
+    });
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    // List files in root folder
+    files, err := client.ListFiles("your-cluster-id", "ROOT")
+    if err != nil {
+        log.Fatalf("Error listing files: %v", err)
+    }
+    
+    for _, file := range files {
+        fmt.Printf("File: %s (%s) - Size: %d bytes\n", 
+            file.Name, file.Type, file.Size)
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### List Files in Folder
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    # List files in a specific folder
+    files = client.list_files(
+        cluster_id="your-cluster-id",
+        folder_id="folder-uuid"
+    )
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    // List files in a specific folder
+    const files = await client.listFiles({
+      clusterId: 'your-cluster-id',
+      folderId: 'folder-uuid'
+    });
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    // List files in a specific folder
+    files, err := client.ListFiles("your-cluster-id", "folder-uuid")
+    ```
+  </Tab>
+</Tabs>
+
+## Folder Management
+
+### Create Folders
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    # Create folder in root
+    folder = client.create_folder(
+        cluster_id="your-cluster-id",
+        folder_name="New Folder"
+    )
+    
+    # Create folder in a specific parent folder
+    subfolder = client.create_folder(
+        cluster_id="your-cluster-id",
+        folder_name="Subfolder",
+        parent_folder_id="parent-folder-uuid"
+    )
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    // Create folder in root
+    const folder = await client.createFolder({
+      clusterId: 'your-cluster-id',
+      folderName: 'New Folder'
+    });
+    
+    // Create folder in a specific parent folder
+    const subfolder = await client.createFolder({
+      clusterId: 'your-cluster-id',
+      folderName: 'Subfolder',
+      parentFolderId: 'parent-folder-uuid'
+    });
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    // Create folder in root
+    folder, err := client.CreateFolder("your-cluster-id", "New Folder", "ROOT")
+    if err != nil {
+        log.Fatalf("Error creating folder: %v", err)
+    }
+    
+    // Create folder in a specific parent folder
+    subfolder, err := client.CreateFolder("your-cluster-id", "Subfolder", "parent-folder-uuid")
+    ```
+  </Tab>
+</Tabs>
+
+### Create Folder Structure
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    def create_folder_structure(client, cluster_id, structure):
+        """Create a nested folder structure"""
+        created_folders = {}
+        
+        for path, folder_name in structure.items():
+            parent_id = "ROOT"
+            
+            # Create parent folders if needed
+            if "/" in path:
+                parent_path = "/".join(path.split("/")[:-1])
+                if parent_path in created_folders:
+                    parent_id = created_folders[parent_path]
+            
+            folder = client.create_folder(
+                cluster_id=cluster_id,
+                folder_name=folder_name,
+                parent_folder_id=parent_id
+            )
+            created_folders[path] = folder.id
+        
+        return created_folders
+    
+    # Example usage
+    structure = {
+        "documents": "Documents",
+        "documents/research": "Research",
+        "documents/reports": "Reports",
+        "images": "Images",
+        "images/photos": "Photos"
+    }
+    
+    folders = create_folder_structure(client, "your-cluster-id", structure)
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    async function createFolderStructure(client, clusterId, structure) {
+      const createdFolders = {};
+      
+      for (const [path, folderName] of Object.entries(structure)) {
+        let parentId = 'ROOT';
+        
+        // Create parent folders if needed
+        if (path.includes('/')) {
+          const parentPath = path.split('/').slice(0, -1).join('/');
+          if (createdFolders[parentPath]) {
+            parentId = createdFolders[parentPath];
+          }
+        }
+        
+        const folder = await client.createFolder({
+          clusterId: clusterId,
+          folderName: folderName,
+          parentFolderId: parentId
+        });
+        
+        createdFolders[path] = folder.id;
+      }
+      
+      return createdFolders;
+    }
+    
+    // Example usage
+    const structure = {
+      'documents': 'Documents',
+      'documents/research': 'Research',
+      'documents/reports': 'Reports',
+      'images': 'Images',
+      'images/photos': 'Photos'
+    };
+    
+    const folders = await createFolderStructure(client, 'your-cluster-id', structure);
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    func createFolderStructure(client *nebulaclient.Client, clusterID string, structure map[string]string) map[string]string {
+        createdFolders := make(map[string]string)
+        
+        for path, folderName := range structure {
+            parentID := "ROOT"
+            
+            // Create parent folders if needed
+            if strings.Contains(path, "/") {
+                parts := strings.Split(path, "/")
+                parentPath := strings.Join(parts[:len(parts)-1], "/")
+                if parentID, exists := createdFolders[parentPath]; exists {
+                    parentID = parentID
+                }
+            }
+            
+            folder, err := client.CreateFolder(clusterID, folderName, parentID)
+            if err != nil {
+                log.Printf("Error creating folder %s: %v", folderName, err)
+                continue
+            }
+            
+            createdFolders[path] = folder.ID
+        }
+        
+        return createdFolders
+    }
+    
+    // Example usage
+    structure := map[string]string{
+        "documents": "Documents",
+        "documents/research": "Research",
+        "documents/reports": "Reports",
+        "images": "Images",
+        "images/photos": "Photos",
+    }
+    
+    folders := createFolderStructure(client, "your-cluster-id", structure)
+    ```
+  </Tab>
+</Tabs>
+
+## File Operations
+
+### Delete Files
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    # Delete a single file
+    client.delete_files(
+        cluster_id="your-cluster-id",
+        file_ids=["file-uuid"]
+    )
+    
+    # Delete multiple files/folders
+    client.delete_files(
+        cluster_id="your-cluster-id",
+        file_ids=["file-uuid-1", "file-uuid-2", "folder-uuid"]
+    )
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    // Delete a single file
+    await client.deleteFiles({
+      clusterId: 'your-cluster-id',
+      fileIds: ['file-uuid']
+    });
+    
+    // Delete multiple files/folders
+    await client.deleteFiles({
+      clusterId: 'your-cluster-id',
+      fileIds: ['file-uuid-1', 'file-uuid-2', 'folder-uuid']
+    });
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    // Delete a single file
+    err := client.DeleteFiles("your-cluster-id", []string{"file-uuid"})
+    if err != nil {
+        log.Fatalf("Error deleting file: %v", err)
+    }
+    
+    // Delete multiple files/folders
+    err = client.DeleteFiles("your-cluster-id", []string{
+        "file-uuid-1", 
+        "file-uuid-2", 
+        "folder-uuid",
+    })
+    ```
+  </Tab>
+</Tabs>
+
+### Move Files
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    # Move files to a different folder
+    client.move_files(
+        cluster_id="your-cluster-id",
+        file_ids=["file-uuid-1", "file-uuid-2"],
+        target_folder_id="destination-folder-uuid"
+    )
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    // Move files to a different folder
+    await client.moveFiles({
+      clusterId: 'your-cluster-id',
+      fileIds: ['file-uuid-1', 'file-uuid-2'],
+      targetFolderId: 'destination-folder-uuid'
+    });
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    // Move files to a different folder
+    err := client.MoveFiles("your-cluster-id", []string{
+        "file-uuid-1", 
+        "file-uuid-2",
+    }, "destination-folder-uuid")
+    ```
+  </Tab>
+</Tabs>
+
+### Rename Files
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    # Rename a file or folder
+    client.rename_file(
+        cluster_id="your-cluster-id",
+        file_id="file-uuid",
+        new_name="New File Name.pdf"
+    )
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    // Rename a file or folder
+    await client.renameFile({
+      clusterId: 'your-cluster-id',
+      fileId: 'file-uuid',
+      newName: 'New File Name.pdf'
+    });
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    // Rename a file or folder
+    err := client.RenameFile("your-cluster-id", "file-uuid", "New File Name.pdf")
+    ```
+  </Tab>
+</Tabs>
+
+## File Organization Best Practices
+
+### 1. Use Descriptive Folder Names
+
+```
+Good:
+/documents
+/documents/research-papers
+/documents/reports
+/images
+/images/product-photos
+
+Bad:
+/folder1
+/folder2
+/temp
+```
+
+### 2. Implement Consistent Naming Conventions
+
+```python
+# Example: Organize by date and type
+import datetime
+
+def organize_by_date(client, cluster_id, file_path):
+    today = datetime.date.today()
+    folder_name = today.strftime("%Y-%m-%d")
+    
+    # Create date folder if it doesn't exist
+    try:
+        folder = client.create_folder(
+            cluster_id=cluster_id,
+            folder_name=folder_name
+        )
+    except:
+        # Folder might already exist
+        pass
+    
+    # Upload file to date folder
+    result = client.upload_file(
+        cluster_id=cluster_id,
+        file_path=file_path,
+        folder_id=folder.id
+    )
+    
+    return result
+```
+
+### 3. Use Tags and Metadata
+
+```python
+# Example: Add metadata to file names
+def upload_with_metadata(client, cluster_id, file_path, metadata):
+    # Create filename with metadata
+    base_name = os.path.splitext(os.path.basename(file_path))[0]
+    extension = os.path.splitext(file_path)[1]
+    
+    # Add metadata to filename
+    metadata_str = "_".join([f"{k}-{v}" for k, v in metadata.items()])
+    new_filename = f"{base_name}_{metadata_str}{extension}"
+    
+    # Upload with new filename
+    result = client.upload_file(
+        cluster_id=cluster_id,
+        file_path=file_path
+    )
+    
+    # Rename to include metadata
+    client.rename_file(
+        cluster_id=cluster_id,
+        file_id=result.file_id,
+        new_name=new_filename
+    )
+    
+    return result
+
+# Usage
+metadata = {
+    "type": "report",
+    "author": "john-doe",
+    "date": "2024-01-15"
+}
+
+result = upload_with_metadata(client, "your-cluster-id", "document.pdf", metadata)
+```
+
+### 4. Implement Backup Strategies
+
+```python
+def backup_files(client, source_cluster, backup_cluster):
+    """Backup all files from source to backup cluster"""
+    files = client.list_files(cluster_id=source_cluster)
+    
+    for file in files:
+        if file.type == "file":
+            # Download from source
+            temp_path = f"/tmp/{file.name}"
+            client.download_file(
+                cluster_id=source_cluster,
+                file_id=file.id,
+                output_path=temp_path
+            )
+            
+            # Upload to backup
+            with open(temp_path, 'rb') as f:
+                client.upload_file(
+                    cluster_id=backup_cluster,
+                    file_path=temp_path
+                )
+            
+            # Clean up
+            os.remove(temp_path)
+```
+
+## Error Handling
+
+### Handle Upload Errors
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    def safe_upload(client, cluster_id, file_path, max_retries=3):
+        for attempt in range(max_retries):
+            try:
+                result = client.upload_file(
+                    cluster_id=cluster_id,
+                    file_path=file_path
+                )
+                return result
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    raise e
+                print(f"Upload attempt {attempt + 1} failed: {e}")
+                time.sleep(2 ** attempt)  # Exponential backoff
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    async function safeUpload(client, clusterId, filePath, maxRetries = 3) {
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        try {
+          const result = await client.uploadFile({
+            clusterId: clusterId,
+            filePath: filePath
+          });
+          return result;
+        } catch (error) {
+          if (attempt === maxRetries - 1) {
+            throw error;
+          }
+          console.log(`Upload attempt ${attempt + 1} failed:`, error);
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    func safeUpload(client *nebulaclient.Client, clusterID, filePath string, maxRetries int) (*nebulaclient.File, error) {
+        var lastErr error
+        
+        for attempt := 0; attempt < maxRetries; attempt++ {
+            file, err := os.Open(filePath)
+            if err != nil {
+                return nil, err
+            }
+            
+            result, err := client.UploadFile(clusterID, file, filepath.Base(filePath), "ROOT")
+            file.Close()
+            
+            if err != nil {
+                lastErr = err
+                if attempt == maxRetries-1 {
+                    return nil, err
+                }
+                log.Printf("Upload attempt %d failed: %v", attempt+1, err)
+                time.Sleep(time.Duration(1<<uint(attempt)) * time.Second)
+                continue
+            }
+            
+            return result, nil
+        }
+        
+        return nil, lastErr
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Performance Optimization
+
+### Parallel Uploads
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    import asyncio
+    from concurrent.futures import ThreadPoolExecutor
+    
+    def upload_files_parallel(client, cluster_id, file_paths, max_workers=5):
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = [
+                executor.submit(client.upload_file, cluster_id, file_path)
+                for file_path in file_paths
+            ]
+            
+            results = []
+            for future in futures:
+                try:
+                    result = future.result()
+                    results.append(result)
+                except Exception as e:
+                    print(f"Upload failed: {e}")
+            
+            return results
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    async function uploadFilesParallel(client, clusterId, filePaths, maxConcurrency = 5) {
+      const results = [];
+      const chunks = [];
+      
+      // Split files into chunks
+      for (let i = 0; i < filePaths.length; i += maxConcurrency) {
+        chunks.push(filePaths.slice(i, i + maxConcurrency));
+      }
+      
+      for (const chunk of chunks) {
+        const promises = chunk.map(filePath =>
+          client.uploadFile({
+            clusterId: clusterId,
+            filePath: filePath
+          }).catch(error => {
+            console.error(`Upload failed for ${filePath}:`, error);
+            return null;
+          })
+        );
+        
+        const chunkResults = await Promise.all(promises);
+        results.push(...chunkResults.filter(result => result !== null));
+      }
+      
+      return results;
+    }
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    func uploadFilesParallel(client *nebulaclient.Client, clusterID string, filePaths []string, maxWorkers int) []*nebulaclient.File {
+        results := make([]*nebulaclient.File, 0)
+        semaphore := make(chan struct{}, maxWorkers)
+        var mu sync.Mutex
+        var wg sync.WaitGroup
+        
+        for _, filePath := range filePaths {
+            wg.Add(1)
+            go func(path string) {
+                defer wg.Done()
+                semaphore <- struct{}{} // Acquire
+                defer func() { <-semaphore }() // Release
+                
+                file, err := os.Open(path)
+                if err != nil {
+                    log.Printf("Error opening %s: %v", path, err)
+                    return
+                }
+                defer file.Close()
+                
+                result, err := client.UploadFile(clusterID, file, filepath.Base(path), "ROOT")
+                if err != nil {
+                    log.Printf("Failed to upload %s: %v", path, err)
+                    return
+                }
+                
+                mu.Lock()
+                results = append(results, result)
+                mu.Unlock()
+            }(filePath)
+        }
+        
+        wg.Wait()
+        return results
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Next Steps
+
+- [Folder Management](/guides/folder-management) - Advanced folder organization
+- [Collections](/guides/collections) - Organize files into collections
+- [Document Processing](/guides/document-processing) - Process uploaded documents
+- [Error Handling](/guides/error-handling) - Comprehensive error handling patterns
+- [API Reference](/api-reference/files) - Complete file operation API reference 

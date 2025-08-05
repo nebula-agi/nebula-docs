@@ -1,0 +1,579 @@
+---
+title: 'Python Client'
+description: 'Official Python client library for the Nebula API'
+---
+
+# Python Client
+
+The official Python client library for the Nebula API provides a simple and intuitive interface for interacting with Nebula's file storage and AI capabilities.
+
+## Installation
+
+```bash
+pip install nebula-client
+```
+
+## Quick Start
+
+```python
+from nebula import NebulaClient
+
+# Initialize the client
+client = NebulaClient(api_key="your-api-key-here")
+
+# Upload a file
+result = client.upload_file(
+    cluster_id="your-cluster-id",
+    file_path="document.pdf"
+)
+
+# List files in a cluster
+files = client.list_files(cluster_id="your-cluster-id")
+
+# Download a file
+client.download_file(
+    cluster_id="your-cluster-id",
+    file_id="file-id",
+    output_path="downloaded_file.pdf"
+)
+```
+
+## Configuration
+
+### Basic Configuration
+
+```python
+from nebula import NebulaClient
+
+# Initialize with API key
+client = NebulaClient(api_key="neb_abcdef123456789")
+
+# Initialize with custom base URL (for development/testing)
+client = NebulaClient(
+    api_key="your-api-key",
+    base_url="https://custom-api.nebulacloud.app"
+)
+```
+
+### Environment Variables
+
+```python
+import os
+from nebula import NebulaClient
+
+# Load from environment variable
+client = NebulaClient(api_key=os.getenv("NEBULA_API_KEY"))
+
+# Or use dotenv
+from dotenv import load_dotenv
+load_dotenv()
+client = NebulaClient()
+```
+
+## File Operations
+
+### Upload Files
+
+```python
+# Upload a file to the root folder
+result = client.upload_file(
+    cluster_id="your-cluster-id",
+    file_path="document.pdf"
+)
+
+# Upload to a specific folder
+result = client.upload_file(
+    cluster_id="your-cluster-id",
+    file_path="document.pdf",
+    folder_id="folder-uuid"
+)
+
+# Upload with custom content type
+result = client.upload_file(
+    cluster_id="your-cluster-id",
+    file_path="document.pdf",
+    content_type="application/pdf"
+)
+```
+
+### Download Files
+
+```python
+# Download to a specific path
+client.download_file(
+    cluster_id="your-cluster-id",
+    file_id="file-uuid",
+    output_path="downloaded_file.pdf"
+)
+
+# Download to a directory (uses original filename)
+client.download_file(
+    cluster_id="your-cluster-id",
+    file_id="file-uuid",
+    output_path="./downloads/"
+)
+```
+
+### List Files
+
+```python
+# List files in root folder
+files = client.list_files(cluster_id="your-cluster-id")
+
+# List files in a specific folder
+files = client.list_files(
+    cluster_id="your-cluster-id",
+    folder_id="folder-uuid"
+)
+```
+
+### Create Folders
+
+```python
+# Create folder in root
+folder = client.create_folder(
+    cluster_id="your-cluster-id",
+    folder_name="New Folder"
+)
+
+# Create folder in a specific parent folder
+folder = client.create_folder(
+    cluster_id="your-cluster-id",
+    folder_name="Subfolder",
+    parent_folder_id="parent-folder-uuid"
+)
+```
+
+### Delete Files and Folders
+
+```python
+# Delete a single file
+client.delete_files(
+    cluster_id="your-cluster-id",
+    file_ids=["file-uuid"]
+)
+
+# Delete multiple files/folders
+client.delete_files(
+    cluster_id="your-cluster-id",
+    file_ids=["file-uuid-1", "file-uuid-2", "folder-uuid"]
+)
+```
+
+### Move Files and Folders
+
+```python
+# Move files to a different folder
+client.move_files(
+    cluster_id="your-cluster-id",
+    file_ids=["file-uuid-1", "file-uuid-2"],
+    target_folder_id="destination-folder-uuid"
+)
+```
+
+### Rename Files and Folders
+
+```python
+# Rename a file or folder
+client.rename_file(
+    cluster_id="your-cluster-id",
+    file_id="file-uuid",
+    new_name="New File Name.pdf"
+)
+```
+
+## Document Processing
+
+### Extract Entities
+
+```python
+# Extract entities from a document
+entities = client.documents.extract(id="file-uuid")
+
+# The response contains extracted entities and relationships
+print(f"Extracted {len(entities.entities)} entities")
+print(f"Found {len(entities.relationships)} relationships")
+```
+
+### List Entities
+
+```python
+# Get all entities from a document
+entities = client.documents.list_entities(id="file-uuid")
+
+for entity in entities:
+    print(f"Entity: {entity.name} ({entity.type})")
+```
+
+### List Relationships
+
+```python
+# Get all relationships from a document
+relationships = client.documents.list_relationships(id="file-uuid")
+
+for rel in relationships:
+    print(f"Relationship: {rel.source} -> {rel.target} ({rel.type})")
+```
+
+## Collections
+
+### Create Collections
+
+```python
+# Create a new collection
+collection = client.collections.create(
+    name="Research Papers",
+    description="Collection of research documents"
+)
+```
+
+### Add Documents to Collections
+
+```python
+# Add a document to a collection
+client.collections.add_document(
+    id="collection-uuid",
+    document_id="file-uuid"
+)
+```
+
+### List Collections
+
+```python
+# Get all collections
+collections = client.collections.list_collections()
+
+for collection in collections:
+    print(f"Collection: {collection.name}")
+```
+
+## Conversations
+
+### Create Conversations
+
+```python
+# Create a conversation based on a collection
+conversation = client.conversations.create(
+    collection_id="collection-uuid"
+)
+```
+
+### Send Messages
+
+```python
+# Send a message to a conversation
+response = client.conversations.chat(
+    id="conversation-uuid",
+    message="What are the main findings in the research papers?"
+)
+
+print(f"AI Response: {response.completion}")
+```
+
+### List Conversations
+
+```python
+# Get all conversations
+conversations = client.conversations.retrieve(id="collection-uuid")
+
+for conv in conversations:
+    print(f"Conversation: {conv.id}")
+```
+
+## Graphs
+
+### List Graphs
+
+```python
+# Get all graphs
+graphs = client.graphs.list()
+
+for graph in graphs:
+    print(f"Graph: {graph.collection_id}")
+```
+
+### Get Graph Details
+
+```python
+# Get details of a specific graph
+details = client.graphs.retrieve(collection_id="collection-uuid")
+print(f"Graph details: {details}")
+```
+
+### List Graph Entities
+
+```python
+# Get entities in a graph
+entities = client.graphs.list_entities(collection_id="collection-uuid")
+
+for entity in entities:
+    print(f"Entity: {entity.name}")
+```
+
+### List Graph Relationships
+
+```python
+# Get relationships in a graph
+relationships = client.graphs.list_relationships(collection_id="collection-uuid")
+
+for rel in relationships:
+    print(f"Relationship: {rel.source} -> {rel.target}")
+```
+
+## Retrieval
+
+### RAG (Retrieval-Augmented Generation)
+
+```python
+# Perform RAG query
+rag_response = client.retrieval.rag(
+    query="What are the main findings?",
+    rag_generation_config={
+        "model": "gpt-4o-mini",
+        "temperature": 0.0
+    }
+)
+
+print(f"Generated answer: {rag_response.generated_answer}")
+print(f"Search results: {rag_response.search_results}")
+```
+
+## System Operations
+
+### Health Check
+
+```python
+# Check API health
+health = client.system.health()
+print(f"API Status: {health}")
+```
+
+## Error Handling
+
+### Basic Error Handling
+
+```python
+try:
+    files = client.list_files(cluster_id="your-cluster-id")
+except Exception as e:
+    print(f"Error: {e}")
+```
+
+### Specific Error Handling
+
+```python
+from requests.exceptions import HTTPError
+
+try:
+    files = client.list_files(cluster_id="your-cluster-id")
+except HTTPError as e:
+    if e.response.status_code == 401:
+        print("Authentication failed. Check your API key.")
+    elif e.response.status_code == 403:
+        print("Insufficient permissions.")
+    elif e.response.status_code == 404:
+        print("Cluster not found.")
+    else:
+        print(f"HTTP Error: {e}")
+except Exception as e:
+    print(f"Unexpected error: {e}")
+```
+
+## Advanced Usage
+
+### Custom Headers
+
+```python
+# The client automatically handles authentication headers
+# You can add custom headers if needed
+import requests
+
+headers = {
+    "Authorization": f"ApiKey {api_key}",
+    "Content-Type": "application/json",
+    "X-Custom-Header": "custom-value"
+}
+
+response = requests.get(
+    f"{client.base_url}/clusters/{cluster_id}/files/list",
+    headers=headers
+)
+```
+
+### Async Support
+
+```python
+from nebula import NebulaAsyncClient
+import asyncio
+
+async def main():
+    # Initialize async client
+    client = NebulaAsyncClient(api_key="your-api-key")
+    
+    try:
+        # Upload file asynchronously
+        result = await client.upload_file(
+            cluster_id="your-cluster-id",
+            file_path="document.pdf"
+        )
+        
+        # List files asynchronously
+        files = await client.list_files(cluster_id="your-cluster-id")
+        
+        print(f"Uploaded: {result}")
+        print(f"Files: {files}")
+        
+    finally:
+        await client.close()
+
+# Run async function
+asyncio.run(main())
+```
+
+### Batch Operations
+
+```python
+# Upload multiple files
+files_to_upload = ["file1.pdf", "file2.pdf", "file3.pdf"]
+uploaded_files = []
+
+for file_path in files_to_upload:
+    try:
+        result = client.upload_file(
+            cluster_id="your-cluster-id",
+            file_path=file_path
+        )
+        uploaded_files.append(result)
+        print(f"Uploaded: {file_path}")
+    except Exception as e:
+        print(f"Failed to upload {file_path}: {e}")
+
+print(f"Successfully uploaded {len(uploaded_files)} files")
+```
+
+## Complete Example
+
+```python
+from nebula import NebulaClient
+import os
+
+def main():
+    # Initialize client
+    client = NebulaClient(api_key=os.getenv("NEBULA_API_KEY"))
+    
+    cluster_id = "your-cluster-id"
+    
+    try:
+        # Upload a document
+        print("Uploading document...")
+        result = client.upload_file(
+            cluster_id=cluster_id,
+            file_path="research_paper.pdf"
+        )
+        print(f"Uploaded: {result}")
+        
+        # Extract entities
+        print("Extracting entities...")
+        entities = client.documents.extract(id=result.file_id)
+        print(f"Extracted {len(entities.entities)} entities")
+        
+        # Create a collection
+        print("Creating collection...")
+        collection = client.collections.create(
+            name="Research Papers",
+            description="Collection of research documents"
+        )
+        
+        # Add document to collection
+        client.collections.add_document(
+            id=collection.id,
+            document_id=result.file_id
+        )
+        
+        # Create a conversation
+        print("Creating conversation...")
+        conversation = client.conversations.create(
+            collection_id=collection.id
+        )
+        
+        # Ask questions
+        print("Asking questions...")
+        response = client.conversations.chat(
+            id=conversation.id,
+            message="What are the main findings in this research paper?"
+        )
+        
+        print(f"AI Response: {response.completion}")
+        
+    except Exception as e:
+        print(f"Error: {e}")
+
+if __name__ == "__main__":
+    main()
+```
+
+## API Reference
+
+### NebulaClient
+
+The main client class for interacting with the Nebula API.
+
+#### Constructor
+
+```python
+NebulaClient(api_key: str, base_url: Optional[str] = None)
+```
+
+**Parameters:**
+- `api_key` (str): Your Nebula API key
+- `base_url` (str, optional): Custom API base URL. Defaults to production URL.
+
+#### File Operations
+
+- `upload_file(cluster_id, file_path, folder_id, content_type)` - Upload a file
+- `download_file(cluster_id, file_id, output_path)` - Download a file
+- `list_files(cluster_id, folder_id)` - List files and folders
+- `create_folder(cluster_id, folder_name, parent_folder_id)` - Create a folder
+- `delete_files(cluster_id, file_ids)` - Delete files/folders
+- `move_files(cluster_id, file_ids, target_folder_id)` - Move files
+- `rename_file(cluster_id, file_id, new_name)` - Rename a file/folder
+
+#### Document Operations
+
+- `documents.extract(id)` - Extract entities from a document
+- `documents.list_entities(id)` - List entities in a document
+- `documents.list_relationships(id)` - List relationships in a document
+
+#### Collection Operations
+
+- `collections.create(name, description)` - Create a collection
+- `collections.add_document(id, document_id)` - Add document to collection
+- `collections.list_collections()` - List all collections
+
+#### Conversation Operations
+
+- `conversations.create(collection_id)` - Create a conversation
+- `conversations.chat(id, message)` - Send a message
+- `conversations.retrieve(id)` - Get conversations
+
+#### Graph Operations
+
+- `graphs.list()` - List all graphs
+- `graphs.retrieve(collection_id)` - Get graph details
+- `graphs.list_entities(collection_id)` - List graph entities
+- `graphs.list_relationships(collection_id)` - List graph relationships
+
+#### Retrieval Operations
+
+- `retrieval.rag(query, rag_generation_config)` - Perform RAG query
+
+#### System Operations
+
+- `system.health()` - Check API health
+
+## Next Steps
+
+- [Quick Start Guide](/quickstart) - Get up and running quickly
+- [API Reference](/api-reference/overview) - Explore all available endpoints
+- [Examples](/examples/basic-file-operations) - See practical usage examples
+- [Error Handling](/guides/error-handling) - Learn about error handling patterns 

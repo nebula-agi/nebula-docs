@@ -1,0 +1,955 @@
+---
+title: 'Collections Guide'
+description: 'Learn how to organize and manage document collections in Nebula'
+---
+
+# Collections Guide
+
+This guide covers how to effectively organize and manage document collections in Nebula for better document processing and retrieval.
+
+## Understanding Collections
+
+### What are Collections?
+
+Collections are logical groupings of documents that share common characteristics or purposes. They help organize your documents for:
+
+- **Semantic Search**: Find related documents across your collection
+- **RAG Applications**: Provide context for AI responses
+- **Document Processing**: Apply consistent processing rules
+- **Access Control**: Manage permissions at the collection level
+
+### Collection Structure
+
+```
+Collections/
+├── Research Papers/
+│   ├── Machine Learning (25 docs)
+│   ├── Computer Vision (18 docs)
+│   └── Natural Language Processing (32 docs)
+├── Company Documents/
+│   ├── Policies (12 docs)
+│   ├── Procedures (8 docs)
+│   └── Reports (45 docs)
+└── Project Documentation/
+    ├── Project Alpha (15 docs)
+    └── Project Beta (22 docs)
+```
+
+## Creating Collections
+
+### Basic Collection Creation
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    from nebula import NebulaClient
+    import os
+    
+    client = NebulaClient(api_key=os.getenv("NEBULA_API_KEY"))
+    
+    # Create a simple collection
+    collection = client.collections.create(
+        name="Research Papers",
+        description="Collection of academic research papers",
+        metadata={
+            "category": "academic",
+            "language": "en",
+            "domain": "computer_science"
+        }
+    )
+    print(f"Created collection: {collection.name} with ID: {collection.id}")
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    const { NebulaClient } = require('@oronila/nebula-client');
+    
+    const client = new NebulaClient({
+      apiKey: process.env.NEBULA_API_KEY
+    });
+    
+    // Create a simple collection
+    async function createCollection() {
+      try {
+        const collection = await client.collections.create({
+          name: 'Research Papers',
+          description: 'Collection of academic research papers',
+          metadata: {
+            category: 'academic',
+            language: 'en',
+            domain: 'computer_science'
+          }
+        });
+        console.log(`Created collection: ${collection.name} with ID: ${collection.id}`);
+      } catch (error) {
+        console.error('Error creating collection:', error);
+      }
+    }
+    
+    createCollection();
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    package main
+    
+    import (
+        "fmt"
+        "log"
+        "os"
+        
+        "github.com/oronila/nebula-client-go/nebulaclient"
+    )
+    
+    func main() {
+        client := nebulaclient.NewClient(os.Getenv("NEBULA_API_KEY"))
+        
+        // Create a simple collection
+        collection, err := client.Collections.Create(nebulaclient.CreateCollectionRequest{
+            Name: "Research Papers",
+            Description: "Collection of academic research papers",
+            Metadata: map[string]interface{}{
+                "category": "academic",
+                "language": "en",
+                "domain":   "computer_science",
+            },
+        })
+        if err != nil {
+            log.Fatalf("Error creating collection: %v", err)
+        }
+        fmt.Printf("Created collection: %s with ID: %s\n", collection.Name, collection.ID)
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Creating Collections with Templates
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    def create_collection_template(client, template_name, custom_metadata=None):
+        """Create a collection using predefined templates"""
+        templates = {
+            "research": {
+                "name": "Research Collection",
+                "description": "Collection for research documents and papers",
+                "metadata": {
+                    "category": "research",
+                    "processing": "academic",
+                    "search_enabled": True
+                }
+            },
+            "business": {
+                "name": "Business Documents",
+                "description": "Collection for business and corporate documents",
+                "metadata": {
+                    "category": "business",
+                    "processing": "corporate",
+                    "search_enabled": True
+                }
+            },
+            "project": {
+                "name": "Project Documentation",
+                "description": "Collection for project-related documents",
+                "metadata": {
+                    "category": "project",
+                    "processing": "technical",
+                    "search_enabled": True
+                }
+            }
+        }
+        
+        if template_name not in templates:
+            raise ValueError(f"Unknown template: {template_name}")
+        
+        template = templates[template_name].copy()
+        
+        # Merge custom metadata
+        if custom_metadata:
+            template["metadata"].update(custom_metadata)
+        
+        return client.collections.create(**template)
+    
+    # Create a research collection
+    research_collection = create_collection_template(
+        client, "research", 
+        {"domain": "machine_learning", "year": "2024"}
+    )
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    async function createCollectionTemplate(client, templateName, customMetadata = null) {
+      const templates = {
+        research: {
+          name: 'Research Collection',
+          description: 'Collection for research documents and papers',
+          metadata: {
+            category: 'research',
+            processing: 'academic',
+            search_enabled: true
+          }
+        },
+        business: {
+          name: 'Business Documents',
+          description: 'Collection for business and corporate documents',
+          metadata: {
+            category: 'business',
+            processing: 'corporate',
+            search_enabled: true
+          }
+        },
+        project: {
+          name: 'Project Documentation',
+          description: 'Collection for project-related documents',
+          metadata: {
+            category: 'project',
+            processing: 'technical',
+            search_enabled: true
+          }
+        }
+      };
+      
+      if (!templates[templateName]) {
+        throw new Error(`Unknown template: ${templateName}`);
+      }
+      
+      const template = { ...templates[templateName] };
+      
+      // Merge custom metadata
+      if (customMetadata) {
+        template.metadata = { ...template.metadata, ...customMetadata };
+      }
+      
+      return await client.collections.create(template);
+    }
+    
+    // Create a research collection
+    createCollectionTemplate(client, 'research', {
+      domain: 'machine_learning',
+      year: '2024'
+    }).then(collection => {
+      console.log('Created research collection:', collection.name);
+    });
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    func createCollectionTemplate(client *nebulaclient.Client, templateName string, customMetadata map[string]interface{}) (*nebulaclient.Collection, error) {
+        templates := map[string]nebulaclient.CreateCollectionRequest{
+            "research": {
+                Name:        "Research Collection",
+                Description: "Collection for research documents and papers",
+                Metadata: map[string]interface{}{
+                    "category":       "research",
+                    "processing":     "academic",
+                    "search_enabled": true,
+                },
+            },
+            "business": {
+                Name:        "Business Documents",
+                Description: "Collection for business and corporate documents",
+                Metadata: map[string]interface{}{
+                    "category":       "business",
+                    "processing":     "corporate",
+                    "search_enabled": true,
+                },
+            },
+            "project": {
+                Name:        "Project Documentation",
+                Description: "Collection for project-related documents",
+                Metadata: map[string]interface{}{
+                    "category":       "project",
+                    "processing":     "technical",
+                    "search_enabled": true,
+                },
+            },
+        }
+        
+        template, exists := templates[templateName]
+        if !exists {
+            return nil, fmt.Errorf("unknown template: %s", templateName)
+        }
+        
+        // Merge custom metadata
+        if customMetadata != nil {
+            for k, v := range customMetadata {
+                template.Metadata[k] = v
+            }
+        }
+        
+        return client.Collections.Create(template)
+    }
+    
+    // Create a research collection
+    collection, err := createCollectionTemplate(client, "research", map[string]interface{}{
+        "domain": "machine_learning",
+        "year":   "2024",
+    })
+    if err != nil {
+        log.Fatalf("Error creating collection: %v", err)
+    }
+    fmt.Printf("Created research collection: %s\n", collection.Name)
+    ```
+  </Tab>
+</Tabs>
+
+## Managing Documents in Collections
+
+### Adding Documents to Collections
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    def add_documents_to_collection(client, collection_id, document_ids):
+        """Add multiple documents to a collection"""
+        try:
+            for doc_id in document_ids:
+                result = client.collections.add_document(
+                    collection_id=collection_id,
+                    document_id=doc_id
+                )
+                print(f"Added document {doc_id} to collection")
+            
+            return True
+        except Exception as e:
+            print(f"Error adding documents to collection: {e}")
+            return False
+    
+    # Add documents to collection
+    document_ids = ["doc1", "doc2", "doc3"]
+    add_documents_to_collection(client, "collection-uuid", document_ids)
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    async function addDocumentsToCollection(client, collectionId, documentIds) {
+      try {
+        for (const docId of documentIds) {
+          await client.collections.addDocument({
+            collectionId: collectionId,
+            documentId: docId
+          });
+          console.log(`Added document ${docId} to collection`);
+        }
+        return true;
+      } catch (error) {
+        console.error('Error adding documents to collection:', error);
+        return false;
+      }
+    }
+    
+    // Add documents to collection
+    const documentIds = ['doc1', 'doc2', 'doc3'];
+    addDocumentsToCollection(client, 'collection-uuid', documentIds);
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    func addDocumentsToCollection(client *nebulaclient.Client, collectionID string, documentIDs []string) error {
+        for _, docID := range documentIDs {
+            err := client.Collections.AddDocument(collectionID, docID)
+            if err != nil {
+                return fmt.Errorf("error adding document %s: %v", docID, err)
+            }
+            fmt.Printf("Added document %s to collection\n", docID)
+        }
+        return nil
+    }
+    
+    // Add documents to collection
+    documentIDs := []string{"doc1", "doc2", "doc3"}
+    err := addDocumentsToCollection(client, "collection-uuid", documentIDs)
+    if err != nil {
+        log.Fatalf("Error: %v", err)
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Bulk Document Addition
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    def bulk_add_documents(client, collection_id, folder_id):
+        """Add all documents from a folder to a collection"""
+        try:
+            # List all files in the folder
+            contents = client.list_files(
+                cluster_id="your-cluster-id",
+                folder_id=folder_id
+            )
+            
+            # Get document IDs
+            document_ids = [file['id'] for file in contents.get('files', [])]
+            
+            # Add to collection
+            added_count = 0
+            for doc_id in document_ids:
+                try:
+                    client.collections.add_document(
+                        collection_id=collection_id,
+                        document_id=doc_id
+                    )
+                    added_count += 1
+                except Exception as e:
+                    print(f"Failed to add document {doc_id}: {e}")
+            
+            print(f"Successfully added {added_count} documents to collection")
+            return added_count
+            
+        except Exception as e:
+            print(f"Error in bulk add: {e}")
+            return 0
+    
+    # Add all documents from a folder
+    bulk_add_documents(client, "collection-uuid", "folder-uuid")
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    async function bulkAddDocuments(client, collectionId, folderId) {
+      try {
+        // List all files in the folder
+        const contents = await client.listFiles({
+          clusterId: 'your-cluster-id',
+          folderId: folderId
+        });
+        
+        // Get document IDs
+        const documentIds = contents.files.map(file => file.id);
+        
+        // Add to collection
+        let addedCount = 0;
+        for (const docId of documentIds) {
+          try {
+            await client.collections.addDocument({
+              collectionId: collectionId,
+              documentId: docId
+            });
+            addedCount++;
+          } catch (error) {
+            console.error(`Failed to add document ${docId}:`, error);
+          }
+        }
+        
+        console.log(`Successfully added ${addedCount} documents to collection`);
+        return addedCount;
+        
+      } catch (error) {
+        console.error('Error in bulk add:', error);
+        return 0;
+      }
+    }
+    
+    // Add all documents from a folder
+    bulkAddDocuments(client, 'collection-uuid', 'folder-uuid');
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    func bulkAddDocuments(client *nebulaclient.Client, collectionID, folderID string) (int, error) {
+        // List all files in the folder
+        files, err := client.ListFiles("your-cluster-id", folderID)
+        if err != nil {
+            return 0, fmt.Errorf("error listing files: %v", err)
+        }
+        
+        // Get document IDs
+        var documentIDs []string
+        for _, file := range files {
+            if file.Type == "file" {
+                documentIDs = append(documentIDs, file.ID)
+            }
+        }
+        
+        // Add to collection
+        addedCount := 0
+        for _, docID := range documentIDs {
+            err := client.Collections.AddDocument(collectionID, docID)
+            if err != nil {
+                fmt.Printf("Failed to add document %s: %v\n", docID, err)
+                continue
+            }
+            fmt.Printf("Added document %s to collection\n", docID)
+            addedCount++
+        }
+        
+        fmt.Printf("Successfully added %d documents to collection\n", addedCount)
+        return addedCount, nil
+    }
+    
+    // Add all documents from a folder
+    count, err := bulkAddDocuments(client, "collection-uuid", "folder-uuid")
+    if err != nil {
+        log.Fatalf("Error: %v", err)
+    }
+    fmt.Printf("Added %d documents\n", count)
+    ```
+  </Tab>
+</Tabs>
+
+## Searching Collections
+
+### Semantic Search in Collections
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    def search_collection(client, collection_id, query, limit=10):
+        """Search for documents in a collection"""
+        try:
+            results = client.retrieval.search(
+                query=query,
+                collection_id=collection_id,
+                options={
+                    "limit": limit,
+                    "threshold": 0.7,
+                    "include_metadata": True
+                }
+            )
+            
+            print(f"Found {len(results['results'])} documents for query: '{query}'")
+            for result in results['results']:
+                print(f"  - {result['metadata']['title']} (score: {result['score']:.2f})")
+            
+            return results
+            
+        except Exception as e:
+            print(f"Error searching collection: {e}")
+            return None
+    
+    # Search in collection
+    search_collection(client, "collection-uuid", "machine learning algorithms")
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    async function searchCollection(client, collectionId, query, limit = 10) {
+      try {
+        const results = await client.retrieval.search({
+          query: query,
+          collectionId: collectionId,
+          options: {
+            limit: limit,
+            threshold: 0.7,
+            includeMetadata: true
+          }
+        });
+        
+        console.log(`Found ${results.results.length} documents for query: '${query}'`);
+        results.results.forEach(result => {
+          console.log(`  - ${result.metadata.title} (score: ${result.score.toFixed(2)})`);
+        });
+        
+        return results;
+        
+      } catch (error) {
+        console.error('Error searching collection:', error);
+        return null;
+      }
+    }
+    
+    // Search in collection
+    searchCollection(client, 'collection-uuid', 'machine learning algorithms');
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    func searchCollection(client *nebulaclient.Client, collectionID, query string, limit int) (*nebulaclient.SearchResponse, error) {
+        if limit == 0 {
+            limit = 10
+        }
+        
+        results, err := client.Retrieval.Search(nebulaclient.SearchRequest{
+            Query:        query,
+            CollectionID: collectionID,
+            Options: nebulaclient.SearchOptions{
+                Limit:           limit,
+                Threshold:       0.7,
+                IncludeMetadata: true,
+            },
+        })
+        if err != nil {
+            return nil, fmt.Errorf("error searching collection: %v", err)
+        }
+        
+        fmt.Printf("Found %d documents for query: '%s'\n", len(results.Results), query)
+        for _, result := range results.Results {
+            fmt.Printf("  - %s (score: %.2f)\n", result.Metadata["title"], result.Score)
+        }
+        
+        return results, nil
+    }
+    
+    // Search in collection
+    results, err := searchCollection(client, "collection-uuid", "machine learning algorithms", 10)
+    if err != nil {
+        log.Fatalf("Error: %v", err)
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### RAG Queries on Collections
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    def rag_query_collection(client, collection_id, question):
+        """Perform RAG query on a collection"""
+        try:
+            response = client.retrieval.rag(
+                query=question,
+                collection_id=collection_id,
+                options={
+                    "model": "gpt-4",
+                    "temperature": 0.7,
+                    "max_tokens": 1000,
+                    "top_k": 5,
+                    "include_sources": True
+                }
+            )
+            
+            print(f"Question: {question}")
+            print(f"Answer: {response['answer']}")
+            print("\nSources:")
+            for source in response['sources']:
+                print(f"  - {source['title']} (score: {source['score']:.2f})")
+            
+            return response
+            
+        except Exception as e:
+            print(f"Error performing RAG query: {e}")
+            return None
+    
+    # RAG query on collection
+    rag_query_collection(
+        client, 
+        "collection-uuid", 
+        "What are the main types of machine learning algorithms?"
+    )
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    async function ragQueryCollection(client, collectionId, question) {
+      try {
+        const response = await client.retrieval.rag({
+          query: question,
+          collectionId: collectionId,
+          options: {
+            model: 'gpt-4',
+            temperature: 0.7,
+            maxTokens: 1000,
+            topK: 5,
+            includeSources: true
+          }
+        });
+        
+        console.log(`Question: ${question}`);
+        console.log(`Answer: ${response.answer}`);
+        console.log('\nSources:');
+        response.sources.forEach(source => {
+          console.log(`  - ${source.title} (score: ${source.score.toFixed(2)})`);
+        });
+        
+        return response;
+        
+      } catch (error) {
+        console.error('Error performing RAG query:', error);
+        return null;
+      }
+    }
+    
+    // RAG query on collection
+    ragQueryCollection(
+      client,
+      'collection-uuid',
+      'What are the main types of machine learning algorithms?'
+    );
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    func ragQueryCollection(client *nebulaclient.Client, collectionID, question string) (*nebulaclient.RAGResponse, error) {
+        response, err := client.Retrieval.RAG(nebulaclient.RAGRequest{
+            Query:        question,
+            CollectionID: collectionID,
+            Options: nebulaclient.RAGOptions{
+                Model:          "gpt-4",
+                Temperature:    0.7,
+                MaxTokens:      1000,
+                TopK:           5,
+                IncludeSources: true,
+            },
+        })
+        if err != nil {
+            return nil, fmt.Errorf("error performing RAG query: %v", err)
+        }
+        
+        fmt.Printf("Question: %s\n", question)
+        fmt.Printf("Answer: %s\n", response.Answer)
+        fmt.Println("\nSources:")
+        for _, source := range response.Sources {
+            fmt.Printf("  - %s (score: %.2f)\n", source.Title, source.Score)
+        }
+        
+        return response, nil
+    }
+    
+    // RAG query on collection
+    response, err := ragQueryCollection(client, "collection-uuid", "What are the main types of machine learning algorithms?")
+    if err != nil {
+        log.Fatalf("Error: %v", err)
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Collection Management
+
+### Listing Collections
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    def list_collections(client, limit=50):
+        """List all collections"""
+        try:
+            collections = client.collections.list_collections(
+                limit=limit
+            )
+            
+            print(f"Found {len(collections['collections'])} collections:")
+            for collection in collections['collections']:
+                print(f"  - {collection['name']} ({collection['document_count']} docs)")
+                print(f"    Description: {collection['description']}")
+                print(f"    Created: {collection['created_at']}")
+                print()
+            
+            return collections
+            
+        except Exception as e:
+            print(f"Error listing collections: {e}")
+            return None
+    
+    # List all collections
+    list_collections(client)
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    async function listCollections(client, limit = 50) {
+      try {
+        const collections = await client.collections.listCollections({
+          limit: limit
+        });
+        
+        console.log(`Found ${collections.collections.length} collections:`);
+        collections.collections.forEach(collection => {
+          console.log(`  - ${collection.name} (${collection.documentCount} docs)`);
+          console.log(`    Description: ${collection.description}`);
+          console.log(`    Created: ${collection.createdAt}`);
+          console.log();
+        });
+        
+        return collections;
+        
+      } catch (error) {
+        console.error('Error listing collections:', error);
+        return null;
+      }
+    }
+    
+    // List all collections
+    listCollections(client);
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    func listCollections(client *nebulaclient.Client, limit int) (*nebulaclient.ListCollectionsResponse, error) {
+        if limit == 0 {
+            limit = 50
+        }
+        
+        collections, err := client.Collections.ListCollections(nebulaclient.ListCollectionsRequest{
+            Limit: limit,
+        })
+        if err != nil {
+            return nil, fmt.Errorf("error listing collections: %v", err)
+        }
+        
+        fmt.Printf("Found %d collections:\n", len(collections.Collections))
+        for _, collection := range collections.Collections {
+            fmt.Printf("  - %s (%d docs)\n", collection.Name, collection.DocumentCount)
+            fmt.Printf("    Description: %s\n", collection.Description)
+            fmt.Printf("    Created: %s\n", collection.CreatedAt)
+            fmt.Println()
+        }
+        
+        return collections, nil
+    }
+    
+    // List all collections
+    collections, err := listCollections(client, 50)
+    if err != nil {
+        log.Fatalf("Error: %v", err)
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Updating Collection Metadata
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    def update_collection(client, collection_id, updates):
+        """Update collection metadata"""
+        try:
+            result = client.collections.update(
+                collection_id=collection_id,
+                **updates
+            )
+            print(f"Successfully updated collection: {result['name']}")
+            return result
+        except Exception as e:
+            print(f"Error updating collection: {e}")
+            return None
+    
+    # Update collection
+    updates = {
+        "name": "Updated Research Papers",
+        "description": "Updated description for research papers",
+        "metadata": {
+            "category": "updated_category",
+            "last_updated": "2024-01-01"
+        }
+    }
+    update_collection(client, "collection-uuid", updates)
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    async function updateCollection(client, collectionId, updates) {
+      try {
+        const result = await client.collections.update({
+          collectionId: collectionId,
+          ...updates
+        });
+        console.log(`Successfully updated collection: ${result.name}`);
+        return result;
+      } catch (error) {
+        console.error('Error updating collection:', error);
+        return null;
+      }
+    }
+    
+    // Update collection
+    const updates = {
+      name: 'Updated Research Papers',
+      description: 'Updated description for research papers',
+      metadata: {
+        category: 'updated_category',
+        last_updated: '2024-01-01'
+      }
+    };
+    updateCollection(client, 'collection-uuid', updates);
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    func updateCollection(client *nebulaclient.Client, collectionID string, updates nebulaclient.UpdateCollectionRequest) (*nebulaclient.Collection, error) {
+        result, err := client.Collections.Update(collectionID, updates)
+        if err != nil {
+            return nil, fmt.Errorf("error updating collection: %v", err)
+        }
+        fmt.Printf("Successfully updated collection: %s\n", result.Name)
+        return result, nil
+    }
+    
+    // Update collection
+    updates := nebulaclient.UpdateCollectionRequest{
+        Name:        "Updated Research Papers",
+        Description: "Updated description for research papers",
+        Metadata: map[string]interface{}{
+            "category":     "updated_category",
+            "last_updated": "2024-01-01",
+        },
+    }
+    result, err := updateCollection(client, "collection-uuid", updates)
+    if err != nil {
+        log.Fatalf("Error: %v", err)
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Best Practices
+
+### Collection Organization
+
+1. **Logical Grouping**: Group documents by purpose, topic, or project
+2. **Consistent Naming**: Use clear, descriptive names for collections
+3. **Metadata Strategy**: Use metadata to categorize and filter collections
+4. **Size Management**: Keep collections at a reasonable size (100-1000 documents)
+
+### Performance Optimization
+
+- **Indexing**: Ensure collections are properly indexed for search
+- **Caching**: Cache frequently accessed collection metadata
+- **Batch Operations**: Use batch operations for large document sets
+- **Regular Updates**: Keep collection metadata up to date
+
+### Security Considerations
+
+- **Access Control**: Implement proper permissions for collections
+- **Audit Logging**: Track collection access and modifications
+- **Data Classification**: Use metadata to classify sensitive documents
+- **Backup Strategy**: Ensure collections are properly backed up
+
+## Common Patterns
+
+### Collection Templates
+
+Create reusable collection templates for common use cases:
+
+```python
+def create_research_collection(client, domain, year):
+    """Create a standardized research collection"""
+    return client.collections.create(
+        name=f"{domain} Research {year}",
+        description=f"Research papers in {domain} from {year}",
+        metadata={
+            "category": "research",
+            "domain": domain,
+            "year": year,
+            "processing": "academic",
+            "search_enabled": True
+        }
+    )
+```
+
+### Collection Analytics
+
+Monitor collection usage and performance:
+
+```python
+def get_collection_stats(client, collection_id):
+    """Get statistics for a collection"""
+    collection = client.collections.get(collection_id)
+    
+    stats = {
+        "total_documents": collection.document_count,
+        "search_queries": 0,  # Would come from analytics
+        "avg_query_time": 0.0,
+        "popular_queries": []
+    }
+    
+    return stats
+```
+
+This guide provides comprehensive coverage of collection management in Nebula. For more advanced operations, refer to the [API Reference](/api-reference/collections) for detailed endpoint documentation. 

@@ -1,0 +1,436 @@
+---
+title: 'API Reference Overview'
+description: 'Complete API reference for the Nebula API'
+---
+
+# API Reference
+
+The Nebula API provides a comprehensive set of endpoints for file storage, document processing, and AI-powered features. All endpoints are RESTful and return JSON responses.
+
+## Base URL
+
+```
+https://api.nebulacloud.app
+```
+
+## Authentication
+
+All API requests require authentication using either:
+
+- **API Key**: `Authorization: ApiKey YOUR_API_KEY`
+- **JWT Token**: `Authorization: Bearer YOUR_JWT_TOKEN`
+
+## Response Format
+
+All API responses follow a consistent format:
+
+```json
+{
+  "data": {
+    // Response data
+  },
+  "statusCode": 200,
+  "message": "Success"
+}
+```
+
+## Error Responses
+
+Error responses include details about what went wrong:
+
+```json
+{
+  "error": "Bad Request",
+  "message": "Invalid request parameters",
+  "statusCode": 400
+}
+```
+
+## Common HTTP Status Codes
+
+| Status Code | Description |
+|-------------|-------------|
+| 200 | Success |
+| 201 | Created |
+| 400 | Bad Request |
+| 401 | Unauthorized |
+| 403 | Forbidden |
+| 404 | Not Found |
+| 429 | Rate Limited |
+| 500 | Internal Server Error |
+
+## Rate Limits
+
+- **Standard**: 1000 requests per minute per API key
+- **Burst**: Up to 100 requests per second
+- **Headers**: Rate limit information is included in response headers
+
+## API Endpoints
+
+### File Operations
+
+<CardGroup cols={2}>
+  <Card title="List Files">
+    <code>GET /clusters/{clusterId}/files/list</code>
+    <br />
+    List files and folders in a cluster
+  </Card>
+  <Card title="Upload File">
+    <code>POST /clusters/{clusterId}/files/upload-url</code>
+    <br />
+    Get a pre-signed URL for file upload
+  </Card>
+  <Card title="Download File">
+    <code>GET /clusters/{clusterId}/files/download-url</code>
+    <br />
+    Get a pre-signed URL for file download
+  </Card>
+  <Card title="Create Folder">
+    <code>POST /clusters/{clusterId}/files/create-folder</code>
+    <br />
+    Create a new folder
+  </Card>
+  <Card title="Delete Files">
+    <code>POST /clusters/{clusterId}/files/delete</code>
+    <br />
+    Delete files or folders
+  </Card>
+  <Card title="Move Files">
+    <code>POST /clusters/{clusterId}/files/move</code>
+    <br />
+    Move files to a different folder
+  </Card>
+  <Card title="Rename File">
+    <code>POST /clusters/{clusterId}/files/rename</code>
+    <br />
+    Rename a file or folder
+  </Card>
+</CardGroup>
+
+### Document Processing
+
+<CardGroup cols={2}>
+  <Card title="Extract Entities">
+    <code>POST /documents/{id}/extract</code>
+    <br />
+    Extract entities and relationships from a document
+  </Card>
+  <Card title="List Entities">
+    <code>GET /documents/{id}/entities</code>
+    <br />
+    List all entities in a document
+  </Card>
+  <Card title="List Relationships">
+    <code>GET /documents/{id}/relationships</code>
+    <br />
+    List all relationships in a document
+  </Card>
+</CardGroup>
+
+### Collections
+
+<CardGroup cols={2}>
+  <Card title="Create Collection">
+    <code>POST /collections</code>
+    <br />
+    Create a new collection
+  </Card>
+  <Card title="List Collections">
+    <code>GET /collections</code>
+    <br />
+    List all collections
+  </Card>
+  <Card title="Add Document">
+    <code>POST /collections/{id}/documents</code>
+    <br />
+    Add a document to a collection
+  </Card>
+  <Card title="Get Collection">
+    <code>GET /collections/{id}</code>
+    <br />
+    Get collection details
+  </Card>
+</CardGroup>
+
+### Conversations
+
+<CardGroup cols={2}>
+  <Card title="Create Conversation">
+    <code>POST /conversations</code>
+    <br />
+    Create a new conversation
+  </Card>
+  <Card title="Send Message">
+    <code>POST /conversations/{id}/chat</code>
+    <br />
+    Send a message to a conversation
+  </Card>
+  <Card title="List Conversations">
+    <code>GET /conversations</code>
+    <br />
+    List all conversations
+  </Card>
+  <Card title="Get Conversation">
+    <code>GET /conversations/{id}</code>
+    <br />
+    Get conversation details
+  </Card>
+</CardGroup>
+
+### Graphs
+
+<CardGroup cols={2}>
+  <Card title="List Graphs">
+    <code>GET /graphs</code>
+    <br />
+    List all knowledge graphs
+  </Card>
+  <Card title="Get Graph">
+    <code>GET /graphs/{collectionId}</code>
+    <br />
+    Get graph details
+  </Card>
+  <Card title="List Graph Entities">
+    <code>GET /graphs/{collectionId}/entities</code>
+    <br />
+    List entities in a graph
+  </Card>
+  <Card title="List Graph Relationships">
+    <code>GET /graphs/{collectionId}/relationships</code>
+    <br />
+    List relationships in a graph
+  </Card>
+</CardGroup>
+
+### Retrieval
+
+<CardGroup cols={2}>
+  <Card title="RAG Query">
+    <code>POST /retrieval/rag</code>
+    <br />
+    Perform retrieval-augmented generation
+  </Card>
+  <Card title="Search">
+    <code>POST /retrieval/search</code>
+    <br />
+    Search across documents
+  </Card>
+</CardGroup>
+
+### API Keys
+
+<CardGroup cols={2}>
+  <Card title="List API Keys">
+    <code>GET /api-keys</code>
+    <br />
+    List all API keys for the user
+  </Card>
+  <Card title="Create API Key">
+    <code>POST /api-keys</code>
+    <br />
+    Create a new API key
+  </Card>
+  <Card title="Update API Key">
+    <code>PUT /api-keys/{id}</code>
+    <br />
+    Update an API key
+  </Card>
+  <Card title="Delete API Key">
+    <code>DELETE /api-keys/{id}</code>
+    <br />
+    Delete an API key
+  </Card>
+</CardGroup>
+
+### System
+
+<CardGroup cols={2}>
+  <Card title="Health Check">
+    <code>GET /system/health</code>
+    <br />
+    Check API health status
+  </Card>
+  <Card title="User Info">
+    <code>GET /users/me</code>
+    <br />
+    Get current user information
+  </Card>
+</CardGroup>
+
+## Request Examples
+
+### Using cURL
+
+```bash
+# List files in a cluster
+curl -H "Authorization: ApiKey YOUR_API_KEY" \
+     https://api.nebulacloud.app/clusters/your-cluster-id/files/list
+
+# Upload a file
+curl -X POST https://api.nebulacloud.app/clusters/your-cluster-id/files/upload-url \
+  -H "Authorization: ApiKey YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fileName": "document.pdf",
+    "folderId": "ROOT"
+  }'
+
+# Extract entities from a document
+curl -X POST https://api.nebulacloud.app/documents/file-id/extract \
+  -H "Authorization: ApiKey YOUR_API_KEY"
+```
+
+### Using Python
+
+```python
+import requests
+
+headers = {
+    "Authorization": "ApiKey YOUR_API_KEY",
+    "Content-Type": "application/json"
+}
+
+# List files
+response = requests.get(
+    "https://api.nebulacloud.app/clusters/your-cluster-id/files/list",
+    headers=headers
+)
+
+# Upload file
+response = requests.post(
+    "https://api.nebulacloud.app/clusters/your-cluster-id/files/upload-url",
+    headers=headers,
+    json={
+        "fileName": "document.pdf",
+        "folderId": "ROOT"
+    }
+)
+```
+
+### Using JavaScript
+
+```javascript
+const headers = {
+  'Authorization': 'ApiKey YOUR_API_KEY',
+  'Content-Type': 'application/json'
+};
+
+// List files
+const response = await fetch(
+  'https://api.nebulacloud.app/clusters/your-cluster-id/files/list',
+  { headers }
+);
+
+// Upload file
+const uploadResponse = await fetch(
+  'https://api.nebulacloud.app/clusters/your-cluster-id/files/upload-url',
+  {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({
+      fileName: 'document.pdf',
+      folderId: 'ROOT'
+    })
+  }
+);
+```
+
+## Pagination
+
+Endpoints that return lists support pagination using query parameters:
+
+```
+GET /collections?page=1&limit=10
+```
+
+Response includes pagination metadata:
+
+```json
+{
+  "data": [...],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 100,
+    "pages": 10
+  }
+}
+```
+
+## Filtering and Sorting
+
+Many endpoints support filtering and sorting:
+
+```
+GET /collections?sort=created_at&order=desc&filter[name]=research
+```
+
+## File Upload Process
+
+File uploads use a two-step process:
+
+1. **Get Upload URL**: Request a pre-signed URL
+2. **Upload to S3**: Upload the file directly to S3 using the URL
+
+```bash
+# Step 1: Get upload URL
+curl -X POST https://api.nebulacloud.app/clusters/your-cluster-id/files/upload-url \
+  -H "Authorization: ApiKey YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"fileName": "document.pdf"}'
+
+# Response:
+{
+  "data": {
+    "uploadUrl": "https://s3.amazonaws.com/...",
+    "fileId": "file-uuid"
+  }
+}
+
+# Step 2: Upload to S3
+curl -X PUT "https://s3.amazonaws.com/..." \
+  -H "Content-Type: application/pdf" \
+  --upload-file document.pdf
+```
+
+## File Download Process
+
+File downloads also use pre-signed URLs:
+
+```bash
+# Get download URL
+curl -H "Authorization: ApiKey YOUR_API_KEY" \
+     "https://api.nebulacloud.app/clusters/your-cluster-id/files/download-url?fileId=file-uuid"
+
+# Download file
+curl "https://s3.amazonaws.com/..." -o downloaded_file.pdf
+```
+
+## Webhooks
+
+Nebula supports webhooks for real-time notifications:
+
+```json
+{
+  "url": "https://your-app.com/webhook",
+  "events": ["file.uploaded", "document.processed"],
+  "secret": "webhook-secret"
+}
+```
+
+## SDKs and Libraries
+
+Official client libraries are available for:
+
+- [Python](/clients/python)
+- [Node.js](/clients/nodejs)
+- [Go](/clients/go)
+
+## Next Steps
+
+- [File Operations](/api-reference/files) - Detailed file operation endpoints
+- [Document Processing](/api-reference/documents) - Document processing endpoints
+- [Collections](/api-reference/collections) - Collection management endpoints
+- [Conversations](/api-reference/conversations) - Conversation endpoints
+- [Graphs](/api-reference/graphs) - Knowledge graph endpoints
+- [Retrieval](/api-reference/retrieval) - RAG and search endpoints 

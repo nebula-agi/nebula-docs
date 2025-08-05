@@ -1,73 +1,468 @@
 ---
-title: 'User Management'
-description: 'Complete user lifecycle management including registration, authentication, and profile management'
+title: 'Users API Reference'
+description: 'Complete API reference for user management operations in Nebula'
 ---
 
-# User Management
+# Users API Reference
 
-The Users API provides complete user lifecycle management including registration, authentication, authorization, and profile management.
+This page provides detailed information about all user management-related API endpoints in Nebula.
 
-## Overview
+## Base URL
 
-The Users API handles all aspects of user management in the R2R platform:
+All API endpoints are relative to: `https://api.nebulacloud.app`
 
-- **Authentication**: Login, logout, token management
-- **Registration**: User creation and email verification
-- **Profile Management**: User details, preferences, and settings
-- **Authorization**: API key management and permissions
-- **Password Management**: Password changes and resets
+## Authentication
 
-## Endpoints
+All requests require authentication using either:
+- **API Key**: `Authorization: ApiKey your-api-key`
+- **JWT Token**: `Authorization: Bearer your-jwt-token`
 
-### Authentication
+## User Management Operations
 
-- `POST /users/login` - User login
-- `POST /users/logout` - User logout
-- `POST /users/refresh-token` - Refresh access token
+### Get Current User
 
-### Registration & Verification
+Retrieve information about the currently authenticated user.
 
-- `POST /users` - Create user (register)
-- `POST /users/verify-email` - Verify email address
-- `POST /users/send-verification-email` - Send verification email
+```http
+GET /api/v1/users/me
+```
 
-### Password Management
+**Response:**
+```json
+{
+  "id": "user-uuid",
+  "email": "user@example.com",
+  "name": "John Doe",
+  "created_at": "2024-01-01T00:00:00Z",
+  "updated_at": "2024-01-01T00:00:00Z",
+  "status": "active",
+  "metadata": {
+    "company": "Example Corp",
+    "role": "developer"
+  },
+  "permissions": {
+    "clusters": [
+      {
+        "cluster_id": "cluster-uuid",
+        "permission": "admin"
+      }
+    ]
+  }
+}
+```
 
-- `POST /users/change-password` - Change password
-- `POST /users/request-password-reset` - Request password reset
-- `POST /users/reset-password` - Reset password
+### Update Current User
 
-### User Management
+Update the current user's profile information.
 
-- `GET /users` - List users
-- `GET /users/{id}` - Get user details
-- `POST /users/{id}` - Update user
-- `DELETE /users/{id}` - Delete user
-- `POST /users/export` - Export users to CSV
+```http
+PUT /api/v1/users/me
+```
 
-### User Collections
+**Request Body:**
+```json
+{
+  "name": "John Smith",
+  "metadata": {
+    "company": "New Company",
+    "role": "senior_developer"
+  }
+}
+```
 
-- `GET /users/{id}/collections` - Get user collections
-- `POST /users/{id}/collections/{collection_id}` - Add user to collection
-- `DELETE /users/{id}/collections/{collection_id}` - Remove user from collection
+**Response:**
+```json
+{
+  "id": "user-uuid",
+  "email": "user@example.com",
+  "name": "John Smith",
+  "updated_at": "2024-01-01T00:00:00Z",
+  "metadata": {
+    "company": "New Company",
+    "role": "senior_developer"
+  }
+}
+```
 
-### User Resources
+### List Users (Admin Only)
 
-- `GET /users/{id}/documents` - Get user documents
-- `GET /users/{id}/conversations` - Get user conversations
+Retrieve a list of users (admin access required).
 
-### API Key Management
+```http
+GET /api/v1/users
+```
 
-- `GET /users/{id}/api-keys` - Get user API keys
-- `POST /users/{id}/api-keys` - Create API key
-- `DELETE /users/{id}/api-keys/{key_id}` - Delete API key
+**Parameters:**
+- `limit` (integer, optional): Number of users to return. Defaults to 50
+- `offset` (integer, optional): Number of users to skip. Defaults to 0
+- `status` (string, optional): Filter by user status (active, inactive, suspended)
 
-## Documentation Status
+**Response:**
+```json
+{
+  "users": [
+    {
+      "id": "user-uuid",
+      "email": "user@example.com",
+      "name": "John Doe",
+      "created_at": "2024-01-01T00:00:00Z",
+      "status": "active",
+      "last_login": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "total": 100,
+  "limit": 50,
+  "offset": 0
+}
+```
 
-⚠️ **This documentation is currently being written.** 
+### Get User (Admin Only)
 
-The Users API contains 20+ endpoints for complete user management. This documentation will be completed as part of the comprehensive R2R API documentation effort.
+Retrieve information about a specific user (admin access required).
 
-**Estimated completion**: Next 1-2 days
+```http
+GET /api/v1/users/{user_id}
+```
 
-For now, please refer to the [R2R API Reference Overview](./r2r-api-reference) for general information about the API structure and authentication. 
+**Parameters:**
+- `user_id` (string, required): The ID of the user
+
+**Response:**
+```json
+{
+  "id": "user-uuid",
+  "email": "user@example.com",
+  "name": "John Doe",
+  "created_at": "2024-01-01T00:00:00Z",
+  "updated_at": "2024-01-01T00:00:00Z",
+  "status": "active",
+  "last_login": "2024-01-01T00:00:00Z",
+  "metadata": {
+    "company": "Example Corp",
+    "role": "developer"
+  },
+  "permissions": {
+    "clusters": [
+      {
+        "cluster_id": "cluster-uuid",
+        "permission": "admin"
+      }
+    ]
+  },
+  "api_keys": [
+    {
+      "id": "key-uuid",
+      "name": "Production API Key",
+      "created_at": "2024-01-01T00:00:00Z",
+      "last_used": "2024-01-01T00:00:00Z"
+    }
+  ]
+}
+```
+
+### Create User (Admin Only)
+
+Create a new user account (admin access required).
+
+```http
+POST /api/v1/users
+```
+
+**Request Body:**
+```json
+{
+  "email": "newuser@example.com",
+  "name": "New User",
+  "password": "secure-password",
+  "metadata": {
+    "company": "Example Corp",
+    "role": "developer"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "id": "user-uuid",
+  "email": "newuser@example.com",
+  "name": "New User",
+  "created_at": "2024-01-01T00:00:00Z",
+  "status": "active",
+  "metadata": {
+    "company": "Example Corp",
+    "role": "developer"
+  }
+}
+```
+
+### Update User (Admin Only)
+
+Update a user's information (admin access required).
+
+```http
+PUT /api/v1/users/{user_id}
+```
+
+**Parameters:**
+- `user_id` (string, required): The ID of the user
+
+**Request Body:**
+```json
+{
+  "name": "Updated Name",
+  "status": "active",
+  "metadata": {
+    "company": "Updated Company",
+    "role": "senior_developer"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "id": "user-uuid",
+  "email": "user@example.com",
+  "name": "Updated Name",
+  "updated_at": "2024-01-01T00:00:00Z",
+  "status": "active",
+  "metadata": {
+    "company": "Updated Company",
+    "role": "senior_developer"
+  }
+}
+```
+
+### Delete User (Admin Only)
+
+Delete a user account (admin access required).
+
+```http
+DELETE /api/v1/users/{user_id}
+```
+
+**Parameters:**
+- `user_id` (string, required): The ID of the user
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "User deleted successfully"
+}
+```
+
+### List User API Keys
+
+Retrieve a list of API keys for the current user.
+
+```http
+GET /api/v1/users/me/api-keys
+```
+
+**Response:**
+```json
+{
+  "api_keys": [
+    {
+      "id": "key-uuid",
+      "name": "Production API Key",
+      "description": "API key for production environment",
+      "created_at": "2024-01-01T00:00:00Z",
+      "last_used": "2024-01-01T00:00:00Z",
+      "status": "active",
+      "permissions": [
+        {
+          "cluster_id": "cluster-uuid",
+          "permission": "admin"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Get User Permissions
+
+Retrieve permissions for the current user.
+
+```http
+GET /api/v1/users/me/permissions
+```
+
+**Response:**
+```json
+{
+  "permissions": {
+    "clusters": [
+      {
+        "cluster_id": "cluster-uuid",
+        "cluster_name": "Production Cluster",
+        "permission": "admin",
+        "granted_at": "2024-01-01T00:00:00Z"
+      }
+    ],
+    "global_permissions": [
+      "read_files",
+      "write_files",
+      "manage_collections"
+    ]
+  }
+}
+```
+
+### Update User Permissions (Admin Only)
+
+Update permissions for a user (admin access required).
+
+```http
+PUT /api/v1/users/{user_id}/permissions
+```
+
+**Parameters:**
+- `user_id` (string, required): The ID of the user
+
+**Request Body:**
+```json
+{
+  "cluster_permissions": [
+    {
+      "cluster_id": "cluster-uuid",
+      "permission": "write"
+    }
+  ],
+  "global_permissions": [
+    "read_files",
+    "write_files"
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "User permissions updated successfully",
+  "updated_permissions": {
+    "cluster_permissions": [
+      {
+        "cluster_id": "cluster-uuid",
+        "permission": "write"
+      }
+    ],
+    "global_permissions": [
+      "read_files",
+      "write_files"
+    ]
+  }
+}
+```
+
+### Get User Activity
+
+Retrieve activity logs for the current user.
+
+```http
+GET /api/v1/users/me/activity
+```
+
+**Parameters:**
+- `limit` (integer, optional): Number of activities to return. Defaults to 50
+- `offset` (integer, optional): Number of activities to skip. Defaults to 0
+- `action` (string, optional): Filter by action type
+
+**Response:**
+```json
+{
+  "activities": [
+    {
+      "id": "activity-uuid",
+      "action": "file_upload",
+      "resource": "document.pdf",
+      "timestamp": "2024-01-01T00:00:00Z",
+      "metadata": {
+        "cluster_id": "cluster-uuid",
+        "file_size": 1024000
+      }
+    }
+  ],
+  "total": 150,
+  "limit": 50,
+  "offset": 0
+}
+```
+
+## Error Responses
+
+### 400 Bad Request
+```json
+{
+  "error": "Invalid request parameters",
+  "details": "Email address is required"
+}
+```
+
+### 401 Unauthorized
+```json
+{
+  "error": "Authentication required",
+  "message": "Valid API key or JWT token required"
+}
+```
+
+### 403 Forbidden
+```json
+{
+  "error": "Insufficient permissions",
+  "message": "Admin access required for this operation"
+}
+```
+
+### 404 Not Found
+```json
+{
+  "error": "User not found",
+  "message": "The specified user does not exist"
+}
+```
+
+### 409 Conflict
+```json
+{
+  "error": "User already exists",
+  "message": "A user with this email already exists"
+}
+```
+
+## Rate Limits
+
+- **Get Current User**: 1000 requests per minute per API key
+- **Update Current User**: 100 requests per minute per API key
+- **List Users (Admin)**: 200 requests per minute per API key
+- **Create/Update/Delete User (Admin)**: 50 requests per minute per API key
+- **User Activity**: 500 requests per minute per API key
+
+## User Status Values
+
+- **active**: User account is active and can access the system
+- **inactive**: User account is inactive and cannot access the system
+- **suspended**: User account is temporarily suspended
+- **pending**: User account is pending activation
+
+## Permission Levels
+
+- **none**: No access to the resource
+- **read**: Read-only access to the resource
+- **write**: Read and write access to the resource
+- **admin**: Full administrative access to the resource
+
+## Global Permissions
+
+- **read_files**: Can read files
+- **write_files**: Can create and modify files
+- **delete_files**: Can delete files
+- **manage_collections**: Can manage document collections
+- **manage_conversations**: Can manage conversations
+- **manage_graphs**: Can manage knowledge graphs
+- **admin_users**: Can manage user accounts (admin only) 

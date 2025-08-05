@@ -1,0 +1,378 @@
+---
+title: 'Authentication'
+description: 'Learn how to authenticate with the Nebula API using API keys and JWT tokens'
+---
+
+# Authentication
+
+Nebula API supports two authentication methods: API keys and JWT tokens. API keys are the recommended method for most applications as they provide granular permissions and are easier to manage.
+
+## API Keys
+
+API keys are the primary authentication method for the Nebula API. They provide granular permissions and are scoped to specific clusters.
+
+### Creating API Keys
+
+You can create API keys through the Nebula dashboard or programmatically using the API.
+
+#### Via Dashboard
+
+1. Log in to your [Nebula dashboard](https://nebulacloud.app)
+2. Navigate to **API Keys** section
+3. Click **Create New API Key**
+4. Configure permissions for specific clusters
+5. Copy the generated API key (it's only shown once)
+
+#### Via API
+
+```bash
+curl -X POST https://api.nebulacloud.app/api-keys \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "My API Key",
+    "description": "For accessing project files",
+    "clusters": [
+      {"id": "cluster-uuid-1", "permission": "write"},
+      {"id": "cluster-uuid-2", "permission": "read"}
+    ]
+  }'
+```
+
+### Permission Levels
+
+API keys support different permission levels:
+
+| Permission | Description |
+|------------|-------------|
+| `read` | Can view and download files |
+| `write` | Can upload, create folders, delete, move, and rename files (includes read permissions) |
+| `admin` | Full access to the cluster |
+| `none` | No access |
+
+### Using API Keys
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    from nebula import NebulaClient
+    
+    # Initialize with API key
+    client = NebulaClient(api_key="neb_abcdef123456789")
+    
+    # Or use environment variable
+    import os
+    client = NebulaClient(api_key=os.getenv("NEBULA_API_KEY"))
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    const { NebulaClient } = require('@oronila/nebula-client');
+    
+    // Initialize with API key
+    const client = new NebulaClient({
+      apiKey: 'neb_abcdef123456789'
+    });
+    
+    // Or use environment variable
+    const client = new NebulaClient({
+      apiKey: process.env.NEBULA_API_KEY
+    });
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    import "github.com/oronila/nebula-client-go/nebulaclient"
+    
+    // Initialize with API key
+    client := nebulaclient.NewClient("neb_abcdef123456789")
+    
+    // Or use environment variable
+    client := nebulaclient.NewClient(os.Getenv("NEBULA_API_KEY"))
+    ```
+  </Tab>
+  <Tab title="cURL">
+    ```bash
+    curl -H "Authorization: ApiKey neb_abcdef123456789" \
+         https://api.nebulacloud.app/clusters/your-cluster-id/files/list
+    ```
+  </Tab>
+</Tabs>
+
+### Managing API Keys
+
+#### List API Keys
+
+```bash
+curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+     https://api.nebulacloud.app/api-keys
+```
+
+#### Update API Key
+
+```bash
+curl -X PUT https://api.nebulacloud.app/api-keys/KEY_ID \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Updated API Key Name",
+    "description": "Updated description",
+    "active": true
+  }'
+```
+
+#### Update Permissions
+
+```bash
+curl -X PUT https://api.nebulacloud.app/api-keys/KEY_ID/permissions \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "clusters": [
+      {"id": "cluster-uuid-1", "permission": "admin"},
+      {"id": "cluster-uuid-2", "permission": "read"}
+    ]
+  }'
+```
+
+#### Delete API Key
+
+```bash
+curl -X DELETE https://api.nebulacloud.app/api-keys/KEY_ID \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+## JWT Tokens
+
+JWT tokens are used for user authentication and can be obtained through Supabase authentication.
+
+### Obtaining JWT Tokens
+
+#### Via Supabase Auth
+
+```javascript
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient('YOUR_SUPABASE_URL', 'YOUR_SUPABASE_ANON_KEY')
+
+// Sign in
+const { data, error } = await supabase.auth.signInWithPassword({
+  email: 'user@example.com',
+  password: 'password'
+})
+
+// Get the JWT token
+const jwtToken = data.session.access_token
+```
+
+#### Via API Login
+
+```bash
+curl -X POST https://api.nebulacloud.app/users/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "password"
+  }'
+```
+
+### Using JWT Tokens
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    import requests
+    
+    headers = {
+        "Authorization": f"Bearer {jwt_token}",
+        "Content-Type": "application/json"
+    }
+    
+    response = requests.get(
+        "https://api.nebulacloud.app/clusters/your-cluster-id/files/list",
+        headers=headers
+    )
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    const axios = require('axios');
+    
+    const headers = {
+      'Authorization': `Bearer ${jwtToken}`,
+      'Content-Type': 'application/json'
+    };
+    
+    const response = await axios.get(
+      'https://api.nebulacloud.app/clusters/your-cluster-id/files/list',
+      { headers }
+    );
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    import (
+        "net/http"
+        "fmt"
+    )
+    
+    req, err := http.NewRequest("GET", 
+        "https://api.nebulacloud.app/clusters/your-cluster-id/files/list", nil)
+    if err != nil {
+        log.Fatal(err)
+    }
+    
+    req.Header.Set("Authorization", "Bearer "+jwtToken)
+    req.Header.Set("Content-Type", "application/json")
+    
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    ```
+  </Tab>
+  <Tab title="cURL">
+    ```bash
+    curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+         https://api.nebulacloud.app/clusters/your-cluster-id/files/list
+    ```
+  </Tab>
+</Tabs>
+
+## Security Best Practices
+
+### API Key Security
+
+1. **Keep API keys secret**: Never commit API keys to version control
+2. **Use environment variables**: Store API keys in environment variables
+3. **Rotate regularly**: Periodically rotate your API keys
+4. **Limit permissions**: Use the minimum required permissions for each API key
+5. **Monitor usage**: Regularly check API key usage and revoke unused keys
+
+### Environment Variables
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    # .env file
+    NEBULA_API_KEY=neb_abcdef123456789
+    
+    # In your code
+    import os
+    from dotenv import load_dotenv
+    
+    load_dotenv()
+    client = NebulaClient(api_key=os.getenv("NEBULA_API_KEY"))
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    // .env file
+    NEBULA_API_KEY=neb_abcdef123456789
+    
+    // In your code
+    require('dotenv').config();
+    const client = new NebulaClient({
+      apiKey: process.env.NEBULA_API_KEY
+    });
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    // .env file
+    NEBULA_API_KEY=neb_abcdef123456789
+    
+    // In your code
+    import (
+        "github.com/joho/godotenv"
+        "os"
+    )
+    
+    godotenv.Load()
+    client := nebulaclient.NewClient(os.Getenv("NEBULA_API_KEY"))
+    ```
+  </Tab>
+</Tabs>
+
+### JWT Token Security
+
+1. **Store securely**: Store JWT tokens securely and don't expose them in client-side code
+2. **Handle expiration**: Implement proper token refresh logic
+3. **Validate tokens**: Always validate JWT tokens on the server side
+4. **Use HTTPS**: Always use HTTPS in production
+
+## Error Handling
+
+### Authentication Errors
+
+The API returns specific error codes for authentication issues:
+
+| Status Code | Error | Description |
+|-------------|-------|-------------|
+| 401 | `Unauthorized` | Invalid or missing authentication |
+| 403 | `Forbidden` | Valid authentication but insufficient permissions |
+| 404 | `Not Found` | API key or cluster not found |
+
+### Example Error Response
+
+```json
+{
+  "error": "Unauthorized",
+  "message": "Invalid API key",
+  "statusCode": 401
+}
+```
+
+### Handling Errors in Code
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    try:
+        files = client.list_files(cluster_id="your-cluster-id")
+    except Exception as e:
+        if "401" in str(e):
+            print("Authentication failed. Check your API key.")
+        elif "403" in str(e):
+            print("Insufficient permissions for this operation.")
+        else:
+            print(f"Error: {e}")
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    try {
+        const files = await client.listFiles({
+            clusterId: 'your-cluster-id'
+        });
+    } catch (error) {
+        if (error.response?.status === 401) {
+            console.error('Authentication failed. Check your API key.');
+        } else if (error.response?.status === 403) {
+            console.error('Insufficient permissions for this operation.');
+        } else {
+            console.error('Error:', error);
+        }
+    }
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    files, err := client.ListFiles("your-cluster-id", "ROOT")
+    if err != nil {
+        if strings.Contains(err.Error(), "401") {
+            log.Fatal("Authentication failed. Check your API key.")
+        } else if strings.Contains(err.Error(), "403") {
+            log.Fatal("Insufficient permissions for this operation.")
+        } else {
+            log.Fatal("Error:", err)
+        }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Next Steps
+
+- [API Keys Management](/api-keys) - Learn more about managing API keys
+- [File Operations](/guides/file-operations) - Start working with files
+- [Error Handling](/guides/error-handling) - Learn about error handling patterns
+- [API Reference](/api-reference/overview) - Explore all available endpoints 

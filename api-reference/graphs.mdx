@@ -1,0 +1,462 @@
+---
+title: 'Knowledge Graphs API Reference'
+description: 'Complete API reference for knowledge graphs operations in Nebula'
+---
+
+# Knowledge Graphs API Reference
+
+This page provides detailed information about all knowledge graphs-related API endpoints in Nebula.
+
+## Base URL
+
+All API endpoints are relative to: `https://api.nebulacloud.app`
+
+## Authentication
+
+All requests require authentication using either:
+- **API Key**: `Authorization: ApiKey your-api-key`
+- **JWT Token**: `Authorization: Bearer your-jwt-token`
+
+## Knowledge Graphs Operations
+
+### List Graphs
+
+Retrieve a list of knowledge graphs.
+
+```http
+GET /api/v1/graphs
+```
+
+**Parameters:**
+- `limit` (integer, optional): Number of graphs to return. Defaults to 50
+- `offset` (integer, optional): Number of graphs to skip. Defaults to 0
+
+**Response:**
+```json
+{
+  "graphs": [
+    {
+      "id": "graph-uuid",
+      "name": "Research Knowledge Graph",
+      "description": "Knowledge graph built from research papers",
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z",
+      "entity_count": 150,
+      "relationship_count": 300,
+      "metadata": {
+        "domain": "research",
+        "source_documents": 25
+      }
+    }
+  ],
+  "total": 100,
+  "limit": 50,
+  "offset": 0
+}
+```
+
+### Create Graph
+
+Create a new knowledge graph.
+
+```http
+POST /api/v1/graphs
+```
+
+**Request Body:**
+```json
+{
+  "name": "New Knowledge Graph",
+  "description": "Description of the knowledge graph",
+  "metadata": {
+    "domain": "general",
+    "source_documents": 0
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "id": "graph-uuid",
+  "name": "New Knowledge Graph",
+  "description": "Description of the knowledge graph",
+  "created_at": "2024-01-01T00:00:00Z",
+  "updated_at": "2024-01-01T00:00:00Z",
+  "entity_count": 0,
+  "relationship_count": 0,
+  "metadata": {
+    "domain": "general",
+    "source_documents": 0
+  }
+}
+```
+
+### Get Graph
+
+Retrieve graph details and statistics.
+
+```http
+GET /api/v1/graphs/{graph_id}
+```
+
+**Parameters:**
+- `graph_id` (string, required): The ID of the graph
+
+**Response:**
+```json
+{
+  "id": "graph-uuid",
+  "name": "Research Knowledge Graph",
+  "description": "Knowledge graph built from research papers",
+  "created_at": "2024-01-01T00:00:00Z",
+  "updated_at": "2024-01-01T00:00:00Z",
+  "entity_count": 150,
+  "relationship_count": 300,
+  "metadata": {
+    "domain": "research",
+    "source_documents": 25
+  },
+  "statistics": {
+    "entity_types": {
+      "person": 50,
+      "organization": 30,
+      "concept": 70
+    },
+    "relationship_types": {
+      "works_for": 80,
+      "researches": 120,
+      "collaborates_with": 100
+    }
+  }
+}
+```
+
+### Update Graph
+
+Update graph metadata.
+
+```http
+PUT /api/v1/graphs/{graph_id}
+```
+
+**Parameters:**
+- `graph_id` (string, required): The ID of the graph
+
+**Request Body:**
+```json
+{
+  "name": "Updated Graph Name",
+  "description": "Updated description",
+  "metadata": {
+    "domain": "updated-domain",
+    "source_documents": 30
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "id": "graph-uuid",
+  "name": "Updated Graph Name",
+  "description": "Updated description",
+  "updated_at": "2024-01-01T00:00:00Z",
+  "metadata": {
+    "domain": "updated-domain",
+    "source_documents": 30
+  }
+}
+```
+
+### Delete Graph
+
+Delete a knowledge graph and all its entities and relationships.
+
+```http
+DELETE /api/v1/graphs/{graph_id}
+```
+
+**Parameters:**
+- `graph_id` (string, required): The ID of the graph
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Knowledge graph deleted successfully",
+  "deleted_entities": 150,
+  "deleted_relationships": 300
+}
+```
+
+### List Entities
+
+Retrieve entities in a knowledge graph.
+
+```http
+GET /api/v1/graphs/{graph_id}/entities
+```
+
+**Parameters:**
+- `graph_id` (string, required): The ID of the graph
+- `type` (string, optional): Filter by entity type
+- `limit` (integer, optional): Number of entities to return. Defaults to 50
+- `offset` (integer, optional): Number of entities to skip. Defaults to 0
+
+**Response:**
+```json
+{
+  "entities": [
+    {
+      "id": "entity-uuid",
+      "name": "John Doe",
+      "type": "person",
+      "properties": {
+        "title": "Professor",
+        "department": "Computer Science",
+        "email": "john.doe@university.edu"
+      },
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "total": 150,
+  "limit": 50,
+  "offset": 0
+}
+```
+
+### Get Entity
+
+Retrieve a specific entity and its relationships.
+
+```http
+GET /api/v1/graphs/{graph_id}/entities/{entity_id}
+```
+
+**Parameters:**
+- `graph_id` (string, required): The ID of the graph
+- `entity_id` (string, required): The ID of the entity
+
+**Response:**
+```json
+{
+  "id": "entity-uuid",
+  "name": "John Doe",
+  "type": "person",
+  "properties": {
+    "title": "Professor",
+    "department": "Computer Science",
+    "email": "john.doe@university.edu"
+  },
+  "created_at": "2024-01-01T00:00:00Z",
+  "relationships": [
+    {
+      "id": "relationship-uuid",
+      "type": "works_for",
+      "target_entity": {
+        "id": "target-entity-uuid",
+        "name": "University of Technology",
+        "type": "organization"
+      },
+      "properties": {
+        "start_date": "2020-01-01",
+        "position": "Professor"
+      }
+    }
+  ]
+}
+```
+
+### List Relationships
+
+Retrieve relationships in a knowledge graph.
+
+```http
+GET /api/v1/graphs/{graph_id}/relationships
+```
+
+**Parameters:**
+- `graph_id` (string, required): The ID of the graph
+- `type` (string, optional): Filter by relationship type
+- `source_entity` (string, optional): Filter by source entity ID
+- `target_entity` (string, optional): Filter by target entity ID
+- `limit` (integer, optional): Number of relationships to return. Defaults to 50
+- `offset` (integer, optional): Number of relationships to skip. Defaults to 0
+
+**Response:**
+```json
+{
+  "relationships": [
+    {
+      "id": "relationship-uuid",
+      "type": "works_for",
+      "source_entity": {
+        "id": "source-entity-uuid",
+        "name": "John Doe",
+        "type": "person"
+      },
+      "target_entity": {
+        "id": "target-entity-uuid",
+        "name": "University of Technology",
+        "type": "organization"
+      },
+      "properties": {
+        "start_date": "2020-01-01",
+        "position": "Professor"
+      },
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "total": 300,
+  "limit": 50,
+  "offset": 0
+}
+```
+
+### Query Graph
+
+Execute a graph query to find entities and relationships.
+
+```http
+POST /api/v1/graphs/{graph_id}/query
+```
+
+**Parameters:**
+- `graph_id` (string, required): The ID of the graph
+
+**Request Body:**
+```json
+{
+  "query": "MATCH (p:person)-[:works_for]->(o:organization) WHERE p.name CONTAINS 'John' RETURN p, o",
+  "parameters": {
+    "name": "John"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "results": [
+    {
+      "p": {
+        "id": "entity-uuid",
+        "name": "John Doe",
+        "type": "person",
+        "properties": {
+          "title": "Professor"
+        }
+      },
+      "o": {
+        "id": "target-entity-uuid",
+        "name": "University of Technology",
+        "type": "organization"
+      }
+    }
+  ],
+  "execution_time": 0.05
+}
+```
+
+### Build Graph from Documents
+
+Build a knowledge graph from documents.
+
+```http
+POST /api/v1/graphs/{graph_id}/build
+```
+
+**Parameters:**
+- `graph_id` (string, required): The ID of the graph
+
+**Request Body:**
+```json
+{
+  "document_ids": ["doc1", "doc2", "doc3"],
+  "options": {
+    "entity_extraction": true,
+    "relationship_extraction": true,
+    "confidence_threshold": 0.8
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Knowledge graph building started",
+  "job_id": "job-uuid",
+  "estimated_duration": "5 minutes"
+}
+```
+
+## Error Responses
+
+### 400 Bad Request
+```json
+{
+  "error": "Invalid request parameters",
+  "details": "Graph name cannot be empty"
+}
+```
+
+### 401 Unauthorized
+```json
+{
+  "error": "Authentication required",
+  "message": "Valid API key or JWT token required"
+}
+```
+
+### 403 Forbidden
+```json
+{
+  "error": "Insufficient permissions",
+  "message": "You don't have permission to access this resource"
+}
+```
+
+### 404 Not Found
+```json
+{
+  "error": "Graph not found",
+  "message": "The specified graph does not exist"
+}
+```
+
+### 422 Unprocessable Entity
+```json
+{
+  "error": "Invalid query",
+  "details": "Syntax error in graph query"
+}
+```
+
+## Rate Limits
+
+- **Create/Delete**: 5 requests per minute per API key
+- **List/Get**: 200 requests per minute per API key
+- **Update**: 50 requests per minute per API key
+- **Query**: 100 requests per minute per API key
+- **Build**: 2 requests per minute per API key
+
+## Query Language
+
+Nebula supports a subset of Cypher query language for graph queries:
+
+- **MATCH**: Find patterns in the graph
+- **WHERE**: Filter results
+- **RETURN**: Specify what to return
+- **LIMIT**: Limit number of results
+- **ORDER BY**: Sort results
+
+## Entity Types
+
+Common entity types:
+- **person**: People, individuals
+- **organization**: Companies, institutions
+- **concept**: Abstract concepts, topics
+- **location**: Places, addresses
+- **event**: Events, occurrences 

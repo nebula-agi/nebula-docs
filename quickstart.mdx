@@ -1,86 +1,496 @@
 ---
-title: 'Quickstart'
-description: 'Get started with Nebula in minutes'
+title: 'Quick Start'
+description: 'Get started with Nebula API in minutes'
 ---
 
-# Quickstart with Nebula
+# Quick Start Guide
 
-Nebula makes it easy to add persistent, context-aware memory to your AI agents and applications. Follow these steps to get up and running:
+Get up and running with Nebula API in just a few minutes. This guide will walk you through setting up authentication, installing a client library, and performing your first operations.
 
-## 1. Get Your API Key
+## Prerequisites
 
-Sign up and create your project at [Nebula Dashboard](https://dashboard.nebulacloud.app) to obtain your API key.
+- A Nebula account (sign up at [nebulacloud.app](https://nebulacloud.app))
+- An API key (see [Authentication](/authentication) for details)
+- Basic knowledge of your chosen programming language
 
-## 2. Install the SDK
+## Step 1: Install a Client Library
 
-Nebula offers SDKs for multiple languages. For Node.js:
+Choose your preferred programming language:
 
-```bash
-npm install @nebulacloud/sdk
-```
+<Tabs>
+  <Tab title="Python">
+    ```bash
+    pip install nebula-client
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```bash
+    npm install @oronila/nebula-client
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```bash
+    go get github.com/oronila/nebula-client-go
+    ```
+  </Tab>
+</Tabs>
 
-For Python:
+## Step 2: Initialize the Client
 
-```bash
-pip install nebula-sdk
-```
+<Tabs>
+  <Tab title="Python">
+    ```python
+    from nebula import NebulaClient
+    
+    # Initialize with your API key
+    client = NebulaClient(api_key="your-api-key-here")
+    
+    # Or use environment variable
+    # export NEBULA_API_KEY=your-api-key-here
+    # client = NebulaClient()
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    const { NebulaClient } = require('@oronila/nebula-client');
+    
+    // Initialize with your API key
+    const client = new NebulaClient({
+      apiKey: 'your-api-key-here'
+    });
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    import "github.com/oronila/nebula-client-go/nebulaclient"
+    
+    // Initialize with your API key
+    client := nebulaclient.NewClient("your-api-key-here")
+    ```
+  </Tab>
+</Tabs>
 
-## 3. Store Your First Memory
+## Step 3: Test the Connection
 
-```js
-// JavaScript/TypeScript Example
-import nebula from '@nebulacloud/sdk';
+<Tabs>
+  <Tab title="Python">
+    ```python
+    # Check API health
+    try:
+        health = client.system.health()
+        print(f"API Status: {health}")
+    except Exception as e:
+        print(f"Connection failed: {e}")
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    // Check API health
+    try {
+        const health = await client.system.health();
+        console.log('API Status:', health);
+    } catch (error) {
+        console.error('Connection failed:', error);
+    }
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    // Check API health
+    health, err := client.SystemHealth()
+    if err != nil {
+        log.Fatalf("Connection failed: %v", err)
+    }
+    fmt.Printf("API Status: %+v\n", health)
+    ```
+  </Tab>
+</Tabs>
 
-await nebula.store({
-  agentId: "agent-123",
-  content: "Customer prefers email communication",
-  metadata: { userId: "user-456", source: "chat" }
-});
-```
+## Step 4: Your First File Operation
 
-## 4. Retrieve Knowledge
+Let's upload a file to get started:
 
-```js
-const memories = await nebula.retrieve({
-  agentId: "agent-123",
-  query: "communication preferences",
-  limit: 5
-});
-```
+<Tabs>
+  <Tab title="Python">
+    ```python
+    # Upload a file
+    try:
+        result = client.upload_file(
+            cluster_id="your-cluster-id",
+            file_path="example.txt"
+        )
+        print(f"File uploaded: {result}")
+        
+        # List files in the cluster
+        files = client.list_files(cluster_id="your-cluster-id")
+        print(f"Files in cluster: {files}")
+        
+    except Exception as e:
+        print(f"Error: {e}")
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    // Upload a file
+    try {
+        const result = await client.uploadFile({
+            clusterId: 'your-cluster-id',
+            filePath: 'example.txt'
+        });
+        console.log('File uploaded:', result);
+        
+        // List files in the cluster
+        const files = await client.listFiles({
+            clusterId: 'your-cluster-id'
+        });
+        console.log('Files in cluster:', files);
+        
+    } catch (error) {
+        console.error('Error:', error);
+    }
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    // Upload a file
+    file, err := os.Open("example.txt")
+    if err != nil {
+        log.Fatalf("Error opening file: %v", err)
+    }
+    defer file.Close()
+    
+    result, err := client.UploadFile("your-cluster-id", file, "example.txt", "ROOT")
+    if err != nil {
+        log.Fatalf("Error uploading file: %v", err)
+    }
+    fmt.Printf("File uploaded: %+v\n", result)
+    
+    // List files in the cluster
+    files, err := client.ListFiles("your-cluster-id", "ROOT")
+    if err != nil {
+        log.Fatalf("Error listing files: %v", err)
+    }
+    fmt.Printf("Files in cluster: %+v\n", files)
+    ```
+  </Tab>
+</Tabs>
 
-## 5. Try Advanced Retrieval (Agentic Layers)
+## Step 5: Process Documents with AI
 
-Nebula supports multiple retrieval layers for different use cases:
+Now let's process a document to extract entities and build a knowledge graph:
 
-```js
-// Simple semantic retrieval
-const memories = await nebula.retrieve({
-  agentId: "agent-123",
-  query: "customer preferences",
-  retrievalType: "simple"
-});
+<Tabs>
+  <Tab title="Python">
+    ```python
+    # Extract entities from a document
+    try:
+        entities = client.documents.extract(id=result.file_id)
+        print(f"Extracted entities: {entities}")
+        
+        # List entities
+        entity_list = client.documents.list_entities(id=result.file_id)
+        print(f"Entity list: {entity_list}")
+        
+        # List relationships
+        relationships = client.documents.list_relationships(id=result.file_id)
+        print(f"Relationships: {relationships}")
+        
+    except Exception as e:
+        print(f"Error: {e}")
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    // Extract entities from a document
+    try {
+        const entities = await client.documents.extract({
+            id: result.fileId
+        });
+        console.log('Extracted entities:', entities);
+        
+        // List entities
+        const entityList = await client.documents.listEntities({
+            id: result.fileId
+        });
+        console.log('Entity list:', entityList);
+        
+        // List relationships
+        const relationships = await client.documents.listRelationships({
+            id: result.fileId
+        });
+        console.log('Relationships:', relationships);
+        
+    } catch (error) {
+        console.error('Error:', error);
+    }
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    // Extract entities from a document
+    entities, err := client.DocumentsExtract(result.ID)
+    if err != nil {
+        log.Fatalf("Error extracting entities: %v", err)
+    }
+    fmt.Printf("Extracted entities: %+v\n", entities)
+    
+    // List entities
+    entityList, err := client.DocumentsListEntities(result.ID)
+    if err != nil {
+        log.Fatalf("Error listing entities: %v", err)
+    }
+    fmt.Printf("Entity list: %+v\n", entityList)
+    
+    // List relationships
+    relationships, err := client.DocumentsListRelationships(result.ID)
+    if err != nil {
+        log.Fatalf("Error listing relationships: %v", err)
+    }
+    fmt.Printf("Relationships: %+v\n", relationships)
+    ```
+  </Tab>
+</Tabs>
 
-// Planning layer
-const memories = await nebula.retrieve({
-  agentId: "agent-123",
-  query: "compile product recommendations based on past purchases",
-  retrievalType: "planning"
-});
+## Step 6: Create a Conversation
 
-// Reasoning layer
-const memories = await nebula.retrieve({
-  agentId: "agent-123",
-  query: "why did the customer change their mind about product X?",
-  retrievalType: "reasoning"
-});
+Let's create a conversational interface with your data:
 
-// Deep research
-const memories = await nebula.retrieve({
-  agentId: "agent-123",
-  query: "analyze customer sentiment trends over the past year",
-  retrievalType: "deepResearch",
-  maxDepth: 3
-});
-```
+<Tabs>
+  <Tab title="Python">
+    ```python
+    # Create a conversation
+    try:
+        conversation = client.conversations.create(
+            collection_id="your-collection-id"
+        )
+        print(f"Conversation created: {conversation}")
+        
+        # Send a message
+        response = client.conversations.chat(
+            id=conversation.id,
+            message="What can you tell me about the documents?"
+        )
+        print(f"AI Response: {response}")
+        
+    except Exception as e:
+        print(f"Error: {e}")
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    // Create a conversation
+    try {
+        const conversation = await client.conversations.create({
+            collectionId: 'your-collection-id'
+        });
+        console.log('Conversation created:', conversation);
+        
+        // Send a message
+        const response = await client.conversations.chat({
+            id: conversation.id,
+            message: 'What can you tell me about the documents?'
+        });
+        console.log('AI Response:', response);
+        
+    } catch (error) {
+        console.error('Error:', error);
+    }
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    // Create a conversation
+    conversation, err := client.ConversationsCreate("your-collection-id")
+    if err != nil {
+        log.Fatalf("Error creating conversation: %v", err)
+    }
+    fmt.Printf("Conversation created: %+v\n", conversation)
+    
+    // Send a message
+    response, err := client.ConversationsChat(conversation.ID, "What can you tell me about the documents?")
+    if err != nil {
+        log.Fatalf("Error sending message: %v", err)
+    }
+    fmt.Printf("AI Response: %+v\n", response)
+    ```
+  </Tab>
+</Tabs>
 
-> See the [API Reference](/api-reference/introduction) for more details and advanced usage.
+## Complete Example
+
+Here's a complete example that demonstrates the full workflow:
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    from nebula import NebulaClient
+    import os
+    
+    # Initialize client
+    client = NebulaClient(api_key=os.getenv("NEBULA_API_KEY"))
+    
+    # Upload a document
+    result = client.upload_file(
+        cluster_id="your-cluster-id",
+        file_path="research_paper.pdf"
+    )
+    
+    # Extract entities
+    entities = client.documents.extract(id=result.file_id)
+    
+    # Create a collection
+    collection = client.collections.create(
+        name="Research Papers",
+        description="Collection of research documents"
+    )
+    
+    # Add document to collection
+    client.collections.add_document(
+        id=collection.id,
+        document_id=result.file_id
+    )
+    
+    # Create a conversation
+    conversation = client.conversations.create(
+        collection_id=collection.id
+    )
+    
+    # Ask questions about the document
+    response = client.conversations.chat(
+        id=conversation.id,
+        message="What are the main findings in this research paper?"
+    )
+    
+    print(f"AI Response: {response}")
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    const { NebulaClient } = require('@oronila/nebula-client');
+    
+    async function main() {
+        // Initialize client
+        const client = new NebulaClient({
+            apiKey: process.env.NEBULA_API_KEY
+        });
+        
+        // Upload a document
+        const result = await client.uploadFile({
+            clusterId: 'your-cluster-id',
+            filePath: 'research_paper.pdf'
+        });
+        
+        // Extract entities
+        const entities = await client.documents.extract({
+            id: result.fileId
+        });
+        
+        // Create a collection
+        const collection = await client.collections.create({
+            name: 'Research Papers',
+            description: 'Collection of research documents'
+        });
+        
+        // Add document to collection
+        await client.collections.addDocument({
+            id: collection.id,
+            documentId: result.fileId
+        });
+        
+        // Create a conversation
+        const conversation = await client.conversations.create({
+            collectionId: collection.id
+        });
+        
+        // Ask questions about the document
+        const response = await client.conversations.chat({
+            id: conversation.id,
+            message: 'What are the main findings in this research paper?'
+        });
+        
+        console.log('AI Response:', response);
+    }
+    
+    main().catch(console.error);
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```go
+    package main
+    
+    import (
+        "fmt"
+        "log"
+        "os"
+        
+        "github.com/oronila/nebula-client-go/nebulaclient"
+    )
+    
+    func main() {
+        // Initialize client
+        client := nebulaclient.NewClient(os.Getenv("NEBULA_API_KEY"))
+        
+        // Upload a document
+        file, err := os.Open("research_paper.pdf")
+        if err != nil {
+            log.Fatalf("Error opening file: %v", err)
+        }
+        defer file.Close()
+        
+        result, err := client.UploadFile("your-cluster-id", file, "research_paper.pdf", "ROOT")
+        if err != nil {
+            log.Fatalf("Error uploading file: %v", err)
+        }
+        
+        // Extract entities
+        entities, err := client.DocumentsExtract(result.ID)
+        if err != nil {
+            log.Fatalf("Error extracting entities: %v", err)
+        }
+        
+        // Create a collection
+        collection, err := client.CollectionsCreate("Research Papers", "Collection of research documents")
+        if err != nil {
+            log.Fatalf("Error creating collection: %v", err)
+        }
+        
+        // Add document to collection
+        err = client.CollectionsAddDocument(collection.ID, result.ID)
+        if err != nil {
+            log.Fatalf("Error adding document to collection: %v", err)
+        }
+        
+        // Create a conversation
+        conversation, err := client.ConversationsCreate(collection.ID)
+        if err != nil {
+            log.Fatalf("Error creating conversation: %v", err)
+        }
+        
+        // Ask questions about the document
+        response, err := client.ConversationsChat(conversation.ID, "What are the main findings in this research paper?")
+        if err != nil {
+            log.Fatalf("Error sending message: %v", err)
+        }
+        
+        fmt.Printf("AI Response: %+v\n", response)
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Next Steps
+
+Now that you've completed the quick start, explore these resources:
+
+- [Authentication Guide](/authentication) - Learn about API keys and security
+- [File Operations Guide](/guides/file-operations) - Master file management
+- [Collections Guide](/guides/collections) - Organize your documents
+- [Conversations Guide](/guides/conversations) - Build conversational AI
+- [API Reference](/api-reference/overview) - Explore all available endpoints
+
+## Need Help?
+
+- **Documentation**: Browse our comprehensive guides
+- **Examples**: Check out [practical examples](/examples/basic-file-operations)
+- **Community**: Join our [Discord server](https://discord.gg/nebula)
+- **Support**: Email us at [support@nebulacloud.app](mailto:support@nebulacloud.app) 

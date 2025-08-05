@@ -1,0 +1,757 @@
+---
+title: 'Go Client'
+description: 'Official Go client library for the Nebula API'
+---
+
+# Go Client
+
+The official Go client library for the Nebula API provides a high-performance interface for interacting with Nebula's file storage and AI capabilities.
+
+## Installation
+
+```bash
+go get github.com/oronila/nebula-client-go
+```
+
+## Quick Start
+
+```go
+package main
+
+import (
+    "fmt"
+    "log"
+    "os"
+
+    nebula "github.com/oronila/nebula-client-go"
+)
+
+func main() {
+    // Initialize the client
+    client := nebula.NewClient("your-api-key-here")
+
+    // Upload a file
+    file, err := os.Open("document.pdf")
+    if err != nil {
+        log.Fatalf("Error opening file: %v", err)
+    }
+    defer file.Close()
+
+    result, err := client.UploadFile("your-cluster-id", file, "document.pdf", "ROOT")
+    if err != nil {
+        log.Fatalf("Error uploading file: %v", err)
+    }
+
+    // List files in a cluster
+    files, err := client.ListFiles("your-cluster-id", "ROOT")
+    if err != nil {
+        log.Fatalf("Error listing files: %v", err)
+    }
+
+    // Download a file
+    err = client.DownloadFile("your-cluster-id", "file-id", "downloaded_file.pdf")
+    if err != nil {
+        log.Fatalf("Error downloading file: %v", err)
+    }
+
+    fmt.Printf("Uploaded: %+v\n", result)
+    fmt.Printf("Files: %+v\n", files)
+}
+```
+
+## Configuration
+
+### Basic Configuration
+
+```go
+import "github.com/oronila/nebula-client-go/nebulaclient"
+
+// Initialize with API key
+client := nebulaclient.NewClient("neb_abcdef123456789")
+
+// Initialize with custom base URL (for development/testing)
+client := nebulaclient.NewClient("your-api-key", 
+    nebulaclient.WithBaseURL("https://custom-api.nebulacloud.app"))
+```
+
+### Environment Variables
+
+```go
+import (
+    "os"
+    "github.com/oronila/nebula-client-go/nebulaclient"
+)
+
+// Load from environment variable
+client := nebulaclient.NewClient(os.Getenv("NEBULA_API_KEY"))
+
+// Or use godotenv
+import "github.com/joho/godotenv"
+
+godotenv.Load()
+client := nebulaclient.NewClient(os.Getenv("NEBULA_API_KEY"))
+```
+
+## File Operations
+
+### Upload Files
+
+```go
+// Upload a file to the root folder
+file, err := os.Open("document.pdf")
+if err != nil {
+    log.Fatalf("Error opening file: %v", err)
+}
+defer file.Close()
+
+result, err := client.UploadFile("your-cluster-id", file, "document.pdf", "ROOT")
+if err != nil {
+    log.Fatalf("Error uploading file: %v", err)
+}
+
+// Upload to a specific folder
+result, err := client.UploadFile("your-cluster-id", file, "document.pdf", "folder-uuid")
+
+// Upload with custom content type
+// The client automatically determines content type from file extension
+result, err := client.UploadFile("your-cluster-id", file, "document.pdf", "ROOT")
+```
+
+### Download Files
+
+```go
+// Download to a specific path
+err := client.DownloadFile("your-cluster-id", "file-uuid", "downloaded_file.pdf")
+if err != nil {
+    log.Fatalf("Error downloading file: %v", err)
+}
+
+// Download to a directory (uses original filename)
+err := client.DownloadFile("your-cluster-id", "file-uuid", "./downloads/")
+```
+
+### List Files
+
+```go
+// List files in root folder
+files, err := client.ListFiles("your-cluster-id", "ROOT")
+if err != nil {
+    log.Fatalf("Error listing files: %v", err)
+}
+
+// List files in a specific folder
+files, err := client.ListFiles("your-cluster-id", "folder-uuid")
+
+// Print file information
+for _, file := range files {
+    fmt.Printf("File: %s (%s) - Size: %d bytes\n", 
+        file.Name, file.Type, file.Size)
+}
+```
+
+### Create Folders
+
+```go
+// Create folder in root
+folder, err := client.CreateFolder("your-cluster-id", "New Folder", "ROOT")
+if err != nil {
+    log.Fatalf("Error creating folder: %v", err)
+}
+
+// Create folder in a specific parent folder
+folder, err := client.CreateFolder("your-cluster-id", "Subfolder", "parent-folder-uuid")
+```
+
+### Delete Files and Folders
+
+```go
+// Delete a single file
+err := client.DeleteFiles("your-cluster-id", []string{"file-uuid"})
+if err != nil {
+    log.Fatalf("Error deleting file: %v", err)
+}
+
+// Delete multiple files/folders
+err := client.DeleteFiles("your-cluster-id", []string{
+    "file-uuid-1", 
+    "file-uuid-2", 
+    "folder-uuid",
+})
+```
+
+### Move Files and Folders
+
+```go
+// Move files to a different folder
+err := client.MoveFiles("your-cluster-id", []string{
+    "file-uuid-1", 
+    "file-uuid-2",
+}, "destination-folder-uuid")
+if err != nil {
+    log.Fatalf("Error moving files: %v", err)
+}
+```
+
+### Rename Files and Folders
+
+```go
+// Rename a file or folder
+err := client.RenameFile("your-cluster-id", "file-uuid", "New File Name.pdf")
+if err != nil {
+    log.Fatalf("Error renaming file: %v", err)
+}
+```
+
+## Document Processing
+
+### Extract Entities
+
+```go
+// Extract entities from a document
+entities, err := client.DocumentsExtract("file-uuid")
+if err != nil {
+    log.Fatalf("Error extracting entities: %v", err)
+}
+
+// The response contains extracted entities and relationships
+fmt.Printf("Extracted %d entities\n", len(entities.Entities))
+fmt.Printf("Found %d relationships\n", len(entities.Relationships))
+```
+
+### List Entities
+
+```go
+// Get all entities from a document
+entities, err := client.DocumentsListEntities("file-uuid")
+if err != nil {
+    log.Fatalf("Error listing entities: %v", err)
+}
+
+for _, entity := range entities {
+    fmt.Printf("Entity: %s (%s)\n", entity.Name, entity.Type)
+}
+```
+
+### List Relationships
+
+```go
+// Get all relationships from a document
+relationships, err := client.DocumentsListRelationships("file-uuid")
+if err != nil {
+    log.Fatalf("Error listing relationships: %v", err)
+}
+
+for _, rel := range relationships {
+    fmt.Printf("Relationship: %s -> %s (%s)\n", 
+        rel.Source, rel.Target, rel.Type)
+}
+```
+
+## Collections
+
+### Create Collections
+
+```go
+// Create a new collection
+collection, err := client.CollectionsCreate("Research Papers", "Collection of research documents")
+if err != nil {
+    log.Fatalf("Error creating collection: %v", err)
+}
+```
+
+### Add Documents to Collections
+
+```go
+// Add a document to a collection
+err := client.CollectionsAddDocument("collection-uuid", "file-uuid")
+if err != nil {
+    log.Fatalf("Error adding document to collection: %v", err)
+}
+```
+
+### List Collections
+
+```go
+// Get all collections
+collections, err := client.CollectionsListCollections()
+if err != nil {
+    log.Fatalf("Error listing collections: %v", err)
+}
+
+for _, collection := range collections {
+    fmt.Printf("Collection: %s\n", collection.Name)
+}
+```
+
+## Conversations
+
+### Create Conversations
+
+```go
+// Create a conversation based on a collection
+conversation, err := client.ConversationsCreate("collection-uuid")
+if err != nil {
+    log.Fatalf("Error creating conversation: %v", err)
+}
+```
+
+### Send Messages
+
+```go
+// Send a message to a conversation
+response, err := client.ConversationsChat("conversation-uuid", 
+    "What are the main findings in the research papers?")
+if err != nil {
+    log.Fatalf("Error sending message: %v", err)
+}
+
+fmt.Printf("AI Response: %s\n", response.Completion)
+```
+
+### List Conversations
+
+```go
+// Get all conversations
+conversations, err := client.ConversationsRetrieve("collection-uuid")
+if err != nil {
+    log.Fatalf("Error retrieving conversations: %v", err)
+}
+
+for _, conv := range conversations {
+    fmt.Printf("Conversation: %s\n", conv.ID)
+}
+```
+
+## Graphs
+
+### List Graphs
+
+```go
+// Get all graphs
+graphs, err := client.GraphsList()
+if err != nil {
+    log.Fatalf("Error listing graphs: %v", err)
+}
+
+for _, graph := range graphs {
+    fmt.Printf("Graph: %s\n", graph.CollectionID)
+}
+```
+
+### Get Graph Details
+
+```go
+// Get details of a specific graph
+details, err := client.GraphsRetrieve("collection-uuid")
+if err != nil {
+    log.Fatalf("Error retrieving graph details: %v", err)
+}
+fmt.Printf("Graph details: %+v\n", details)
+```
+
+### List Graph Entities
+
+```go
+// Get entities in a graph
+entities, err := client.GraphsListEntities("collection-uuid")
+if err != nil {
+    log.Fatalf("Error listing graph entities: %v", err)
+}
+
+for _, entity := range entities {
+    fmt.Printf("Entity: %s\n", entity.Name)
+}
+```
+
+### List Graph Relationships
+
+```go
+// Get relationships in a graph
+relationships, err := client.GraphsListRelationships("collection-uuid")
+if err != nil {
+    log.Fatalf("Error listing graph relationships: %v", err)
+}
+
+for _, rel := range relationships {
+    fmt.Printf("Relationship: %s -> %s\n", rel.Source, rel.Target)
+}
+```
+
+## Retrieval
+
+### RAG (Retrieval-Augmented Generation)
+
+```go
+// Perform RAG query
+ragResponse, err := client.RetrievalRAG("What are the main findings?", map[string]interface{}{
+    "model":       "gpt-4o-mini",
+    "temperature": 0.0,
+})
+if err != nil {
+    log.Fatalf("Error performing RAG query: %v", err)
+}
+
+fmt.Printf("Generated answer: %s\n", ragResponse.GeneratedAnswer)
+fmt.Printf("Search results: %+v\n", ragResponse.SearchResults)
+```
+
+## System Operations
+
+### Health Check
+
+```go
+// Check API health
+health, err := client.SystemHealth()
+if err != nil {
+    log.Fatalf("Error checking health: %v", err)
+}
+fmt.Printf("API Status: %+v\n", health)
+```
+
+## Error Handling
+
+### Basic Error Handling
+
+```go
+files, err := client.ListFiles("your-cluster-id", "ROOT")
+if err != nil {
+    log.Fatalf("Error: %v", err)
+}
+```
+
+### Specific Error Handling
+
+```go
+files, err := client.ListFiles("your-cluster-id", "ROOT")
+if err != nil {
+    if strings.Contains(err.Error(), "401") {
+        log.Fatal("Authentication failed. Check your API key.")
+    } else if strings.Contains(err.Error(), "403") {
+        log.Fatal("Insufficient permissions.")
+    } else if strings.Contains(err.Error(), "404") {
+        log.Fatal("Cluster not found.")
+    } else {
+        log.Fatalf("Error: %v", err)
+    }
+}
+```
+
+### Custom Error Handler
+
+```go
+type NebulaError struct {
+    StatusCode int
+    Message    string
+}
+
+func (e *NebulaError) Error() string {
+    return fmt.Sprintf("HTTP %d: %s", e.StatusCode, e.Message)
+}
+
+func handleNebulaError(err error) error {
+    if err == nil {
+        return nil
+    }
+    
+    // Check for specific error patterns
+    errStr := err.Error()
+    switch {
+    case strings.Contains(errStr, "401"):
+        return &NebulaError{StatusCode: 401, Message: "Authentication failed"}
+    case strings.Contains(errStr, "403"):
+        return &NebulaError{StatusCode: 403, Message: "Insufficient permissions"}
+    case strings.Contains(errStr, "404"):
+        return &NebulaError{StatusCode: 404, Message: "Resource not found"}
+    case strings.Contains(errStr, "429"):
+        return &NebulaError{StatusCode: 429, Message: "Rate limit exceeded"}
+    case strings.Contains(errStr, "500"):
+        return &NebulaError{StatusCode: 500, Message: "Internal server error"}
+    default:
+        return err
+    }
+}
+
+// Usage
+files, err := client.ListFiles("your-cluster-id", "ROOT")
+if err != nil {
+    nebulaErr := handleNebulaError(err)
+    log.Fatalf("Nebula error: %v", nebulaErr)
+}
+```
+
+## Advanced Usage
+
+### Custom HTTP Client
+
+```go
+import (
+    "net/http"
+    "time"
+    "github.com/oronila/nebula-client-go/nebulaclient"
+)
+
+// Create custom HTTP client
+httpClient := &http.Client{
+    Timeout: 30 * time.Second,
+    Transport: &http.Transport{
+        MaxIdleConns:        10,
+        IdleConnTimeout:     30 * time.Second,
+        DisableCompression:  true,
+    },
+}
+
+// The client uses the default HTTP client, but you can modify it
+// by setting environment variables or using custom transport
+```
+
+### Batch Operations
+
+```go
+// Upload multiple files
+filesToUpload := []string{"file1.pdf", "file2.pdf", "file3.pdf"}
+uploadedFiles := make([]*nebulaclient.File, 0)
+
+for _, filePath := range filesToUpload {
+    file, err := os.Open(filePath)
+    if err != nil {
+        log.Printf("Error opening %s: %v", filePath, err)
+        continue
+    }
+    
+    result, err := client.UploadFile("your-cluster-id", file, filepath.Base(filePath), "ROOT")
+    file.Close()
+    
+    if err != nil {
+        log.Printf("Failed to upload %s: %v", filePath, err)
+        continue
+    }
+    
+    uploadedFiles = append(uploadedFiles, result)
+    fmt.Printf("Uploaded: %s\n", filePath)
+}
+
+fmt.Printf("Successfully uploaded %d files\n", len(uploadedFiles))
+```
+
+### Goroutines for Parallel Operations
+
+```go
+// Upload multiple files in parallel
+filesToUpload := []string{"file1.pdf", "file2.pdf", "file3.pdf"}
+results := make(chan *nebulaclient.File, len(filesToUpload))
+errors := make(chan error, len(filesToUpload))
+
+for _, filePath := range filesToUpload {
+    go func(path string) {
+        file, err := os.Open(path)
+        if err != nil {
+            errors <- fmt.Errorf("error opening %s: %v", path, err)
+            return
+        }
+        defer file.Close()
+        
+        result, err := client.UploadFile("your-cluster-id", file, filepath.Base(path), "ROOT")
+        if err != nil {
+            errors <- fmt.Errorf("failed to upload %s: %v", path, err)
+            return
+        }
+        
+        results <- result
+    }(filePath)
+}
+
+// Collect results
+uploadedFiles := make([]*nebulaclient.File, 0)
+for i := 0; i < len(filesToUpload); i++ {
+    select {
+    case result := <-results:
+        uploadedFiles = append(uploadedFiles, result)
+    case err := <-errors:
+        log.Printf("Upload error: %v", err)
+    }
+}
+
+fmt.Printf("Successfully uploaded %d files\n", len(uploadedFiles))
+```
+
+### Retry Logic
+
+```go
+func retryOperation(operation func() error, maxRetries int) error {
+    var lastErr error
+    
+    for attempt := 1; attempt <= maxRetries; attempt++ {
+        if err := operation(); err != nil {
+            lastErr = err
+            
+            if attempt == maxRetries {
+                return err
+            }
+            
+            // Wait before retrying (exponential backoff)
+            delay := time.Duration(1<<uint(attempt)) * time.Second
+            time.Sleep(delay)
+            
+            fmt.Printf("Retry attempt %d after %v\n", attempt+1, delay)
+            continue
+        }
+        
+        return nil
+    }
+    
+    return lastErr
+}
+
+// Usage
+err := retryOperation(func() error {
+    _, err := client.ListFiles("your-cluster-id", "ROOT")
+    return err
+}, 3)
+
+if err != nil {
+    log.Fatalf("Operation failed after retries: %v", err)
+}
+```
+
+## Complete Example
+
+```go
+package main
+
+import (
+    "fmt"
+    "log"
+    "os"
+
+    nebula "github.com/oronila/nebula-client-go"
+)
+
+func main() {
+    // Initialize client
+    client := nebula.NewClient(os.Getenv("NEBULA_API_KEY"))
+    
+    clusterId := "your-cluster-id"
+    
+    // Upload a document
+    fmt.Println("Uploading document...")
+    file, err := os.Open("research_paper.pdf")
+    if err != nil {
+        log.Fatalf("Error opening file: %v", err)
+    }
+    defer file.Close()
+    
+    result, err := client.UploadFile(clusterId, file, "research_paper.pdf", "ROOT")
+    if err != nil {
+        log.Fatalf("Error uploading file: %v", err)
+    }
+    fmt.Printf("Uploaded: %+v\n", result)
+    
+    // Extract entities
+    fmt.Println("Extracting entities...")
+    entities, err := client.DocumentsExtract(result.ID)
+    if err != nil {
+        log.Fatalf("Error extracting entities: %v", err)
+    }
+    fmt.Printf("Extracted %d entities\n", len(entities.Entities))
+    
+    // Create a collection
+    fmt.Println("Creating collection...")
+    collection, err := client.CollectionsCreate("Research Papers", "Collection of research documents")
+    if err != nil {
+        log.Fatalf("Error creating collection: %v", err)
+    }
+    
+    // Add document to collection
+    err = client.CollectionsAddDocument(collection.ID, result.ID)
+    if err != nil {
+        log.Fatalf("Error adding document to collection: %v", err)
+    }
+    
+    // Create a conversation
+    fmt.Println("Creating conversation...")
+    conversation, err := client.ConversationsCreate(collection.ID)
+    if err != nil {
+        log.Fatalf("Error creating conversation: %v", err)
+    }
+    
+    // Ask questions
+    fmt.Println("Asking questions...")
+    response, err := client.ConversationsChat(conversation.ID, 
+        "What are the main findings in this research paper?")
+    if err != nil {
+        log.Fatalf("Error sending message: %v", err)
+    }
+    
+    fmt.Printf("AI Response: %s\n", response.Completion)
+}
+```
+
+## API Reference
+
+### Client
+
+The main client struct for interacting with the Nebula API.
+
+#### Constructor
+
+```go
+func NewClient(apiKey string, options ...ClientOption) *Client
+```
+
+**Parameters:**
+- `apiKey` (string): Your Nebula API key
+- `options` (variadic): Optional client configurations
+
+#### Available Options
+
+- `WithBaseURL(url string)`: Set a custom API base URL
+
+#### File Operations
+
+- `ListFiles(clusterID, folderID string) ([]File, error)`: List files and folders
+- `UploadFile(clusterID string, file *os.File, fileName, folderID string) (*File, error)`: Upload a file
+- `DownloadFile(clusterID, fileID, outputPath string) error`: Download a file
+- `CreateFolder(clusterID, folderName, parentFolderID string) (*File, error)`: Create a folder
+- `DeleteFiles(clusterID string, fileIDs []string) error`: Delete files/folders
+- `MoveFiles(clusterID string, fileIDs []string, targetFolderID string) error`: Move files
+- `RenameFile(clusterID, fileID, newName string) error`: Rename a file/folder
+
+#### Document Operations
+
+- `DocumentsExtract(fileID string) (*ExtractResponse, error)`: Extract entities from a document
+- `DocumentsListEntities(fileID string) ([]Entity, error)`: List entities in a document
+- `DocumentsListRelationships(fileID string) ([]Relationship, error)`: List relationships in a document
+
+#### Collection Operations
+
+- `CollectionsCreate(name, description string) (*Collection, error)`: Create a collection
+- `CollectionsAddDocument(collectionID, documentID string) error`: Add document to collection
+- `CollectionsListCollections() ([]Collection, error)`: List all collections
+
+#### Conversation Operations
+
+- `ConversationsCreate(collectionID string) (*Conversation, error)`: Create a conversation
+- `ConversationsChat(conversationID, message string) (*ChatResponse, error)`: Send a message
+- `ConversationsRetrieve(collectionID string) ([]Conversation, error)`: Get conversations
+
+#### Graph Operations
+
+- `GraphsList() ([]Graph, error)`: List all graphs
+- `GraphsRetrieve(collectionID string) (*GraphDetails, error)`: Get graph details
+- `GraphsListEntities(collectionID string) ([]Entity, error)`: List graph entities
+- `GraphsListRelationships(collectionID string) ([]Relationship, error)`: List graph relationships
+
+#### Retrieval Operations
+
+- `RetrievalRAG(query string, config map[string]interface{}) (*RAGResponse, error)`: Perform RAG query
+
+#### System Operations
+
+- `SystemHealth() (*HealthResponse, error)`: Check API health
+
+## Next Steps
+
+- [Quick Start Guide](/quickstart) - Get up and running quickly
+- [API Reference](/api-reference/overview) - Explore all available endpoints
+- [Examples](/examples/basic-file-operations) - See practical usage examples
+- [Error Handling](/guides/error-handling) - Learn about error handling patterns 
