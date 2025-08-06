@@ -44,19 +44,7 @@
         "clients/go"
       ]
     },
-    {
-      "group": "API Reference",
-      "pages": [
-        "api-reference/overview",
-        "api-reference/files",
-        "api-reference/folders",
-        "api-reference/collections",
-        "api-reference/conversations",
-        "api-reference/graphs",
-        "api-reference/retrieval",
-        "api-reference/users"
-      ]
-    },
+
     {
       "group": "Guides",
       "pages": [
