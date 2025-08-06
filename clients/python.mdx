@@ -1,575 +1,544 @@
 ---
 title: 'Python Client'
-description: 'Official Python client library for the Nebula API'
+description: 'Official Python client library for the Nebula Memory API'
 ---
 
 # Python Client
 
-The official Python client library for the Nebula API provides a simple and intuitive interface for interacting with Nebula's file storage and AI capabilities.
+The official Python client library for the Nebula Memory API provides a simple and intuitive interface for storing, retrieving, and searching memories with advanced clustering capabilities.
 
-## Installation
+## Table of Contents
+
+1. [Installation & Setup](#installation--setup)
+2. [Client Initialization](#client-initialization)
+3. [Cluster Management](#cluster-management)
+4. [Memory Storage](#memory-storage)
+5. [Memory Retrieval](#memory-retrieval)
+6. [Search Operations](#search-operations)
+7. [Memory Management](#memory-management)
+8. [Error Handling](#error-handling)
+9. [Data Models](#data-models)
+10. [Examples](#examples)
+
+## Installation & Setup
+
+### Prerequisites
+
+- Python 3.8+
+- Nebula Cloud API key
+
+### Installation
 
 ```bash
 pip install nebula-client
 ```
 
-## Quick Start
+### Environment Setup
 
-```python
-from nebula import NebulaClient
-
-# Initialize the client
-client = NebulaClient(api_key="your-api-key-here")
-
-# Upload a file
-result = client.upload_file(
-    cluster_id="your-cluster-id",
-    file_path="document.pdf"
-)
-
-# List files in a cluster
-files = client.list_files(cluster_id="your-cluster-id")
-
-# Download a file
-client.download_file(
-    cluster_id="your-cluster-id",
-    file_id="file-id",
-    output_path="downloaded_file.pdf"
-)
+```bash
+export NEBULA_API_KEY="your_api_key_here"
 ```
 
-## Configuration
+## Client Initialization
 
-### Basic Configuration
-
-```python
-from nebula import NebulaClient
-
-# Initialize with API key
-client = NebulaClient(api_key="neb_abcdef123456789")
-
-# Initialize with custom base URL (for development/testing)
-client = NebulaClient(
-    api_key="your-api-key",
-    base_url="https://custom-api.nebulacloud.app"
-)
-```
-
-### Environment Variables
+### Basic Initialization
 
 ```python
-import os
-from nebula import NebulaClient
+from nebula_client import NebulaClient
 
-# Load from environment variable
-client = NebulaClient(api_key=os.getenv("NEBULA_API_KEY"))
-
-# Or use dotenv
-from dotenv import load_dotenv
-load_dotenv()
+# Using environment variable
 client = NebulaClient()
+
+# Or with explicit API key
+client = NebulaClient(api_key="your_api_key_here")
 ```
 
-## File Operations
-
-### Upload Files
+### Advanced Configuration
 
 ```python
-# Upload a file to the root folder
-result = client.upload_file(
-    cluster_id="your-cluster-id",
-    file_path="document.pdf"
-)
-
-# Upload to a specific folder
-result = client.upload_file(
-    cluster_id="your-cluster-id",
-    file_path="document.pdf",
-    folder_id="folder-uuid"
-)
-
-# Upload with custom content type
-result = client.upload_file(
-    cluster_id="your-cluster-id",
-    file_path="document.pdf",
-    content_type="application/pdf"
+client = NebulaClient(
+    api_key="your_api_key_here",
+    base_url="https://api.nebulacloud.app",  # Default
+    timeout=30.0  # Default timeout in seconds
 )
 ```
 
-### Download Files
+### Context Manager Usage
 
 ```python
-# Download to a specific path
-client.download_file(
-    cluster_id="your-cluster-id",
-    file_id="file-uuid",
-    output_path="downloaded_file.pdf"
-)
-
-# Download to a directory (uses original filename)
-client.download_file(
-    cluster_id="your-cluster-id",
-    file_id="file-uuid",
-    output_path="./downloads/"
-)
+with NebulaClient(api_key="your_api_key") as client:
+    # Your operations here
+    memory = client.store(content="Hello world", cluster_id="cluster_123")
 ```
 
-### List Files
+## Cluster Management
+
+Clusters help organize memories and provide access control.
+
+### Create Cluster
 
 ```python
-# List files in root folder
-files = client.list_files(cluster_id="your-cluster-id")
-
-# List files in a specific folder
-files = client.list_files(
-    cluster_id="your-cluster-id",
-    folder_id="folder-uuid"
+cluster = client.create_cluster(
+    name="research_notes",
+    description="Cluster for research-related memories",
+    metadata={"category": "academic", "priority": "high"}
 )
 ```
 
-### Create Folders
+**Parameters:**
+- `name` (str): Cluster name (required)
+- `description` (str, optional): Cluster description
+- `metadata` (dict, optional): Additional metadata
+
+**Returns:** `Cluster` object with cluster details
+
+### Get Cluster
 
 ```python
-# Create folder in root
-folder = client.create_folder(
-    cluster_id="your-cluster-id",
-    folder_name="New Folder"
-)
-
-# Create folder in a specific parent folder
-folder = client.create_folder(
-    cluster_id="your-cluster-id",
-    folder_name="Subfolder",
-    parent_folder_id="parent-folder-uuid"
-)
+cluster = client.get_cluster("cluster_id_here")
 ```
 
-### Delete Files and Folders
+**Parameters:**
+- `cluster_id` (str): ID of the cluster to retrieve
+
+**Returns:** `Cluster` object
+
+### List Clusters
 
 ```python
-# Delete a single file
-client.delete_files(
-    cluster_id="your-cluster-id",
-    file_ids=["file-uuid"]
-)
-
-# Delete multiple files/folders
-client.delete_files(
-    cluster_id="your-cluster-id",
-    file_ids=["file-uuid-1", "file-uuid-2", "folder-uuid"]
+clusters = client.list_clusters(
+    limit=100,  # Default: 100
+    offset=0    # Default: 0
 )
 ```
 
-### Move Files and Folders
+**Parameters:**
+- `limit` (int): Maximum number of clusters to return (1-1000)
+- `offset` (int): Number of clusters to skip
+
+**Returns:** List of `Cluster` objects
+
+### Update Cluster
 
 ```python
-# Move files to a different folder
-client.move_files(
-    cluster_id="your-cluster-id",
-    file_ids=["file-uuid-1", "file-uuid-2"],
-    target_folder_id="destination-folder-uuid"
+updated_cluster = client.update_cluster(
+    cluster_id="cluster_id_here",
+    name="new_name",  # Optional
+    description="new_description",  # Optional
+    metadata={"updated": True}  # Optional
 )
 ```
 
-### Rename Files and Folders
+**Parameters:**
+- `cluster_id` (str): ID of the cluster to update
+- `name` (str, optional): New name
+- `description` (str, optional): New description
+- `metadata` (dict, optional): New metadata
+
+**Returns:** Updated `Cluster` object
+
+**Note:** Update operations may fail if the new name conflicts with existing clusters.
+
+### Delete Cluster
 
 ```python
-# Rename a file or folder
-client.rename_file(
-    cluster_id="your-cluster-id",
-    file_id="file-uuid",
-    new_name="New File Name.pdf"
-)
+success = client.delete_cluster("cluster_id_here")
 ```
 
-## Document Processing
+**Parameters:**
+- `cluster_id` (str): ID of the cluster to delete
 
-### Extract Entities
+**Returns:** `True` if successful
 
-```python
-# Extract entities from a document
-entities = client.documents.extract(id="file-uuid")
+## Memory Storage
 
-# The response contains extracted entities and relationships
-print(f"Extracted {len(entities.entities)} entities")
-print(f"Found {len(entities.relationships)} relationships")
-```
-
-### List Entities
+### Store Individual Memory
 
 ```python
-# Get all entities from a document
-entities = client.documents.list_entities(id="file-uuid")
-
-for entity in entities:
-    print(f"Entity: {entity.name} ({entity.type})")
-```
-
-### List Relationships
-
-```python
-# Get all relationships from a document
-relationships = client.documents.list_relationships(id="file-uuid")
-
-for rel in relationships:
-    print(f"Relationship: {rel.source} -> {rel.target} ({rel.type})")
-```
-
-## Collections
-
-### Create Collections
-
-```python
-# Create a new collection
-collection = client.collections.create(
-    name="Research Papers",
-    description="Collection of research documents"
-)
-```
-
-### Add Documents to Collections
-
-```python
-# Add a document to a collection
-client.collections.add_document(
-    id="collection-uuid",
-    document_id="file-uuid"
-)
-```
-
-### List Collections
-
-```python
-# Get all collections
-collections = client.collections.list_collections()
-
-for collection in collections:
-    print(f"Collection: {collection.name}")
-```
-
-## Conversations
-
-### Create Conversations
-
-```python
-# Create a conversation based on a collection
-conversation = client.conversations.create(
-    collection_id="collection-uuid"
-)
-```
-
-### Send Messages
-
-```python
-# Send a message to a conversation
-response = client.conversations.chat(
-    id="conversation-uuid",
-    message="What are the main findings in the research papers?"
-)
-
-print(f"AI Response: {response.completion}")
-```
-
-### List Conversations
-
-```python
-# Get all conversations
-conversations = client.conversations.retrieve(id="collection-uuid")
-
-for conv in conversations:
-    print(f"Conversation: {conv.id}")
-```
-
-## Graphs
-
-### List Graphs
-
-```python
-# Get all graphs
-graphs = client.graphs.list()
-
-for graph in graphs:
-    print(f"Graph: {graph.collection_id}")
-```
-
-### Get Graph Details
-
-```python
-# Get details of a specific graph
-details = client.graphs.retrieve(collection_id="collection-uuid")
-print(f"Graph details: {details}")
-```
-
-### List Graph Entities
-
-```python
-# Get entities in a graph
-entities = client.graphs.list_entities(collection_id="collection-uuid")
-
-for entity in entities:
-    print(f"Entity: {entity.name}")
-```
-
-### List Graph Relationships
-
-```python
-# Get relationships in a graph
-relationships = client.graphs.list_relationships(collection_id="collection-uuid")
-
-for rel in relationships:
-    print(f"Relationship: {rel.source} -> {rel.target}")
-```
-
-## Retrieval
-
-### RAG (Retrieval-Augmented Generation)
-
-```python
-# Perform RAG query
-rag_response = client.retrieval.rag(
-    query="What are the main findings?",
-    rag_generation_config={
-        "model": "gpt-4o-mini",
-        "temperature": 0.0
+memory = client.store(
+    content="User prefers email communication over phone calls",
+    cluster_id="user_preferences",  # Required
+    metadata={
+        "user_id": "user_123",
+        "preference_type": "communication",
+        "importance": "high"
     }
 )
-
-print(f"Generated answer: {rag_response.generated_answer}")
-print(f"Search results: {rag_response.search_results}")
 ```
 
-## System Operations
+**Parameters:**
+- `content` (str): The memory content to store (required)
+- `cluster_id` (str): Cluster to store the memory in (required)
+- `metadata` (dict, optional): Additional metadata
 
-### Health Check
+**Returns:** `Memory` object
+
+## Memory Retrieval
+
+### Get Specific Memory
 
 ```python
-# Check API health
-health = client.system.health()
-print(f"API Status: {health}")
+memory = client.get("memory_id_here")
 ```
+
+**Parameters:**
+- `memory_id` (str): ID of the memory to retrieve (required)
+
+**Returns:** `Memory` object with content retrieved from chunks
+
+### List Memories
+
+```python
+memories = client.list_memories(
+    cluster_id="cluster_123",  # Required
+    limit=100,      # Default: 100
+    offset=0        # Default: 0
+)
+```
+
+**Parameters:**
+- `cluster_id` (str): Cluster ID to list memories from (required)
+- `limit` (int): Maximum number of memories to return
+- `offset` (int): Number of memories to skip
+
+**Returns:** List of `Memory` objects with content retrieved from chunks
+
+### Get Cluster Memories
+
+```python
+memories = client.get_cluster_memories(
+    cluster_id="cluster_id_here",
+    limit=100,    # Default: 100
+    offset=0      # Default: 0
+)
+```
+
+**Parameters:**
+- `cluster_id` (str): ID of the cluster (required)
+- `limit` (int): Maximum number of memories to return
+- `offset` (int): Number of memories to skip
+
+**Returns:** List of `Memory` objects
+
+## Search Operations
+
+### General Search
+
+```python
+results = client.search(
+    query="artificial intelligence",
+    cluster_id="research_cluster",               # Required
+    limit=10,                                    # Default: 10
+    retrieval_type="simple",                     # Default: "simple"
+    filters={"metadata.topic": "ai"}             # Optional
+)
+```
+
+**Parameters:**
+- `query` (str): Search query (required)
+- `cluster_id` (str): Cluster to search within (required)
+- `limit` (int): Maximum number of results to return
+- `retrieval_type` (str): Type of retrieval ("simple", "reasoning", "planning")
+- `filters` (dict, optional): Search filters
+
+**Returns:** List of `SearchResult` objects
+
+### Search Types
+
+The SDK supports different retrieval types:
+
+- **`simple`**: Basic semantic search
+- **`reasoning`**: Enhanced reasoning-based search
+- **`planning`**: Planning-oriented search
+
+## Memory Management
+
+### Delete Memory
+
+```python
+success = client.delete("memory_id_here")
+```
+
+**Parameters:**
+- `memory_id` (str): ID of the memory to delete (required)
+
+**Returns:** `True` if successful
 
 ## Error Handling
 
-### Basic Error Handling
+### Exception Types
 
 ```python
-try:
-    files = client.list_files(cluster_id="your-cluster-id")
-except Exception as e:
-    print(f"Error: {e}")
+from nebula_client.exceptions import (
+    NebulaException,              # Base exception
+    NebulaClientException,        # Client-side errors
+    NebulaAuthenticationException, # Authentication errors
+    NebulaRateLimitException,     # Rate limiting errors
+    NebulaValidationException     # Validation errors
+)
 ```
 
-### Specific Error Handling
+### Error Handling Example
 
 ```python
-from requests.exceptions import HTTPError
-
 try:
-    files = client.list_files(cluster_id="your-cluster-id")
-except HTTPError as e:
-    if e.response.status_code == 401:
-        print("Authentication failed. Check your API key.")
-    elif e.response.status_code == 403:
-        print("Insufficient permissions.")
-    elif e.response.status_code == 404:
-        print("Cluster not found.")
-    else:
-        print(f"HTTP Error: {e}")
+    memory = client.store(
+        content="Test memory",
+        cluster_id="test_cluster"
+    )
+except NebulaAuthenticationException:
+    print("Invalid API key")
+except NebulaRateLimitException:
+    print("Rate limit exceeded")
+except NebulaValidationException as e:
+    print(f"Validation error: {e}")
+except NebulaException as e:
+    print(f"API error: {e}")
 except Exception as e:
     print(f"Unexpected error: {e}")
 ```
 
-## Advanced Usage
+## Data Models
 
-### Custom Headers
+### Memory Object
 
 ```python
-# The client automatically handles authentication headers
-# You can add custom headers if needed
-import requests
+class Memory:
+    id: str                    # Memory/document ID
+    content: str              # Memory content (retrieved from chunks)
+    metadata: dict            # Additional metadata
+    cluster_ids: List[str]    # Associated clusters
+    created_at: str           # Creation timestamp
+    updated_at: str           # Last update timestamp
+```
 
-headers = {
-    "Authorization": f"ApiKey {api_key}",
-    "Content-Type": "application/json",
-    "X-Custom-Header": "custom-value"
-}
+### Cluster Object
 
-response = requests.get(
-    f"{client.base_url}/clusters/{cluster_id}/files/list",
-    headers=headers
+```python
+class Cluster:
+    id: str                   # Cluster ID
+    name: str                 # Cluster name
+    description: str          # Cluster description
+    metadata: dict            # Additional metadata
+    user_count: int           # Number of users
+    document_count: int       # Number of documents
+    created_at: str           # Creation timestamp
+    updated_at: str           # Last update timestamp
+```
+
+### SearchResult Object
+
+```python
+class SearchResult:
+    id: str                   # Result ID
+    content: str              # Result content
+    score: float              # Relevance score (0.0-1.0)
+    metadata: dict            # Additional metadata
+    document_id: str          # Source document ID
+```
+
+## Examples
+
+### Complete Workflow Example
+
+```python
+from nebula_client import NebulaClient
+
+# Initialize client
+client = NebulaClient(api_key="your_api_key")
+
+# Create a cluster
+cluster = client.create_cluster(
+    name="customer_support",
+    description="Customer support interactions"
 )
+
+# Store customer preferences
+memory = client.store(
+    content="Customer prefers email communication over phone calls",
+    metadata={
+        "user_id": "user_123",
+        "preference_type": "communication"
+    },
+    cluster_id=cluster.id
+)
+
+# Retrieve the stored memory
+retrieved_memory = client.get(memory.id)
+print(f"Retrieved content: {retrieved_memory.content}")
+print(f"Cluster IDs: {retrieved_memory.cluster_ids}")
+
+# List memories from the cluster
+cluster_memories = client.list_memories(cluster_id=cluster.id)
+for memory in cluster_memories:
+    print(f"Memory: {memory.content[:100]}...")
+
+# Search within the cluster
+results = client.search(
+    query="communication preferences",
+    cluster_id=cluster.id,
+    limit=5
+)
+
+for result in results:
+    print(f"Score: {result.score:.3f}")
+    print(f"Content: {result.content}")
+    print("---")
+
+# Clean up
+client.delete(memory.id)
+client.delete_cluster(cluster.id)
 ```
 
-### Async Support
+### Cluster Management Example
 
 ```python
-from nebula import NebulaAsyncClient
-import asyncio
+# Create multiple clusters
+research_cluster = client.create_cluster(
+    name="Research Notes",
+    description="Academic research materials"
+)
 
-async def main():
-    # Initialize async client
-    client = NebulaAsyncClient(api_key="your-api-key")
-    
-    try:
-        # Upload file asynchronously
-        result = await client.upload_file(
-            cluster_id="your-cluster-id",
-            file_path="document.pdf"
-        )
-        
-        # List files asynchronously
-        files = await client.list_files(cluster_id="your-cluster-id")
-        
-        print(f"Uploaded: {result}")
-        print(f"Files: {files}")
-        
-    finally:
-        await client.close()
+support_cluster = client.create_cluster(
+    name="Customer Support",
+    description="Customer support interactions"
+)
 
-# Run async function
-asyncio.run(main())
+# Store memories in different clusters
+client.store(
+    content="Machine learning algorithms overview",
+    cluster_id=research_cluster.id,
+    metadata={"topic": "ai", "type": "overview"}
+)
+
+client.store(
+    content="Customer login issue resolved",
+    cluster_id=support_cluster.id,
+    metadata={"issue_type": "login", "status": "resolved"}
+)
+
+# List all clusters
+clusters = client.list_clusters()
+for cluster in clusters:
+    print(f"Cluster: {cluster.name}")
+    print(f"ID: {cluster.id}")
+    print(f"Documents: {cluster.document_count}")
+    print("---")
+
+# Get memories from specific cluster
+memories = client.get_cluster_memories(
+    cluster_id=research_cluster.id,
+    limit=50
+)
+
+for memory in memories:
+    print(f"Memory: {memory.content[:100]}...")
+    print(f"Cluster IDs: {memory.cluster_ids}")
+    print("---")
 ```
 
-### Batch Operations
+### Search and Filter Example
 
 ```python
-# Upload multiple files
-files_to_upload = ["file1.pdf", "file2.pdf", "file3.pdf"]
-uploaded_files = []
+# Search with filters
+results = client.search(
+    query="machine learning",
+    cluster_id="research_cluster_id",
+    limit=5,
+    filters={
+        "metadata.topic": "ai",
+        "metadata.importance": "high"
+    }
+)
 
-for file_path in files_to_upload:
-    try:
-        result = client.upload_file(
-            cluster_id="your-cluster-id",
-            file_path=file_path
-        )
-        uploaded_files.append(result)
-        print(f"Uploaded: {file_path}")
-    except Exception as e:
-        print(f"Failed to upload {file_path}: {e}")
+for result in results:
+    print(f"Score: {result.score:.3f}")
+    print(f"Content: {result.content}")
+    print(f"Document ID: {result.document_id}")
+    print("---")
 
-print(f"Successfully uploaded {len(uploaded_files)} files")
+# Search within a specific cluster
+cluster_results = client.search(
+    query="login issues",
+    cluster_id="support_cluster_id",
+    retrieval_type="reasoning"
+)
+
+for result in cluster_results:
+    print(f"Cluster Result: {result.content}")
 ```
 
-## Complete Example
+### Memory Management Example
 
 ```python
-from nebula import NebulaClient
-import os
+# Store multiple memories
+memories = []
+for i in range(3):
+    memory = client.store(
+        content=f"Test memory {i+1} about Python programming",
+        cluster_id="test_cluster_id",
+        metadata={"test": True, "index": i}
+    )
+    memories.append(memory)
 
-def main():
-    # Initialize client
-    client = NebulaClient(api_key=os.getenv("NEBULA_API_KEY"))
-    
-    cluster_id = "your-cluster-id"
-    
-    try:
-        # Upload a document
-        print("Uploading document...")
-        result = client.upload_file(
-            cluster_id=cluster_id,
-            file_path="research_paper.pdf"
-        )
-        print(f"Uploaded: {result}")
-        
-        # Extract entities
-        print("Extracting entities...")
-        entities = client.documents.extract(id=result.file_id)
-        print(f"Extracted {len(entities.entities)} entities")
-        
-        # Create a collection
-        print("Creating collection...")
-        collection = client.collections.create(
-            name="Research Papers",
-            description="Collection of research documents"
-        )
-        
-        # Add document to collection
-        client.collections.add_document(
-            id=collection.id,
-            document_id=result.file_id
-        )
-        
-        # Create a conversation
-        print("Creating conversation...")
-        conversation = client.conversations.create(
-            collection_id=collection.id
-        )
-        
-        # Ask questions
-        print("Asking questions...")
-        response = client.conversations.chat(
-            id=conversation.id,
-            message="What are the main findings in this research paper?"
-        )
-        
-        print(f"AI Response: {response.completion}")
-        
-    except Exception as e:
-        print(f"Error: {e}")
+# List memories from specific cluster
+cluster_memories = client.list_memories(
+    cluster_id="test_cluster_id",
+    limit=50
+)
+print(f"Cluster memories: {len(cluster_memories)}")
 
-if __name__ == "__main__":
-    main()
+# Get specific memory
+if memories:
+    specific_memory = client.get(memories[0].id)
+    print(f"Retrieved memory: {specific_memory.content}")
+    print(f"Cluster IDs: {specific_memory.cluster_ids}")
+
+# Delete memories
+for memory in memories:
+    client.delete(memory.id)
+    print(f"Deleted memory: {memory.id}")
 ```
 
-## API Reference
+## Best Practices
 
-### NebulaClient
+1. **Use Clusters**: Organize memories into clusters for better management
+2. **Rich Metadata**: Include relevant metadata for better search and filtering
+3. **Content Retrieval**: The SDK automatically retrieves content from chunks
+4. **Error Handling**: Always implement proper error handling
+5. **Rate Limiting**: Be mindful of API rate limits
+6. **Deterministic IDs**: The SDK automatically handles deduplication
+7. **Cluster Filtering**: Use cluster filtering for targeted searches
 
-The main client class for interacting with the Nebula API.
+## API Limits
 
-#### Constructor
+- **Clusters**: Varies by plan
+- **Documents**: Varies by plan
+- **Chunks**: Varies by plan
+- **Rate Limits**: Varies by plan
+- **Request Timeout**: 30 seconds (configurable)
 
-```python
-NebulaClient(api_key: str, base_url: Optional[str] = None)
-```
+For specific limits, check your Nebula Cloud plan details.
 
-**Parameters:**
-- `api_key` (str): Your Nebula API key
-- `base_url` (str, optional): Custom API base URL. Defaults to production URL.
+## Version History
 
-#### File Operations
+### Version 0.0.18 (Current)
+- Fixed `list_memories` to retrieve content from chunks
+- Fixed `get` method to handle `results` wrapper
+- Fixed cluster filtering in all methods
+- Improved content retrieval from document chunks
+- All core functionality working correctly
 
-- `upload_file(cluster_id, file_path, folder_id, content_type)` - Upload a file
-- `download_file(cluster_id, file_id, output_path)` - Download a file
-- `list_files(cluster_id, folder_id)` - List files and folders
-- `create_folder(cluster_id, folder_name, parent_folder_id)` - Create a folder
-- `delete_files(cluster_id, file_ids)` - Delete files/folders
-- `move_files(cluster_id, file_ids, target_folder_id)` - Move files
-- `rename_file(cluster_id, file_id, new_name)` - Rename a file/folder
+### Version 0.0.17
+- Fixed `get` method to retrieve content from chunks
+- Fixed `update_cluster` to use POST method
+- Fixed `get_cluster` to handle `results` wrapper
 
-#### Document Operations
-
-- `documents.extract(id)` - Extract entities from a document
-- `documents.list_entities(id)` - List entities in a document
-- `documents.list_relationships(id)` - List relationships in a document
-
-#### Collection Operations
-
-- `collections.create(name, description)` - Create a collection
-- `collections.add_document(id, document_id)` - Add document to collection
-- `collections.list_collections()` - List all collections
-
-#### Conversation Operations
-
-- `conversations.create(collection_id)` - Create a conversation
-- `conversations.chat(id, message)` - Send a message
-- `conversations.retrieve(id)` - Get conversations
-
-#### Graph Operations
-
-- `graphs.list()` - List all graphs
-- `graphs.retrieve(collection_id)` - Get graph details
-- `graphs.list_entities(collection_id)` - List graph entities
-- `graphs.list_relationships(collection_id)` - List graph relationships
-
-#### Retrieval Operations
-
-- `retrieval.rag(query, rag_generation_config)` - Perform RAG query
-
-#### System Operations
-
-- `system.health()` - Check API health
+### Version 0.0.14
+- Unified `retrieve` into `search` method
+- Removed `agent_id` concept
+- Updated to use cluster terminology
+- Fixed cluster filtering with `$overlap` operator
 
 ## Next Steps
 

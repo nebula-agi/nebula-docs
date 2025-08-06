@@ -7,11 +7,10 @@
     "light": "#b39ddb",
     "dark": "#512da8"
   },
-  "favicon": 
-  {
-      "dark": "/logo/light.png",
-      "light": "/logo/dark.png"
-   },
+  "favicon": {
+    "dark": "/logo/light.png",
+    "light": "/logo/dark.png"
+  },
   "navigation": {
     "tabs": [
       {
@@ -20,95 +19,15 @@
           {
             "group": "Get Started",
             "pages": [
-              "index",
+              "introduction",
               "quickstart"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API Reference",
-        "groups": [
-          {
-            "group": "Overview",
-            "pages": [
-              "api-reference/r2r-api-reference"
-            ]
-          },
-          {
-            "group": "System Operations",
-            "pages": [
-              "api-reference/endpoint/health",
-              "api-reference/endpoint/config",
-              "api-reference/endpoint/status"
-            ]
-          },
-          {
-            "group": "Document Management",
-            "pages": [
-              "api-reference/endpoint/documents-create",
-              "api-reference/endpoint/documents-list",
-              "api-reference/endpoint/documents-get",
-              "api-reference/endpoint/documents-delete"
-            ]
-          },
-          {
-            "group": "User Management",
-            "pages": [
-              "api-reference/users"
-            ]
-          },
-          {
-            "group": "Collection Management",
-            "pages": [
-              "api-reference/collections"
-            ]
-          },
-          {
-            "group": "Search & Retrieval",
-            "pages": [
-              "api-reference/retrieval"
-            ]
-          },
-          {
-            "group": "Conversations",
-            "pages": [
-              "api-reference/conversations"
-            ]
-          },
-          {
-            "group": "Knowledge Graph",
-            "pages": [
-              "api-reference/graph"
-            ]
-          },
-          {
-            "group": "Advanced Features",
-            "pages": [
-              "api-reference/chunks",
-              "api-reference/indices",
-              "api-reference/prompts"
-            ]
-          },
-          {
-            "group": "Specialized Endpoints",
-            "pages": [
-              "api-reference/episodes",
-              "api-reference/contradictions",
-              "api-reference/temporal-events"
             ]
           }
         ]
       }
     ],
     "global": {
-      "anchors": [
-        {
-          "anchor": "Evals",
-          "href": "https://evals.nebulacloud.app",
-          "icon": "newspaper"
-        }
-      ]
+      "anchors": []
     }
   },
   "logo": {
@@ -128,7 +47,5 @@
       "href": "https://nebulacloud.app/dashboard"
     }
   },
-  "footer": {
-    
-  }
+  "footer": {}
 }
