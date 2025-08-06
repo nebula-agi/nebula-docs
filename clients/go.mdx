@@ -1,753 +1,566 @@
 ---
 title: 'Go Client'
-description: 'Official Go client library for the Nebula API'
+description: 'Official Go client library for the Nebula Memory API'
 ---
 
 # Go Client
 
-The official Go client library for the Nebula API provides a high-performance interface for interacting with Nebula's file storage and AI capabilities.
+The official Go client library for the Nebula Memory API provides a simple and high-performance interface for storing, retrieving, and searching memories with advanced clustering capabilities.
 
-## Installation
+## Table of Contents
+
+1. [Installation & Setup](#installation--setup)
+2. [Client Initialization](#client-initialization)
+3. [Cluster Management](#cluster-management)
+4. [Memory Storage](#memory-storage)
+5. [Memory Retrieval](#memory-retrieval)
+6. [Search Operations](#search-operations)
+7. [Memory Management](#memory-management)
+8. [Error Handling](#error-handling)
+9. [Data Models](#data-models)
+10. [Examples](#examples)
+
+## Installation & Setup
+
+### Prerequisites
+
+- Go 1.20+
+- Nebula Cloud API key
+
+### Installation
 
 ```bash
 go get github.com/oronila/nebula-client-go
 ```
 
-## Quick Start
+### Environment Setup
 
-```go
-package main
-
-import (
-    "fmt"
-    "log"
-    "os"
-
-    nebula "github.com/oronila/nebula-client-go"
-)
-
-func main() {
-    // Initialize the client
-    client := nebula.NewClient("your-api-key-here")
-
-    // Upload a file
-    file, err := os.Open("document.pdf")
-    if err != nil {
-        log.Fatalf("Error opening file: %v", err)
-    }
-    defer file.Close()
-
-    result, err := client.UploadFile("your-cluster-id", file, "document.pdf", "ROOT")
-    if err != nil {
-        log.Fatalf("Error uploading file: %v", err)
-    }
-
-    // List files in a cluster
-    files, err := client.ListFiles("your-cluster-id", "ROOT")
-    if err != nil {
-        log.Fatalf("Error listing files: %v", err)
-    }
-
-    // Download a file
-    err = client.DownloadFile("your-cluster-id", "file-id", "downloaded_file.pdf")
-    if err != nil {
-        log.Fatalf("Error downloading file: %v", err)
-    }
-
-    fmt.Printf("Uploaded: %+v\n", result)
-    fmt.Printf("Files: %+v\n", files)
-}
+```bash
+export NEBULA_API_KEY="your_api_key_here"
 ```
 
-## Configuration
+## Client Initialization
 
-### Basic Configuration
-
-```go
-import "github.com/oronila/nebula-client-go/nebulaclient"
-
-// Initialize with API key
-client := nebulaclient.NewClient("neb_abcdef123456789")
-
-// Initialize with custom base URL (for development/testing)
-client := nebulaclient.NewClient("your-api-key", 
-    nebulaclient.WithBaseURL("https://custom-api.nebulacloud.app"))
-```
-
-### Environment Variables
+### Basic Initialization
 
 ```go
 import (
-    "os"
     "github.com/oronila/nebula-client-go/nebulaclient"
 )
 
-// Load from environment variable
+// Using environment variable
 client := nebulaclient.NewClient(os.Getenv("NEBULA_API_KEY"))
 
-// Or use godotenv
-import "github.com/joho/godotenv"
-
-godotenv.Load()
-client := nebulaclient.NewClient(os.Getenv("NEBULA_API_KEY"))
+// Or with explicit API key
+client := nebulaclient.NewClient("your_api_key_here")
 ```
 
-## File Operations
-
-### Upload Files
+### Advanced Configuration
 
 ```go
-// Upload a file to the root folder
-file, err := os.Open("document.pdf")
-if err != nil {
-    log.Fatalf("Error opening file: %v", err)
-}
-defer file.Close()
-
-result, err := client.UploadFile("your-cluster-id", file, "document.pdf", "ROOT")
-if err != nil {
-    log.Fatalf("Error uploading file: %v", err)
-}
-
-// Upload to a specific folder
-result, err := client.UploadFile("your-cluster-id", file, "document.pdf", "folder-uuid")
-
-// Upload with custom content type
-// The client automatically determines content type from file extension
-result, err := client.UploadFile("your-cluster-id", file, "document.pdf", "ROOT")
+client := nebulaclient.NewClient(
+    "your_api_key_here",
+    nebulaclient.WithBaseURL("https://api.nebulacloud.app"), // Default
+    nebulaclient.WithTimeout(30*time.Second), // Default timeout
+)
 ```
 
-### Download Files
+### Context Usage
 
 ```go
-// Download to a specific path
-err := client.DownloadFile("your-cluster-id", "file-uuid", "downloaded_file.pdf")
-if err != nil {
-    log.Fatalf("Error downloading file: %v", err)
-}
-
-// Download to a directory (uses original filename)
-err := client.DownloadFile("your-cluster-id", "file-uuid", "./downloads/")
-```
-
-### List Files
-
-```go
-// List files in root folder
-files, err := client.ListFiles("your-cluster-id", "ROOT")
-if err != nil {
-    log.Fatalf("Error listing files: %v", err)
-}
-
-// List files in a specific folder
-files, err := client.ListFiles("your-cluster-id", "folder-uuid")
-
-// Print file information
-for _, file := range files {
-    fmt.Printf("File: %s (%s) - Size: %d bytes\n", 
-        file.Name, file.Type, file.Size)
-}
-```
-
-### Create Folders
-
-```go
-// Create folder in root
-folder, err := client.CreateFolder("your-cluster-id", "New Folder", "ROOT")
-if err != nil {
-    log.Fatalf("Error creating folder: %v", err)
-}
-
-// Create folder in a specific parent folder
-folder, err := client.CreateFolder("your-cluster-id", "Subfolder", "parent-folder-uuid")
-```
-
-### Delete Files and Folders
-
-```go
-// Delete a single file
-err := client.DeleteFiles("your-cluster-id", []string{"file-uuid"})
-if err != nil {
-    log.Fatalf("Error deleting file: %v", err)
-}
-
-// Delete multiple files/folders
-err := client.DeleteFiles("your-cluster-id", []string{
-    "file-uuid-1", 
-    "file-uuid-2", 
-    "folder-uuid",
+ctx := context.Background()
+client := nebulaclient.NewClient("your_api_key")
+// Your operations here
+memory, err := client.Store(ctx, &nebulaclient.StoreRequest{
+    Content:   "Hello world",
+    ClusterID: "cluster_123",
 })
 ```
 
-### Move Files and Folders
+## Cluster Management
+
+Clusters help organize memories and provide access control.
+
+### Create Cluster
 
 ```go
-// Move files to a different folder
-err := client.MoveFiles("your-cluster-id", []string{
-    "file-uuid-1", 
-    "file-uuid-2",
-}, "destination-folder-uuid")
-if err != nil {
-    log.Fatalf("Error moving files: %v", err)
-}
-```
-
-### Rename Files and Folders
-
-```go
-// Rename a file or folder
-err := client.RenameFile("your-cluster-id", "file-uuid", "New File Name.pdf")
-if err != nil {
-    log.Fatalf("Error renaming file: %v", err)
-}
-```
-
-## Document Processing
-
-### Extract Entities
-
-```go
-// Extract entities from a document
-entities, err := client.DocumentsExtract("file-uuid")
-if err != nil {
-    log.Fatalf("Error extracting entities: %v", err)
-}
-
-// The response contains extracted entities and relationships
-fmt.Printf("Extracted %d entities\n", len(entities.Entities))
-fmt.Printf("Found %d relationships\n", len(entities.Relationships))
-```
-
-### List Entities
-
-```go
-// Get all entities from a document
-entities, err := client.DocumentsListEntities("file-uuid")
-if err != nil {
-    log.Fatalf("Error listing entities: %v", err)
-}
-
-for _, entity := range entities {
-    fmt.Printf("Entity: %s (%s)\n", entity.Name, entity.Type)
-}
-```
-
-### List Relationships
-
-```go
-// Get all relationships from a document
-relationships, err := client.DocumentsListRelationships("file-uuid")
-if err != nil {
-    log.Fatalf("Error listing relationships: %v", err)
-}
-
-for _, rel := range relationships {
-    fmt.Printf("Relationship: %s -> %s (%s)\n", 
-        rel.Source, rel.Target, rel.Type)
-}
-```
-
-## Collections
-
-### Create Collections
-
-```go
-// Create a new collection
-collection, err := client.CollectionsCreate("Research Papers", "Collection of research documents")
-if err != nil {
-    log.Fatalf("Error creating collection: %v", err)
-}
-```
-
-### Add Documents to Collections
-
-```go
-// Add a document to a collection
-err := client.CollectionsAddDocument("collection-uuid", "file-uuid")
-if err != nil {
-    log.Fatalf("Error adding document to collection: %v", err)
-}
-```
-
-### List Collections
-
-```go
-// Get all collections
-collections, err := client.CollectionsListCollections()
-if err != nil {
-    log.Fatalf("Error listing collections: %v", err)
-}
-
-for _, collection := range collections {
-    fmt.Printf("Collection: %s\n", collection.Name)
-}
-```
-
-## Conversations
-
-### Create Conversations
-
-```go
-// Create a conversation based on a collection
-conversation, err := client.ConversationsCreate("collection-uuid")
-if err != nil {
-    log.Fatalf("Error creating conversation: %v", err)
-}
-```
-
-### Send Messages
-
-```go
-// Send a message to a conversation
-response, err := client.ConversationsChat("conversation-uuid", 
-    "What are the main findings in the research papers?")
-if err != nil {
-    log.Fatalf("Error sending message: %v", err)
-}
-
-fmt.Printf("AI Response: %s\n", response.Completion)
-```
-
-### List Conversations
-
-```go
-// Get all conversations
-conversations, err := client.ConversationsRetrieve("collection-uuid")
-if err != nil {
-    log.Fatalf("Error retrieving conversations: %v", err)
-}
-
-for _, conv := range conversations {
-    fmt.Printf("Conversation: %s\n", conv.ID)
-}
-```
-
-## Graphs
-
-### List Graphs
-
-```go
-// Get all graphs
-graphs, err := client.GraphsList()
-if err != nil {
-    log.Fatalf("Error listing graphs: %v", err)
-}
-
-for _, graph := range graphs {
-    fmt.Printf("Graph: %s\n", graph.CollectionID)
-}
-```
-
-### Get Graph Details
-
-```go
-// Get details of a specific graph
-details, err := client.GraphsRetrieve("collection-uuid")
-if err != nil {
-    log.Fatalf("Error retrieving graph details: %v", err)
-}
-fmt.Printf("Graph details: %+v\n", details)
-```
-
-### List Graph Entities
-
-```go
-// Get entities in a graph
-entities, err := client.GraphsListEntities("collection-uuid")
-if err != nil {
-    log.Fatalf("Error listing graph entities: %v", err)
-}
-
-for _, entity := range entities {
-    fmt.Printf("Entity: %s\n", entity.Name)
-}
-```
-
-### List Graph Relationships
-
-```go
-// Get relationships in a graph
-relationships, err := client.GraphsListRelationships("collection-uuid")
-if err != nil {
-    log.Fatalf("Error listing graph relationships: %v", err)
-}
-
-for _, rel := range relationships {
-    fmt.Printf("Relationship: %s -> %s\n", rel.Source, rel.Target)
-}
-```
-
-## Retrieval
-
-### RAG (Retrieval-Augmented Generation)
-
-```go
-// Perform RAG query
-ragResponse, err := client.RetrievalRAG("What are the main findings?", map[string]interface{}{
-    "model":       "gpt-4o-mini",
-    "temperature": 0.0,
+cluster, err := client.CreateCluster(ctx, &nebulaclient.CreateClusterRequest{
+    Name:        "research_notes",
+    Description: "Cluster for research-related memories",
+    Metadata:    map[string]interface{}{ "category": "academic", "priority": "high" },
 })
-if err != nil {
-    log.Fatalf("Error performing RAG query: %v", err)
-}
-
-fmt.Printf("Generated answer: %s\n", ragResponse.GeneratedAnswer)
-fmt.Printf("Search results: %+v\n", ragResponse.SearchResults)
-```
-
-## System Operations
-
-### Health Check
-
-```go
-// Check API health
-health, err := client.SystemHealth()
-if err != nil {
-    log.Fatalf("Error checking health: %v", err)
-}
-fmt.Printf("API Status: %+v\n", health)
-```
-
-## Error Handling
-
-### Basic Error Handling
-
-```go
-files, err := client.ListFiles("your-cluster-id", "ROOT")
-if err != nil {
-    log.Fatalf("Error: %v", err)
-}
-```
-
-### Specific Error Handling
-
-```go
-files, err := client.ListFiles("your-cluster-id", "ROOT")
-if err != nil {
-    if strings.Contains(err.Error(), "401") {
-        log.Fatal("Authentication failed. Check your API key.")
-    } else if strings.Contains(err.Error(), "403") {
-        log.Fatal("Insufficient permissions.")
-    } else if strings.Contains(err.Error(), "404") {
-        log.Fatal("Cluster not found.")
-    } else {
-        log.Fatalf("Error: %v", err)
-    }
-}
-```
-
-### Custom Error Handler
-
-```go
-type NebulaError struct {
-    StatusCode int
-    Message    string
-}
-
-func (e *NebulaError) Error() string {
-    return fmt.Sprintf("HTTP %d: %s", e.StatusCode, e.Message)
-}
-
-func handleNebulaError(err error) error {
-    if err == nil {
-        return nil
-    }
-    
-    // Check for specific error patterns
-    errStr := err.Error()
-    switch {
-    case strings.Contains(errStr, "401"):
-        return &NebulaError{StatusCode: 401, Message: "Authentication failed"}
-    case strings.Contains(errStr, "403"):
-        return &NebulaError{StatusCode: 403, Message: "Insufficient permissions"}
-    case strings.Contains(errStr, "404"):
-        return &NebulaError{StatusCode: 404, Message: "Resource not found"}
-    case strings.Contains(errStr, "429"):
-        return &NebulaError{StatusCode: 429, Message: "Rate limit exceeded"}
-    case strings.Contains(errStr, "500"):
-        return &NebulaError{StatusCode: 500, Message: "Internal server error"}
-    default:
-        return err
-    }
-}
-
-// Usage
-files, err := client.ListFiles("your-cluster-id", "ROOT")
-if err != nil {
-    nebulaErr := handleNebulaError(err)
-    log.Fatalf("Nebula error: %v", nebulaErr)
-}
-```
-
-## Advanced Usage
-
-### Custom HTTP Client
-
-```go
-import (
-    "net/http"
-    "time"
-    "github.com/oronila/nebula-client-go/nebulaclient"
-)
-
-// Create custom HTTP client
-httpClient := &http.Client{
-    Timeout: 30 * time.Second,
-    Transport: &http.Transport{
-        MaxIdleConns:        10,
-        IdleConnTimeout:     30 * time.Second,
-        DisableCompression:  true,
-    },
-}
-
-// The client uses the default HTTP client, but you can modify it
-// by setting environment variables or using custom transport
-```
-
-### Batch Operations
-
-```go
-// Upload multiple files
-filesToUpload := []string{"file1.pdf", "file2.pdf", "file3.pdf"}
-uploadedFiles := make([]*nebulaclient.File, 0)
-
-for _, filePath := range filesToUpload {
-    file, err := os.Open(filePath)
-    if err != nil {
-        log.Printf("Error opening %s: %v", filePath, err)
-        continue
-    }
-    
-    result, err := client.UploadFile("your-cluster-id", file, filepath.Base(filePath), "ROOT")
-    file.Close()
-    
-    if err != nil {
-        log.Printf("Failed to upload %s: %v", filePath, err)
-        continue
-    }
-    
-    uploadedFiles = append(uploadedFiles, result)
-    fmt.Printf("Uploaded: %s\n", filePath)
-}
-
-fmt.Printf("Successfully uploaded %d files\n", len(uploadedFiles))
-```
-
-### Goroutines for Parallel Operations
-
-```go
-// Upload multiple files in parallel
-filesToUpload := []string{"file1.pdf", "file2.pdf", "file3.pdf"}
-results := make(chan *nebulaclient.File, len(filesToUpload))
-errors := make(chan error, len(filesToUpload))
-
-for _, filePath := range filesToUpload {
-    go func(path string) {
-        file, err := os.Open(path)
-        if err != nil {
-            errors <- fmt.Errorf("error opening %s: %v", path, err)
-            return
-        }
-        defer file.Close()
-        
-        result, err := client.UploadFile("your-cluster-id", file, filepath.Base(path), "ROOT")
-        if err != nil {
-            errors <- fmt.Errorf("failed to upload %s: %v", path, err)
-            return
-        }
-        
-        results <- result
-    }(filePath)
-}
-
-// Collect results
-uploadedFiles := make([]*nebulaclient.File, 0)
-for i := 0; i < len(filesToUpload); i++ {
-    select {
-    case result := <-results:
-        uploadedFiles = append(uploadedFiles, result)
-    case err := <-errors:
-        log.Printf("Upload error: %v", err)
-    }
-}
-
-fmt.Printf("Successfully uploaded %d files\n", len(uploadedFiles))
-```
-
-### Retry Logic
-
-```go
-func retryOperation(operation func() error, maxRetries int) error {
-    var lastErr error
-    
-    for attempt := 1; attempt <= maxRetries; attempt++ {
-        if err := operation(); err != nil {
-            lastErr = err
-            
-            if attempt == maxRetries {
-                return err
-            }
-            
-            // Wait before retrying (exponential backoff)
-            delay := time.Duration(1<<uint(attempt)) * time.Second
-            time.Sleep(delay)
-            
-            fmt.Printf("Retry attempt %d after %v\n", attempt+1, delay)
-            continue
-        }
-        
-        return nil
-    }
-    
-    return lastErr
-}
-
-// Usage
-err := retryOperation(func() error {
-    _, err := client.ListFiles("your-cluster-id", "ROOT")
-    return err
-}, 3)
-
-if err != nil {
-    log.Fatalf("Operation failed after retries: %v", err)
-}
-```
-
-## Complete Example
-
-```go
-package main
-
-import (
-    "fmt"
-    "log"
-    "os"
-
-    nebula "github.com/oronila/nebula-client-go"
-)
-
-func main() {
-    // Initialize client
-    client := nebula.NewClient(os.Getenv("NEBULA_API_KEY"))
-    
-    clusterId := "your-cluster-id"
-    
-    // Upload a document
-    fmt.Println("Uploading document...")
-    file, err := os.Open("research_paper.pdf")
-    if err != nil {
-        log.Fatalf("Error opening file: %v", err)
-    }
-    defer file.Close()
-    
-    result, err := client.UploadFile(clusterId, file, "research_paper.pdf", "ROOT")
-    if err != nil {
-        log.Fatalf("Error uploading file: %v", err)
-    }
-    fmt.Printf("Uploaded: %+v\n", result)
-    
-    // Extract entities
-    fmt.Println("Extracting entities...")
-    entities, err := client.DocumentsExtract(result.ID)
-    if err != nil {
-        log.Fatalf("Error extracting entities: %v", err)
-    }
-    fmt.Printf("Extracted %d entities\n", len(entities.Entities))
-    
-    // Create a collection
-    fmt.Println("Creating collection...")
-    collection, err := client.CollectionsCreate("Research Papers", "Collection of research documents")
-    if err != nil {
-        log.Fatalf("Error creating collection: %v", err)
-    }
-    
-    // Add document to collection
-    err = client.CollectionsAddDocument(collection.ID, result.ID)
-    if err != nil {
-        log.Fatalf("Error adding document to collection: %v", err)
-    }
-    
-    // Create a conversation
-    fmt.Println("Creating conversation...")
-    conversation, err := client.ConversationsCreate(collection.ID)
-    if err != nil {
-        log.Fatalf("Error creating conversation: %v", err)
-    }
-    
-    // Ask questions
-    fmt.Println("Asking questions...")
-    response, err := client.ConversationsChat(conversation.ID, 
-        "What are the main findings in this research paper?")
-    if err != nil {
-        log.Fatalf("Error sending message: %v", err)
-    }
-    
-    fmt.Printf("AI Response: %s\n", response.Completion)
-}
-```
-
-## API Reference
-
-### Client
-
-The main client struct for interacting with the Nebula API.
-
-#### Constructor
-
-```go
-func NewClient(apiKey string, options ...ClientOption) *Client
 ```
 
 **Parameters:**
-- `apiKey` (string): Your Nebula API key
-- `options` (variadic): Optional client configurations
+- `Name` (string): Cluster name (required)
+- `Description` (string, optional): Cluster description
+- `Metadata` (map[string]interface{}, optional): Additional metadata
 
-#### Available Options
+**Returns:** `*Cluster` with cluster details
 
-- `WithBaseURL(url string)`: Set a custom API base URL
+### Get Cluster
 
-#### File Operations
+```go
+cluster, err := client.GetCluster(ctx, "cluster_id_here")
+```
 
-- `ListFiles(clusterID, folderID string) ([]File, error)`: List files and folders
-- `UploadFile(clusterID string, file *os.File, fileName, folderID string) (*File, error)`: Upload a file
-- `DownloadFile(clusterID, fileID, outputPath string) error`: Download a file
-- `CreateFolder(clusterID, folderName, parentFolderID string) (*File, error)`: Create a folder
-- `DeleteFiles(clusterID string, fileIDs []string) error`: Delete files/folders
-- `MoveFiles(clusterID string, fileIDs []string, targetFolderID string) error`: Move files
-- `RenameFile(clusterID, fileID, newName string) error`: Rename a file/folder
+**Parameters:**
+- `clusterID` (string): ID of the cluster to retrieve
 
-#### Document Operations
+**Returns:** `*Cluster`
 
-- `DocumentsExtract(fileID string) (*ExtractResponse, error)`: Extract entities from a document
-- `DocumentsListEntities(fileID string) ([]Entity, error)`: List entities in a document
-- `DocumentsListRelationships(fileID string) ([]Relationship, error)`: List relationships in a document
+### List Clusters
 
-#### Collection Operations
+```go
+clusters, err := client.ListClusters(ctx, &nebulaclient.ListClustersRequest{
+    Limit:  100, // Default: 100
+    Offset: 0,   // Default: 0
+})
+```
 
-- `CollectionsCreate(name, description string) (*Collection, error)`: Create a collection
-- `CollectionsAddDocument(collectionID, documentID string) error`: Add document to collection
-- `CollectionsListCollections() ([]Collection, error)`: List all collections
+**Parameters:**
+- `Limit` (int): Maximum number of clusters to return (1-1000)
+- `Offset` (int): Number of clusters to skip
 
-#### Conversation Operations
+**Returns:** `[]*Cluster`
 
-- `ConversationsCreate(collectionID string) (*Conversation, error)`: Create a conversation
-- `ConversationsChat(conversationID, message string) (*ChatResponse, error)`: Send a message
-- `ConversationsRetrieve(collectionID string) ([]Conversation, error)`: Get conversations
+### Update Cluster
 
-#### Graph Operations
+```go
+updatedCluster, err := client.UpdateCluster(ctx, &nebulaclient.UpdateClusterRequest{
+    ClusterID:   "cluster_id_here",
+    Name:        "new_name", // Optional
+    Description: "new_description", // Optional
+    Metadata:    map[string]interface{}{ "updated": true }, // Optional
+})
+```
 
-- `GraphsList() ([]Graph, error)`: List all graphs
-- `GraphsRetrieve(collectionID string) (*GraphDetails, error)`: Get graph details
-- `GraphsListEntities(collectionID string) ([]Entity, error)`: List graph entities
-- `GraphsListRelationships(collectionID string) ([]Relationship, error)`: List graph relationships
+**Parameters:**
+- `ClusterID` (string): ID of the cluster to update
+- `Name` (string, optional): New name
+- `Description` (string, optional): New description
+- `Metadata` (map[string]interface{}, optional): New metadata
 
-#### Retrieval Operations
+**Returns:** Updated `*Cluster`
 
-- `RetrievalRAG(query string, config map[string]interface{}) (*RAGResponse, error)`: Perform RAG query
+**Note:** Update operations may fail if the new name conflicts with existing clusters.
 
-#### System Operations
+### Delete Cluster
 
-- `SystemHealth() (*HealthResponse, error)`: Check API health
+```go
+success, err := client.DeleteCluster(ctx, "cluster_id_here")
+```
+
+**Parameters:**
+- `clusterID` (string): ID of the cluster to delete
+
+**Returns:** `bool` if successful
+
+## Memory Storage
+
+### Store Individual Memory
+
+```go
+memory, err := client.Store(ctx, &nebulaclient.StoreRequest{
+    Content: "User prefers email communication over phone calls",
+    ClusterID: "user_preferences", // Required
+    Metadata: map[string]interface{}{
+        "user_id":         "user_123",
+        "preference_type": "communication",
+        "importance":      "high",
+    },
+})
+```
+
+**Parameters:**
+- `Content` (string): The memory content to store (required)
+- `ClusterID` (string): Cluster to store the memory in (required)
+- `Metadata` (map[string]interface{}, optional): Additional metadata
+
+**Returns:** `*Memory`
+
+## Memory Retrieval
+
+### Get Specific Memory
+
+```go
+memory, err := client.Get(ctx, "memory_id_here")
+```
+
+**Parameters:**
+- `memoryID` (string): ID of the memory to retrieve (required)
+
+**Returns:** `*Memory` with content retrieved from chunks
+
+### List Memories
+
+```go
+memories, err := client.ListMemories(ctx, &nebulaclient.ListMemoriesRequest{
+    ClusterID: "cluster_123", // Required
+    Limit:     100,      // Default: 100
+    Offset:    0,        // Default: 0
+})
+```
+
+**Parameters:**
+- `ClusterID` (string): Cluster ID to list memories from (required)
+- `Limit` (int): Maximum number of memories to return
+- `Offset` (int): Number of memories to skip
+
+**Returns:** `[]*Memory` with content retrieved from chunks
+
+### Get Cluster Memories
+
+```go
+memories, err := client.GetClusterMemories(ctx, &nebulaclient.GetClusterMemoriesRequest{
+    ClusterID: "cluster_id_here",
+    Limit:     100,    // Default: 100
+    Offset:    0,      // Default: 0
+})
+```
+
+**Parameters:**
+- `ClusterID` (string): ID of the cluster (required)
+- `Limit` (int): Maximum number of memories to return
+- `Offset` (int): Number of memories to skip
+
+**Returns:** `[]*Memory`
+
+## Search Operations
+
+### General Search
+
+```go
+results, err := client.Search(ctx, &nebulaclient.SearchRequest{
+    Query:         "artificial intelligence",
+    ClusterID:     "research_cluster",                // Required
+    Limit:         10,                                 // Default: 10
+    RetrievalType: "simple",                          // Default: "simple"
+    Filters:       map[string]interface{}{ "metadata.topic": "ai" }, // Optional
+})
+```
+
+**Parameters:**
+- `Query` (string): Search query (required)
+- `ClusterID` (string): Cluster to search within (required)
+- `Limit` (int): Maximum number of results to return
+- `RetrievalType` (string): Type of retrieval ("simple", "reasoning", "planning")
+- `Filters` (map[string]interface{}, optional): Search filters
+
+**Returns:** `[]*SearchResult`
+
+### Search Types
+
+The SDK supports different retrieval types:
+
+- **`simple`**: Basic semantic search
+- **`reasoning`**: Enhanced reasoning-based search
+- **`planning`**: Planning-oriented search
+
+## Memory Management
+
+### Delete Memory
+
+```go
+success, err := client.Delete(ctx, "memory_id_here")
+```
+
+**Parameters:**
+- `memoryID` (string): ID of the memory to delete (required)
+
+**Returns:** `bool` if successful
+
+## Error Handling
+
+### Error Types
+
+The SDK returns errors as Go `error` values, with custom error types for specific cases:
+
+- `NebulaException`              // Base exception
+- `NebulaClientException`        // Client-side errors
+- `NebulaAuthenticationException` // Authentication errors
+- `NebulaRateLimitException`     // Rate limiting errors
+- `NebulaValidationException`    // Validation errors
+
+### Error Handling Example
+
+```go
+memory, err := client.Store(ctx, &nebulaclient.StoreRequest{
+    Content:   "Test memory",
+    ClusterID: "test_cluster",
+})
+if err != nil {
+    switch err.(type) {
+    case *nebulaclient.NebulaAuthenticationException:
+        fmt.Println("Invalid API key")
+    case *nebulaclient.NebulaRateLimitException:
+        fmt.Println("Rate limit exceeded")
+    case *nebulaclient.NebulaValidationException:
+        fmt.Printf("Validation error: %v\n", err)
+    case *nebulaclient.NebulaException:
+        fmt.Printf("API error: %v\n", err)
+    default:
+        fmt.Printf("Unexpected error: %v\n", err)
+    }
+}
+```
+
+## Data Models
+
+### Memory Object
+
+```go
+type Memory struct {
+    ID         string                 // Memory/document ID
+    Content    string                 // Memory content (retrieved from chunks)
+    Metadata   map[string]interface{} // Additional metadata
+    ClusterIDs []string               // Associated clusters
+    CreatedAt  string                 // Creation timestamp
+    UpdatedAt  string                 // Last update timestamp
+}
+```
+
+### Cluster Object
+
+```go
+type Cluster struct {
+    ID           string                 // Cluster ID
+    Name         string                 // Cluster name
+    Description  string                 // Cluster description
+    Metadata     map[string]interface{} // Additional metadata
+    UserCount    int                    // Number of users
+    DocumentCount int                   // Number of documents
+    CreatedAt    string                 // Creation timestamp
+    UpdatedAt    string                 // Last update timestamp
+}
+```
+
+### SearchResult Object
+
+```go
+type SearchResult struct {
+    ID         string                 // Result ID
+    Content    string                 // Result content
+    Score      float64                // Relevance score (0.0-1.0)
+    Metadata   map[string]interface{} // Additional metadata
+    DocumentID string                 // Source document ID
+}
+```
+
+## Examples
+
+### Complete Workflow Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "os"
+    "github.com/oronila/nebula-client-go/nebulaclient"
+)
+
+func main() {
+    ctx := context.Background()
+    client := nebulaclient.NewClient(os.Getenv("NEBULA_API_KEY"))
+
+    // Create a cluster
+    cluster, _ := client.CreateCluster(ctx, &nebulaclient.CreateClusterRequest{
+        Name:        "customer_support",
+        Description: "Customer support interactions",
+    })
+
+    // Store customer preferences
+    memory, _ := client.Store(ctx, &nebulaclient.StoreRequest{
+        Content: "Customer prefers email communication over phone calls",
+        Metadata: map[string]interface{}{
+            "user_id":         "user_123",
+            "preference_type": "communication",
+        },
+        ClusterID: cluster.ID,
+    })
+
+    // Retrieve the stored memory
+    retrievedMemory, _ := client.Get(ctx, memory.ID)
+    fmt.Printf("Retrieved content: %s\n", retrievedMemory.Content)
+    fmt.Printf("Cluster IDs: %v\n", retrievedMemory.ClusterIDs)
+
+    // List memories from the cluster
+    clusterMemories, _ := client.ListMemories(ctx, &nebulaclient.ListMemoriesRequest{ClusterID: cluster.ID})
+    for _, memory := range clusterMemories {
+        fmt.Printf("Memory: %.100s...\n", memory.Content)
+    }
+
+    // Search within the cluster
+    results, _ := client.Search(ctx, &nebulaclient.SearchRequest{
+        Query:     "communication preferences",
+        ClusterID: cluster.ID,
+        Limit:     5,
+    })
+    for _, result := range results {
+        fmt.Printf("Score: %.3f\n", result.Score)
+        fmt.Printf("Content: %s\n", result.Content)
+        fmt.Println("---")
+    }
+
+    // Clean up
+    client.Delete(ctx, memory.ID)
+    client.DeleteCluster(ctx, cluster.ID)
+}
+```
+
+### Cluster Management Example
+
+```go
+// Create multiple clusters
+researchCluster, _ := client.CreateCluster(ctx, &nebulaclient.CreateClusterRequest{
+    Name:        "Research Notes",
+    Description: "Academic research materials",
+})
+supportCluster, _ := client.CreateCluster(ctx, &nebulaclient.CreateClusterRequest{
+    Name:        "Customer Support",
+    Description: "Customer support interactions",
+})
+
+// Store memories in different clusters
+client.Store(ctx, &nebulaclient.StoreRequest{
+    Content:   "Machine learning algorithms overview",
+    ClusterID: researchCluster.ID,
+    Metadata:  map[string]interface{}{ "topic": "ai", "type": "overview" },
+})
+client.Store(ctx, &nebulaclient.StoreRequest{
+    Content:   "Customer login issue resolved",
+    ClusterID: supportCluster.ID,
+    Metadata:  map[string]interface{}{ "issue_type": "login", "status": "resolved" },
+})
+
+// List all clusters
+clusters, _ := client.ListClusters(ctx, &nebulaclient.ListClustersRequest{})
+for _, cluster := range clusters {
+    fmt.Printf("Cluster: %s\n", cluster.Name)
+    fmt.Printf("ID: %s\n", cluster.ID)
+    fmt.Printf("Documents: %d\n", cluster.DocumentCount)
+    fmt.Println("---")
+}
+
+// Get memories from specific cluster
+memories, _ := client.GetClusterMemories(ctx, &nebulaclient.GetClusterMemoriesRequest{
+    ClusterID: researchCluster.ID,
+    Limit:     50,
+})
+for _, memory := range memories {
+    fmt.Printf("Memory: %.100s...\n", memory.Content)
+    fmt.Printf("Cluster IDs: %v\n", memory.ClusterIDs)
+    fmt.Println("---")
+}
+```
+
+### Search and Filter Example
+
+```go
+// Search with filters
+results, _ := client.Search(ctx, &nebulaclient.SearchRequest{
+    Query:     "machine learning",
+    ClusterID: "research_cluster_id",
+    Limit:     5,
+    Filters: map[string]interface{}{
+        "metadata.topic":     "ai",
+        "metadata.importance": "high",
+    },
+})
+for _, result := range results {
+    fmt.Printf("Score: %.3f\n", result.Score)
+    fmt.Printf("Content: %s\n", result.Content)
+    fmt.Printf("Document ID: %s\n", result.DocumentID)
+    fmt.Println("---")
+}
+
+// Search within a specific cluster
+clusterResults, _ := client.Search(ctx, &nebulaclient.SearchRequest{
+    Query:         "login issues",
+    ClusterID:     "support_cluster_id",
+    RetrievalType: "reasoning",
+})
+for _, result := range clusterResults {
+    fmt.Printf("Cluster Result: %s\n", result.Content)
+}
+```
+
+### Memory Management Example
+
+```go
+// Store multiple memories
+var memories []*nebulaclient.Memory
+for i := 0; i < 3; i++ {
+    memory, _ := client.Store(ctx, &nebulaclient.StoreRequest{
+        Content:   fmt.Sprintf("Test memory %d about Go programming", i+1),
+        ClusterID: "test_cluster_id",
+        Metadata:  map[string]interface{}{ "test": true, "index": i },
+    })
+    memories = append(memories, memory)
+}
+
+// List memories from specific cluster
+clusterMemories, _ := client.ListMemories(ctx, &nebulaclient.ListMemoriesRequest{
+    ClusterID: "test_cluster_id",
+    Limit:     50,
+})
+fmt.Printf("Cluster memories: %d\n", len(clusterMemories))
+
+// Get specific memory
+if len(memories) > 0 {
+    specificMemory, _ := client.Get(ctx, memories[0].ID)
+    fmt.Printf("Retrieved memory: %s\n", specificMemory.Content)
+    fmt.Printf("Cluster IDs: %v\n", specificMemory.ClusterIDs)
+}
+
+// Delete memories
+for _, memory := range memories {
+    client.Delete(ctx, memory.ID)
+    fmt.Printf("Deleted memory: %s\n", memory.ID)
+}
+```
+
+## Best Practices
+
+1. **Use Clusters**: Organize memories into clusters for better management
+2. **Rich Metadata**: Include relevant metadata for better search and filtering
+3. **Content Retrieval**: The SDK automatically retrieves content from chunks
+4. **Error Handling**: Always implement proper error handling
+5. **Rate Limiting**: Be mindful of API rate limits
+6. **Deterministic IDs**: The SDK automatically handles deduplication
+7. **Cluster Filtering**: Use cluster filtering for targeted searches
+
+## API Limits
+
+- **Clusters**: Varies by plan
+- **Documents**: Varies by plan
+- **Chunks**: Varies by plan
+- **Rate Limits**: Varies by plan
+- **Request Timeout**: 30 seconds (configurable)
+
+For specific limits, check your Nebula Cloud plan details.
+
+## Version History
+
+### Version 0.0.18 (Current)
+- Fixed `ListMemories` to retrieve content from chunks
+- Fixed `Get` method to handle `results` wrapper
+- Fixed cluster filtering in all methods
+- Improved content retrieval from document chunks
+- All core functionality working correctly
+
+### Version 0.0.17
+- Fixed `Get` method to retrieve content from chunks
+- Fixed `UpdateCluster` to use POST method
+- Fixed `GetCluster` to handle `results` wrapper
+
+### Version 0.0.14
+- Unified `Retrieve` into `Search` method
+- Removed `agent_id` concept
+- Updated to use cluster terminology
+- Fixed cluster filtering with `$overlap` operator
 
 ## Next Steps
 

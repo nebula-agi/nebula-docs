@@ -1,717 +1,561 @@
 ---
 title: 'Node.js Client'
-description: 'Official Node.js client library for the Nebula API'
+description: 'Official Node.js client library for the Nebula Memory API'
 ---
 
 # Node.js Client
 
-The official Node.js client library for the Nebula API provides a TypeScript-first interface for interacting with Nebula's file storage and AI capabilities.
+The official Node.js client library for the Nebula Memory API provides a simple and intuitive interface for storing, retrieving, and searching memories with advanced clustering capabilities.
 
-## Installation
+## Table of Contents
+
+1. [Installation & Setup](#installation--setup)
+2. [Client Initialization](#client-initialization)
+3. [Cluster Management](#cluster-management)
+4. [Memory Storage](#memory-storage)
+5. [Memory Retrieval](#memory-retrieval)
+6. [Search Operations](#search-operations)
+7. [Memory Management](#memory-management)
+8. [Error Handling](#error-handling)
+9. [Data Models](#data-models)
+10. [Examples](#examples)
+
+## Installation & Setup
+
+### Prerequisites
+
+- Node.js 16+
+- Nebula Cloud API key
+
+### Installation
 
 ```bash
 npm install @oronila/nebula-client
 ```
 
-## Quick Start
+### Environment Setup
+
+```bash
+export NEBULA_API_KEY="your_api_key_here"
+```
+
+## Client Initialization
+
+### Basic Initialization
 
 ```javascript
 const { NebulaClient } = require('@oronila/nebula-client');
 
-// Initialize the client
+// Using environment variable
+const client = new NebulaClient();
+
+// Or with explicit API key
+const client = new NebulaClient({ apiKey: 'your_api_key_here' });
+```
+
+### Advanced Configuration
+
+```javascript
 const client = new NebulaClient({
-  apiKey: 'your-api-key-here'
-});
-
-// Upload a file
-const result = await client.uploadFile({
-  clusterId: 'your-cluster-id',
-  filePath: 'document.pdf'
-});
-
-// List files in a cluster
-const files = await client.listFiles({
-  clusterId: 'your-cluster-id'
-});
-
-// Download a file
-await client.downloadFile({
-  clusterId: 'your-cluster-id',
-  fileId: 'file-id',
-  outputPath: 'downloaded_file.pdf'
+  apiKey: 'your_api_key_here',
+  baseUrl: 'https://api.nebulacloud.app', // Default
+  timeout: 30000 // Default timeout in ms
 });
 ```
 
-## Configuration
-
-### Basic Configuration
+### Async/Await Usage
 
 ```javascript
-const { NebulaClient } = require('@oronila/nebula-client');
-
-// Initialize with API key
-const client = new NebulaClient({
-  apiKey: 'neb_abcdef123456789'
-});
-
-// Initialize with custom base URL (for development/testing)
-const client = new NebulaClient({
-  apiKey: 'your-api-key',
-  baseUrl: 'https://custom-api.nebulacloud.app'
-});
+(async () => {
+  const client = new NebulaClient({ apiKey: 'your_api_key' });
+  // Your operations here
+  const memory = await client.store({ content: 'Hello world', clusterId: 'cluster_123' });
+})();
 ```
 
-### Environment Variables
+## Cluster Management
+
+Clusters help organize memories and provide access control.
+
+### Create Cluster
 
 ```javascript
-const { NebulaClient } = require('@oronila/nebula-client');
-
-// Load from environment variable
-const client = new NebulaClient({
-  apiKey: process.env.NEBULA_API_KEY
+const cluster = await client.createCluster({
+  name: 'research_notes',
+  description: 'Cluster for research-related memories',
+  metadata: { category: 'academic', priority: 'high' }
 });
-
-// Or use dotenv
-require('dotenv').config();
-const client = new NebulaClient({
-  apiKey: process.env.NEBULA_API_KEY
-});
-```
-
-### TypeScript Support
-
-```typescript
-import { NebulaClient, ClientOptions } from '@oronila/nebula-client';
-
-const options: ClientOptions = {
-  apiKey: process.env.NEBULA_API_KEY!,
-  baseUrl: 'https://api.nebulacloud.app'
-};
-
-const client = new NebulaClient(options);
-```
-
-## File Operations
-
-### Upload Files
-
-```javascript
-// Upload a file to the root folder
-const result = await client.uploadFile({
-  clusterId: 'your-cluster-id',
-  filePath: 'document.pdf'
-});
-
-// Upload to a specific folder
-const result = await client.uploadFile({
-  clusterId: 'your-cluster-id',
-  filePath: 'document.pdf',
-  folderId: 'folder-uuid'
-});
-
-// Upload with custom content type
-const result = await client.uploadFile({
-  clusterId: 'your-cluster-id',
-  filePath: 'document.pdf',
-  contentType: 'application/pdf'
-});
-```
-
-### Download Files
-
-```javascript
-// Download to a specific path
-await client.downloadFile({
-  clusterId: 'your-cluster-id',
-  fileId: 'file-uuid',
-  outputPath: 'downloaded_file.pdf'
-});
-
-// Download to a directory (uses original filename)
-await client.downloadFile({
-  clusterId: 'your-cluster-id',
-  fileId: 'file-uuid',
-  outputPath: './downloads/'
-});
-```
-
-### List Files
-
-```javascript
-// List files in root folder
-const files = await client.listFiles({
-  clusterId: 'your-cluster-id'
-});
-
-// List files in a specific folder
-const files = await client.listFiles({
-  clusterId: 'your-cluster-id',
-  folderId: 'folder-uuid'
-});
-```
-
-### Create Folders
-
-```javascript
-// Create folder in root
-const folder = await client.createFolder({
-  clusterId: 'your-cluster-id',
-  folderName: 'New Folder'
-});
-
-// Create folder in a specific parent folder
-const folder = await client.createFolder({
-  clusterId: 'your-cluster-id',
-  folderName: 'Subfolder',
-  parentFolderId: 'parent-folder-uuid'
-});
-```
-
-### Delete Files and Folders
-
-```javascript
-// Delete a single file
-await client.deleteFiles({
-  clusterId: 'your-cluster-id',
-  fileIds: ['file-uuid']
-});
-
-// Delete multiple files/folders
-await client.deleteFiles({
-  clusterId: 'your-cluster-id',
-  fileIds: ['file-uuid-1', 'file-uuid-2', 'folder-uuid']
-});
-```
-
-### Move Files and Folders
-
-```javascript
-// Move files to a different folder
-await client.moveFiles({
-  clusterId: 'your-cluster-id',
-  fileIds: ['file-uuid-1', 'file-uuid-2'],
-  targetFolderId: 'destination-folder-uuid'
-});
-```
-
-### Rename Files and Folders
-
-```javascript
-// Rename a file or folder
-await client.renameFile({
-  clusterId: 'your-cluster-id',
-  fileId: 'file-uuid',
-  newName: 'New File Name.pdf'
-});
-```
-
-## Document Processing
-
-### Extract Entities
-
-```javascript
-// Extract entities from a document
-const entities = await client.documents.extract({
-  id: 'file-uuid'
-});
-
-// The response contains extracted entities and relationships
-console.log(`Extracted ${entities.entities.length} entities`);
-console.log(`Found ${entities.relationships.length} relationships`);
-```
-
-### List Entities
-
-```javascript
-// Get all entities from a document
-const entities = await client.documents.listEntities({
-  id: 'file-uuid'
-});
-
-entities.forEach(entity => {
-  console.log(`Entity: ${entity.name} (${entity.type})`);
-});
-```
-
-### List Relationships
-
-```javascript
-// Get all relationships from a document
-const relationships = await client.documents.listRelationships({
-  id: 'file-uuid'
-});
-
-relationships.forEach(rel => {
-  console.log(`Relationship: ${rel.source} -> ${rel.target} (${rel.type})`);
-});
-```
-
-## Collections
-
-### Create Collections
-
-```javascript
-// Create a new collection
-const collection = await client.collections.create({
-  name: 'Research Papers',
-  description: 'Collection of research documents'
-});
-```
-
-### Add Documents to Collections
-
-```javascript
-// Add a document to a collection
-await client.collections.addDocument({
-  id: 'collection-uuid',
-  documentId: 'file-uuid'
-});
-```
-
-### List Collections
-
-```javascript
-// Get all collections
-const collections = await client.collections.listCollections();
-
-collections.forEach(collection => {
-  console.log(`Collection: ${collection.name}`);
-});
-```
-
-## Conversations
-
-### Create Conversations
-
-```javascript
-// Create a conversation based on a collection
-const conversation = await client.conversations.create({
-  collectionId: 'collection-uuid'
-});
-```
-
-### Send Messages
-
-```javascript
-// Send a message to a conversation
-const response = await client.conversations.chat({
-  id: 'conversation-uuid',
-  message: 'What are the main findings in the research papers?'
-});
-
-console.log(`AI Response: ${response.completion}`);
-```
-
-### List Conversations
-
-```javascript
-// Get all conversations
-const conversations = await client.conversations.retrieve({
-  id: 'collection-uuid'
-});
-
-conversations.forEach(conv => {
-  console.log(`Conversation: ${conv.id}`);
-});
-```
-
-## Graphs
-
-### List Graphs
-
-```javascript
-// Get all graphs
-const graphs = await client.graphs.list();
-
-graphs.forEach(graph => {
-  console.log(`Graph: ${graph.collectionId}`);
-});
-```
-
-### Get Graph Details
-
-```javascript
-// Get details of a specific graph
-const details = await client.graphs.retrieve({
-  collectionId: 'collection-uuid'
-});
-console.log(`Graph details: ${details}`);
-```
-
-### List Graph Entities
-
-```javascript
-// Get entities in a graph
-const entities = await client.graphs.listEntities({
-  collectionId: 'collection-uuid'
-});
-
-entities.forEach(entity => {
-  console.log(`Entity: ${entity.name}`);
-});
-```
-
-### List Graph Relationships
-
-```javascript
-// Get relationships in a graph
-const relationships = await client.graphs.listRelationships({
-  collectionId: 'collection-uuid'
-});
-
-relationships.forEach(rel => {
-  console.log(`Relationship: ${rel.source} -> ${rel.target}`);
-});
-```
-
-## Retrieval
-
-### RAG (Retrieval-Augmented Generation)
-
-```javascript
-// Perform RAG query
-const ragResponse = await client.retrieval.rag({
-  query: 'What are the main findings?',
-  ragGenerationConfig: {
-    model: 'gpt-4o-mini',
-    temperature: 0.0
-  }
-});
-
-console.log(`Generated answer: ${ragResponse.generatedAnswer}`);
-console.log(`Search results: ${ragResponse.searchResults}`);
-```
-
-## System Operations
-
-### Health Check
-
-```javascript
-// Check API health
-const health = await client.system.health();
-console.log(`API Status: ${health}`);
-```
-
-## Error Handling
-
-### Basic Error Handling
-
-```javascript
-try {
-  const files = await client.listFiles({
-    clusterId: 'your-cluster-id'
-  });
-} catch (error) {
-  console.error('Error:', error);
-}
-```
-
-### Specific Error Handling
-
-```javascript
-try {
-  const files = await client.listFiles({
-    clusterId: 'your-cluster-id'
-  });
-} catch (error) {
-  if (error.response?.status === 401) {
-    console.error('Authentication failed. Check your API key.');
-  } else if (error.response?.status === 403) {
-    console.error('Insufficient permissions.');
-  } else if (error.response?.status === 404) {
-    console.error('Cluster not found.');
-  } else {
-    console.error('Error:', error);
-  }
-}
-```
-
-### Custom Error Handler
-
-```javascript
-class NebulaErrorHandler {
-  static handle(error) {
-    if (error.response) {
-      const { status, data } = error.response;
-      
-      switch (status) {
-        case 401:
-          throw new Error('Authentication failed. Check your API key.');
-        case 403:
-          throw new Error('Insufficient permissions for this operation.');
-        case 404:
-          throw new Error('Resource not found.');
-        case 429:
-          throw new Error('Rate limit exceeded. Please try again later.');
-        case 500:
-          throw new Error('Internal server error. Please try again later.');
-        default:
-          throw new Error(`HTTP ${status}: ${data?.message || 'Unknown error'}`);
-      }
-    } else if (error.request) {
-      throw new Error('Network error. Please check your connection.');
-    } else {
-      throw new Error(`Request error: ${error.message}`);
-    }
-  }
-}
-
-// Usage
-try {
-  const files = await client.listFiles({
-    clusterId: 'your-cluster-id'
-  });
-} catch (error) {
-  NebulaErrorHandler.handle(error);
-}
-```
-
-## Advanced Usage
-
-### Custom Headers
-
-```javascript
-// The client automatically handles authentication headers
-// You can add custom headers if needed
-const axios = require('axios');
-
-const headers = {
-  'Authorization': `ApiKey ${apiKey}`,
-  'Content-Type': 'application/json',
-  'X-Custom-Header': 'custom-value'
-};
-
-const response = await axios.get(
-  `${client.baseUrl}/clusters/${clusterId}/files/list`,
-  { headers }
-);
-```
-
-### Batch Operations
-
-```javascript
-// Upload multiple files
-const filesToUpload = ['file1.pdf', 'file2.pdf', 'file3.pdf'];
-const uploadedFiles = [];
-
-for (const filePath of filesToUpload) {
-  try {
-    const result = await client.uploadFile({
-      clusterId: 'your-cluster-id',
-      filePath: filePath
-    });
-    uploadedFiles.push(result);
-    console.log(`Uploaded: ${filePath}`);
-  } catch (error) {
-    console.error(`Failed to upload ${filePath}:`, error);
-  }
-}
-
-console.log(`Successfully uploaded ${uploadedFiles.length} files`);
-```
-
-### Promise.all for Parallel Operations
-
-```javascript
-// Upload multiple files in parallel
-const filesToUpload = ['file1.pdf', 'file2.pdf', 'file3.pdf'];
-
-const uploadPromises = filesToUpload.map(filePath =>
-  client.uploadFile({
-    clusterId: 'your-cluster-id',
-    filePath: filePath
-  })
-);
-
-try {
-  const results = await Promise.all(uploadPromises);
-  console.log(`Successfully uploaded ${results.length} files`);
-} catch (error) {
-  console.error('One or more uploads failed:', error);
-}
-```
-
-### Retry Logic
-
-```javascript
-async function retryOperation(operation, maxRetries = 3) {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      return await operation();
-    } catch (error) {
-      if (attempt === maxRetries) {
-        throw error;
-      }
-      
-      // Wait before retrying (exponential backoff)
-      const delay = Math.pow(2, attempt) * 1000;
-      await new Promise(resolve => setTimeout(resolve, delay));
-      
-      console.log(`Retry attempt ${attempt + 1} after ${delay}ms`);
-    }
-  }
-}
-
-// Usage
-const files = await retryOperation(() =>
-  client.listFiles({
-    clusterId: 'your-cluster-id'
-  })
-);
-```
-
-## Complete Example
-
-```javascript
-const { NebulaClient } = require('@oronila/nebula-client');
-
-async function main() {
-  // Initialize client
-  const client = new NebulaClient({
-    apiKey: process.env.NEBULA_API_KEY
-  });
-  
-  const clusterId = 'your-cluster-id';
-  
-  try {
-    // Upload a document
-    console.log('Uploading document...');
-    const result = await client.uploadFile({
-      clusterId: clusterId,
-      filePath: 'research_paper.pdf'
-    });
-    console.log('Uploaded:', result);
-    
-    // Extract entities
-    console.log('Extracting entities...');
-    const entities = await client.documents.extract({
-      id: result.fileId
-    });
-    console.log(`Extracted ${entities.entities.length} entities`);
-    
-    // Create a collection
-    console.log('Creating collection...');
-    const collection = await client.collections.create({
-      name: 'Research Papers',
-      description: 'Collection of research documents'
-    });
-    
-    // Add document to collection
-    await client.collections.addDocument({
-      id: collection.id,
-      documentId: result.fileId
-    });
-    
-    // Create a conversation
-    console.log('Creating conversation...');
-    const conversation = await client.conversations.create({
-      collectionId: collection.id
-    });
-    
-    // Ask questions
-    console.log('Asking questions...');
-    const response = await client.conversations.chat({
-      id: conversation.id,
-      message: 'What are the main findings in this research paper?'
-    });
-    
-    console.log(`AI Response: ${response.completion}`);
-    
-  } catch (error) {
-    console.error('Error:', error);
-  }
-}
-
-main().catch(console.error);
-```
-
-## API Reference
-
-### NebulaClient
-
-The main client class for interacting with the Nebula API.
-
-#### Constructor
-
-```javascript
-new NebulaClient(options: ClientOptions)
 ```
 
 **Parameters:**
-- `options.apiKey` (string): Your Nebula API key
-- `options.baseUrl` (string, optional): Custom API base URL. Defaults to production URL.
+- `name` (string): Cluster name (required)
+- `description` (string, optional): Cluster description
+- `metadata` (object, optional): Additional metadata
 
-#### File Operations
+**Returns:** `Cluster` object with cluster details
 
-- `uploadFile(params)` - Upload a file
-- `downloadFile(params)` - Download a file
-- `listFiles(params)` - List files and folders
-- `createFolder(params)` - Create a folder
-- `deleteFiles(params)` - Delete files/folders
-- `moveFiles(params)` - Move files
-- `renameFile(params)` - Rename a file/folder
+### Get Cluster
 
-#### Document Operations
+```javascript
+const cluster = await client.getCluster('cluster_id_here');
+```
 
-- `documents.extract(params)` - Extract entities from a document
-- `documents.listEntities(params)` - List entities in a document
-- `documents.listRelationships(params)` - List relationships in a document
+**Parameters:**
+- `clusterId` (string): ID of the cluster to retrieve
 
-#### Collection Operations
+**Returns:** `Cluster` object
 
-- `collections.create(params)` - Create a collection
-- `collections.addDocument(params)` - Add document to collection
-- `collections.listCollections()` - List all collections
+### List Clusters
 
-#### Conversation Operations
-
-- `conversations.create(params)` - Create a conversation
-- `conversations.chat(params)` - Send a message
-- `conversations.retrieve(params)` - Get conversations
-
-#### Graph Operations
-
-- `graphs.list()` - List all graphs
-- `graphs.retrieve(params)` - Get graph details
-- `graphs.listEntities(params)` - List graph entities
-- `graphs.listRelationships(params)` - List graph relationships
-
-#### Retrieval Operations
-
-- `retrieval.rag(params)` - Perform RAG query
-
-#### System Operations
-
-- `system.health()` - Check API health
-
-## TypeScript Types
-
-The library includes comprehensive TypeScript definitions:
-
-```typescript
-import {
-  NebulaClient,
-  ClientOptions,
-  UploadFileParams,
-  DownloadFileParams,
-  ListFilesParams,
-  CreateFolderParams,
-  DeleteFilesParams,
-  MoveFilesParams,
-  RenameFileParams,
-  FileMetadata,
-  UploadUrlResponse
-} from '@oronila/nebula-client';
-
-// Use with full type safety
-const client = new NebulaClient({
-  apiKey: process.env.NEBULA_API_KEY!
-});
-
-const files: FileMetadata[] = await client.listFiles({
-  clusterId: 'your-cluster-id'
+```javascript
+const clusters = await client.listClusters({
+  limit: 100, // Default: 100
+  offset: 0   // Default: 0
 });
 ```
+
+**Parameters:**
+- `limit` (number): Maximum number of clusters to return (1-1000)
+- `offset` (number): Number of clusters to skip
+
+**Returns:** Array of `Cluster` objects
+
+### Update Cluster
+
+```javascript
+const updatedCluster = await client.updateCluster({
+  clusterId: 'cluster_id_here',
+  name: 'new_name', // Optional
+  description: 'new_description', // Optional
+  metadata: { updated: true } // Optional
+});
+```
+
+**Parameters:**
+- `clusterId` (string): ID of the cluster to update
+- `name` (string, optional): New name
+- `description` (string, optional): New description
+- `metadata` (object, optional): New metadata
+
+**Returns:** Updated `Cluster` object
+
+**Note:** Update operations may fail if the new name conflicts with existing clusters.
+
+### Delete Cluster
+
+```javascript
+const success = await client.deleteCluster('cluster_id_here');
+```
+
+**Parameters:**
+- `clusterId` (string): ID of the cluster to delete
+
+**Returns:** `true` if successful
+
+## Memory Storage
+
+### Store Individual Memory
+
+```javascript
+const memory = await client.store({
+  content: 'User prefers email communication over phone calls',
+  clusterId: 'user_preferences', // Required
+  metadata: {
+    userId: 'user_123',
+    preferenceType: 'communication',
+    importance: 'high'
+  }
+});
+```
+
+**Parameters:**
+- `content` (string): The memory content to store (required)
+- `clusterId` (string): Cluster to store the memory in (required)
+- `metadata` (object, optional): Additional metadata
+
+**Returns:** `Memory` object
+
+## Memory Retrieval
+
+### Get Specific Memory
+
+```javascript
+const memory = await client.get('memory_id_here');
+```
+
+**Parameters:**
+- `memoryId` (string): ID of the memory to retrieve (required)
+
+**Returns:** `Memory` object with content retrieved from chunks
+
+### List Memories
+
+```javascript
+const memories = await client.listMemories({
+  clusterId: 'cluster_123', // Required
+  limit: 100,      // Default: 100
+  offset: 0        // Default: 0
+});
+```
+
+**Parameters:**
+- `clusterId` (string): Cluster ID to list memories from (required)
+- `limit` (number): Maximum number of memories to return
+- `offset` (number): Number of memories to skip
+
+**Returns:** Array of `Memory` objects with content retrieved from chunks
+
+### Get Cluster Memories
+
+```javascript
+const memories = await client.getClusterMemories({
+  clusterId: 'cluster_id_here',
+  limit: 100,    // Default: 100
+  offset: 0      // Default: 0
+});
+```
+
+**Parameters:**
+- `clusterId` (string): ID of the cluster (required)
+- `limit` (number): Maximum number of memories to return
+- `offset` (number): Number of memories to skip
+
+**Returns:** Array of `Memory` objects
+
+## Search Operations
+
+### General Search
+
+```javascript
+const results = await client.search({
+  query: 'artificial intelligence',
+  clusterId: 'research_cluster',              // Required
+  limit: 10,                                 // Default: 10
+  retrievalType: 'simple',                   // Default: 'simple'
+  filters: { 'metadata.topic': 'ai' }        // Optional
+});
+```
+
+**Parameters:**
+- `query` (string): Search query (required)
+- `clusterId` (string): Cluster to search within (required)
+- `limit` (number): Maximum number of results to return
+- `retrievalType` (string): Type of retrieval ('simple', 'reasoning', 'planning')
+- `filters` (object, optional): Search filters
+
+**Returns:** Array of `SearchResult` objects
+
+### Search Types
+
+The SDK supports different retrieval types:
+
+- **`simple`**: Basic semantic search
+- **`reasoning`**: Enhanced reasoning-based search
+- **`planning`**: Planning-oriented search
+
+## Memory Management
+
+### Delete Memory
+
+```javascript
+const success = await client.delete('memory_id_here');
+```
+
+**Parameters:**
+- `memoryId` (string): ID of the memory to delete (required)
+
+**Returns:** `true` if successful
+
+## Error Handling
+
+### Exception Types
+
+The SDK throws errors as JavaScript `Error` objects, with custom error types for specific cases:
+
+- `NebulaException`              // Base exception
+- `NebulaClientException`        // Client-side errors
+- `NebulaAuthenticationException` // Authentication errors
+- `NebulaRateLimitException`     // Rate limiting errors
+- `NebulaValidationException`    // Validation errors
+
+### Error Handling Example
+
+```javascript
+try {
+  const memory = await client.store({
+    content: 'Test memory',
+    clusterId: 'test_cluster'
+  });
+} catch (error) {
+  if (error instanceof NebulaAuthenticationException) {
+    console.error('Invalid API key');
+  } else if (error instanceof NebulaRateLimitException) {
+    console.error('Rate limit exceeded');
+  } else if (error instanceof NebulaValidationException) {
+    console.error('Validation error:', error.message);
+  } else if (error instanceof NebulaException) {
+    console.error('API error:', error.message);
+  } else {
+    console.error('Unexpected error:', error);
+  }
+}
+```
+
+## Data Models
+
+### Memory Object
+
+```typescript
+interface Memory {
+  id: string;                // Memory/document ID
+  content: string;           // Memory content (retrieved from chunks)
+  metadata: Record<string, any>; // Additional metadata
+  clusterIds: string[];      // Associated clusters
+  createdAt: string;         // Creation timestamp
+  updatedAt: string;         // Last update timestamp
+}
+```
+
+### Cluster Object
+
+```typescript
+interface Cluster {
+  id: string;                // Cluster ID
+  name: string;              // Cluster name
+  description: string;       // Cluster description
+  metadata: Record<string, any>; // Additional metadata
+  userCount: number;         // Number of users
+  documentCount: number;     // Number of documents
+  createdAt: string;         // Creation timestamp
+  updatedAt: string;         // Last update timestamp
+}
+```
+
+### SearchResult Object
+
+```typescript
+interface SearchResult {
+  id: string;                // Result ID
+  content: string;           // Result content
+  score: number;             // Relevance score (0.0-1.0)
+  metadata: Record<string, any>; // Additional metadata
+  documentId: string;        // Source document ID
+}
+```
+
+## Examples
+
+### Complete Workflow Example
+
+```javascript
+const { NebulaClient } = require('@oronila/nebula-client');
+
+(async () => {
+  // Initialize client
+  const client = new NebulaClient({ apiKey: 'your_api_key' });
+
+  // Create a cluster
+  const cluster = await client.createCluster({
+    name: 'customer_support',
+    description: 'Customer support interactions'
+  });
+
+  // Store customer preferences
+  const memory = await client.store({
+    content: 'Customer prefers email communication over phone calls',
+    metadata: {
+      userId: 'user_123',
+      preferenceType: 'communication'
+    },
+    clusterId: cluster.id
+  });
+
+  // Retrieve the stored memory
+  const retrievedMemory = await client.get(memory.id);
+  console.log('Retrieved content:', retrievedMemory.content);
+  console.log('Cluster IDs:', retrievedMemory.clusterIds);
+
+  // List memories from the cluster
+  const clusterMemories = await client.listMemories({ clusterId: cluster.id });
+  for (const memory of clusterMemories) {
+    console.log('Memory:', memory.content.slice(0, 100) + '...');
+  }
+
+  // Search within the cluster
+  const results = await client.search({
+    query: 'communication preferences',
+    clusterId: cluster.id,
+    limit: 5
+  });
+
+  for (const result of results) {
+    console.log('Score:', result.score.toFixed(3));
+    console.log('Content:', result.content);
+    console.log('---');
+  }
+
+  // Clean up
+  await client.delete(memory.id);
+  await client.deleteCluster(cluster.id);
+})();
+```
+
+### Cluster Management Example
+
+```javascript
+// Create multiple clusters
+const researchCluster = await client.createCluster({
+  name: 'Research Notes',
+  description: 'Academic research materials'
+});
+
+const supportCluster = await client.createCluster({
+  name: 'Customer Support',
+  description: 'Customer support interactions'
+});
+
+// Store memories in different clusters
+await client.store({
+  content: 'Machine learning algorithms overview',
+  clusterId: researchCluster.id,
+  metadata: { topic: 'ai', type: 'overview' }
+});
+
+await client.store({
+  content: 'Customer login issue resolved',
+  clusterId: supportCluster.id,
+  metadata: { issueType: 'login', status: 'resolved' }
+});
+
+// List all clusters
+const clusters = await client.listClusters();
+for (const cluster of clusters) {
+  console.log('Cluster:', cluster.name);
+  console.log('ID:', cluster.id);
+  console.log('Documents:', cluster.documentCount);
+  console.log('---');
+}
+
+// Get memories from specific cluster
+const memories = await client.getClusterMemories({
+  clusterId: researchCluster.id,
+  limit: 50
+});
+
+for (const memory of memories) {
+  console.log('Memory:', memory.content.slice(0, 100) + '...');
+  console.log('Cluster IDs:', memory.clusterIds);
+  console.log('---');
+}
+```
+
+### Search and Filter Example
+
+```javascript
+// Search with filters
+const results = await client.search({
+  query: 'machine learning',
+  clusterId: 'research_cluster_id',
+  limit: 5,
+  filters: {
+    'metadata.topic': 'ai',
+    'metadata.importance': 'high'
+  }
+});
+
+for (const result of results) {
+  console.log('Score:', result.score.toFixed(3));
+  console.log('Content:', result.content);
+  console.log('Document ID:', result.documentId);
+  console.log('---');
+}
+
+// Search within a specific cluster
+const clusterResults = await client.search({
+  query: 'login issues',
+  clusterId: 'support_cluster_id',
+  retrievalType: 'reasoning'
+});
+
+for (const result of clusterResults) {
+  console.log('Cluster Result:', result.content);
+}
+```
+
+### Memory Management Example
+
+```javascript
+// Store multiple memories
+const memories = [];
+for (let i = 0; i < 3; i++) {
+  const memory = await client.store({
+    content: `Test memory ${i + 1} about JavaScript programming`,
+    clusterId: 'test_cluster_id',
+    metadata: { test: true, index: i }
+  });
+  memories.push(memory);
+}
+
+// List memories from specific cluster
+const clusterMemories = await client.listMemories({
+  clusterId: 'test_cluster_id',
+  limit: 50
+});
+console.log('Cluster memories:', clusterMemories.length);
+
+// Get specific memory
+if (memories.length > 0) {
+  const specificMemory = await client.get(memories[0].id);
+  console.log('Retrieved memory:', specificMemory.content);
+  console.log('Cluster IDs:', specificMemory.clusterIds);
+}
+
+// Delete memories
+for (const memory of memories) {
+  await client.delete(memory.id);
+  console.log('Deleted memory:', memory.id);
+}
+```
+
+## Best Practices
+
+1. **Use Clusters**: Organize memories into clusters for better management
+2. **Rich Metadata**: Include relevant metadata for better search and filtering
+3. **Content Retrieval**: The SDK automatically retrieves content from chunks
+4. **Error Handling**: Always implement proper error handling
+5. **Rate Limiting**: Be mindful of API rate limits
+6. **Deterministic IDs**: The SDK automatically handles deduplication
+7. **Cluster Filtering**: Use cluster filtering for targeted searches
+
+## API Limits
+
+- **Clusters**: Varies by plan
+- **Documents**: Varies by plan
+- **Chunks**: Varies by plan
+- **Rate Limits**: Varies by plan
+- **Request Timeout**: 30 seconds (configurable)
+
+For specific limits, check your Nebula Cloud plan details.
+
+## Version History
+
+### Version 0.0.18 (Current)
+- Fixed `listMemories` to retrieve content from chunks
+- Fixed `get` method to handle `results` wrapper
+- Fixed cluster filtering in all methods
+- Improved content retrieval from document chunks
+- All core functionality working correctly
+
+### Version 0.0.17
+- Fixed `get` method to retrieve content from chunks
+- Fixed `updateCluster` to use POST method
+- Fixed `getCluster` to handle `results` wrapper
+
+### Version 0.0.14
+- Unified `retrieve` into `search` method
+- Removed `agentId` concept
+- Updated to use cluster terminology
+- Fixed cluster filtering with `$overlap` operator
 
 ## Next Steps
 

@@ -7,11 +7,10 @@
     "light": "#b39ddb",
     "dark": "#512da8"
   },
-  "favicon": 
-  {
-      "dark": "/logo/light.png",
-      "light": "/logo/dark.png"
-   },
+  "favicon": {
+    "dark": "/logo/light.png",
+    "light": "/logo/dark.png"
+  },
   "navigation": {
     "tabs": [
       {
@@ -20,7 +19,7 @@
           {
             "group": "Get Started",
             "pages": [
-              "index",
+              "introduction",
               "quickstart"
             ]
           }
@@ -28,13 +27,7 @@
       }
     ],
     "global": {
-      "anchors": [
-        {
-          "anchor": "Evals",
-          "href": "https://evals.nebulacloud.app",
-          "icon": "newspaper"
-        }
-      ]
+      "anchors": []
     }
   },
   "logo": {
@@ -54,7 +47,5 @@
       "href": "https://nebulacloud.app/dashboard"
     }
   },
-  "footer": {
-    
-  }
+  "footer": {}
 }
