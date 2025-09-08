@@ -170,10 +170,10 @@ curl -X DELETE https://api.nebulacloud.app/api-keys/KEY_ID \
 <Tabs>
   <Tab title="Python">
     ```python
-    from nebula import NebulaClient
+    from nebula import NebulaSDK
     
     # Initialize with API key
-    client = NebulaClient(api_key="neb_abcdef123456789")
+    client = NebulaSDK(api_key="neb_abcdef123456789")
     
     # Test the connection
     try:
@@ -185,10 +185,10 @@ curl -X DELETE https://api.nebulacloud.app/api-keys/KEY_ID \
   </Tab>
   <Tab title="Node.js">
     ```javascript
-    const { NebulaClient } = require('@oronila/nebula-client');
+    const { NebulaSDK } = require('@nebula-ai/sdk');
     
     // Initialize with API key
-    const client = new NebulaClient({
+    const client = new NebulaSDK({
       apiKey: 'neb_abcdef123456789'
     });
     

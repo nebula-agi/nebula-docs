@@ -25,9 +25,9 @@ Nebula's file system is organized into clusters, which act as isolated storage s
 <Tabs>
   <Tab title="Python">
     ```python
-    from nebula import NebulaClient
+    from nebula import NebulaSDK
     
-    client = NebulaClient(api_key="your-api-key")
+    client = NebulaSDK(api_key="your-api-key")
     
     # Upload a file to the root folder
     result = client.upload_file(
@@ -40,9 +40,9 @@ Nebula's file system is organized into clusters, which act as isolated storage s
   </Tab>
   <Tab title="Node.js">
     ```javascript
-    const { NebulaClient } = require('@oronila/nebula-client');
+    const { NebulaSDK } = require('@nebula-ai/sdk');
     
-    const client = new NebulaClient({
+    const client = new NebulaSDK({
       apiKey: 'your-api-key'
     });
     

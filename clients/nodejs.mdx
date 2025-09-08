@@ -25,13 +25,15 @@ The official Node.js client library for the Nebula Memory API provides a simple 
 ### Prerequisites
 
 - Node.js 16+
-- Nebula Cloud API key
+- Nebula API key
 
 ### Installation
 
 ```bash
-npm install @oronila/nebula-client
+npm install @nebula-ai/sdk
 ```
+
+**Current Version**: 0.0.19
 
 ### Environment Setup
 
@@ -44,19 +46,20 @@ export NEBULA_API_KEY="your_api_key_here"
 ### Basic Initialization
 
 ```javascript
-const { NebulaClient } = require('@oronila/nebula-client');
+import { NebulaSDK } from '@nebula-ai/sdk';
+// or
+const { NebulaSDK } = require('@nebula-ai/sdk');
 
-// Using environment variable
-const client = new NebulaClient();
-
-// Or with explicit API key
-const client = new NebulaClient({ apiKey: 'your_api_key_here' });
+// Initialize with API key (required)
+const client = new NebulaSDK({
+  apiKey: 'your_api_key_here'
+});
 ```
 
 ### Advanced Configuration
 
 ```javascript
-const client = new NebulaClient({
+const client = new NebulaSDK({
   apiKey: 'your_api_key_here',
   baseUrl: 'https://api.nebulacloud.app', // Default
   timeout: 30000 // Default timeout in ms
@@ -67,9 +70,12 @@ const client = new NebulaClient({
 
 ```javascript
 (async () => {
-  const client = new NebulaClient({ apiKey: 'your_api_key' });
+  const client = new NebulaSDK({ apiKey: 'your_api_key' });
   // Your operations here
-  const memory = await client.store({ content: 'Hello world', clusterId: 'cluster_123' });
+  const memoryId = await client.storeMemory({ 
+    content: 'Hello world', 
+    cluster_id: 'cluster_123' 
+  });
 })();
 ```
 
@@ -154,56 +160,94 @@ const success = await client.deleteCluster('cluster_id_here');
 
 ## Memory Storage
 
-### Store Individual Memory
+### Store Memory
 
 ```javascript
-const memory = await client.store({
+// Store a regular memory
+const memoryId = await client.storeMemory({
+  cluster_id: 'user_preferences', // Required
   content: 'User prefers email communication over phone calls',
-  clusterId: 'user_preferences', // Required
   metadata: {
     userId: 'user_123',
     preferenceType: 'communication',
     importance: 'high'
   }
 });
+
+// Store a conversation message
+const messageId = await client.storeMemory({
+  cluster_id: 'conversations',
+  content: 'Hello, how can I help you?',
+  role: 'assistant', // For conversation messages
+  parent_id: 'conv_123', // Optional conversation ID
+  metadata: { session: 'user_session' }
+});
 ```
 
 **Parameters:**
+- `cluster_id` (string): Cluster to store the memory in (required)
 - `content` (string): The memory content to store (required)
-- `clusterId` (string): Cluster to store the memory in (required)
+- `role` (string, optional): For conversation messages ('user', 'assistant', etc.)
+- `parent_id` (string, optional): Parent conversation ID
 - `metadata` (object, optional): Additional metadata
 
-**Returns:** `Memory` object
+**Returns:** Document ID as string
+
+### Store Multiple Memories
+
+```javascript
+// Store multiple memories at once
+const memories = [
+  {
+    cluster_id: 'research',
+    content: 'AI research findings',
+    metadata: { topic: 'ai' }
+  },
+  {
+    cluster_id: 'research',
+    content: 'Machine learning insights',
+    metadata: { topic: 'ml' }
+  }
+];
+
+const memoryIds = await client.storeMemories(memories);
+```
+
+**Parameters:**
+- `memories` (array): Array of memory objects
+
+**Returns:** Array of document IDs
 
 ## Memory Retrieval
 
 ### Get Specific Memory
 
 ```javascript
-const memory = await client.get('memory_id_here');
+const memory = await client.getMemory('memory_id_here');
 ```
 
 **Parameters:**
 - `memoryId` (string): ID of the memory to retrieve (required)
 
-**Returns:** `Memory` object with content retrieved from chunks
+**Returns:** `MemoryResponse` object with content retrieved from chunks
 
 ### List Memories
 
 ```javascript
-const memories = await client.listMemories({
-  clusterId: 'cluster_123', // Required
-  limit: 100,      // Default: 100
-  offset: 0        // Default: 0
-});
+// List memories from specific clusters
+const memories = await client.listMemories(
+  ['cluster_123', 'cluster_456'], // Required array of cluster IDs
+  100, // limit (optional, default: 100)
+  0    // offset (optional, default: 0)
+);
 ```
 
 **Parameters:**
-- `clusterId` (string): Cluster ID to list memories from (required)
+- `clusterIds` (array): Array of cluster IDs to retrieve memories from (required)
 - `limit` (number): Maximum number of memories to return
 - `offset` (number): Number of memories to skip
 
-**Returns:** Array of `Memory` objects with content retrieved from chunks
+**Returns:** Array of `MemoryResponse` objects with content retrieved from chunks
 
 ### Get Cluster Memories
 
@@ -273,7 +317,7 @@ const success = await client.delete('memory_id_here');
 The SDK throws errors as JavaScript `Error` objects, with custom error types for specific cases:
 
 - `NebulaException`              // Base exception
-- `NebulaClientException`        // Client-side errors
+- `NebulaSDKException`        // Client-side errors
 - `NebulaAuthenticationException` // Authentication errors
 - `NebulaRateLimitException`     // Rate limiting errors
 - `NebulaValidationException`    // Validation errors
@@ -348,11 +392,11 @@ interface SearchResult {
 ### Complete Workflow Example
 
 ```javascript
-const { NebulaClient } = require('@oronila/nebula-client');
+const { NebulaSDK } = require('@nebula-ai/sdk');
 
 (async () => {
   // Initialize client
-  const client = new NebulaClient({ apiKey: 'your_api_key' });
+  const client = new NebulaSDK({ apiKey: 'your_api_key' });
 
   // Create a cluster
   const cluster = await client.createCluster({
@@ -535,7 +579,7 @@ for (const memory of memories) {
 - **Rate Limits**: Varies by plan
 - **Request Timeout**: 30 seconds (configurable)
 
-For specific limits, check your Nebula Cloud plan details.
+For specific limits, check your Nebula plan details.
 
 ## Version History
 

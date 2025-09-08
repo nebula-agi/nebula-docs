@@ -1,0 +1,340 @@
+---
+title: 'MCP Integration'
+description: 'Model Context Protocol integration for AI assistants and applications'
+---
+
+# MCP Integration
+
+Nebula provides Model Context Protocol (MCP) servers that allow AI assistants like Claude Desktop, Cursor, and VS Code extensions to interact with your Nebula memory clusters directly.
+
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Available Packages](#available-packages)
+3. [Installation](#installation)
+4. [Configuration](#configuration)
+5. [Available Tools](#available-tools)
+6. [Usage Examples](#usage-examples)
+7. [Supported Clients](#supported-clients)
+8. [Troubleshooting](#troubleshooting)
+
+## Overview
+
+The Nebula MCP servers provide a bridge between AI assistants and your Nebula memory clusters, enabling:
+
+- **Memory Storage**: Add documents and conversation messages to clusters
+- **Memory Search**: Search across your memory clusters with natural language queries
+- **Seamless Integration**: Works with popular AI clients through MCP protocol
+
+## Available Packages
+
+### Node.js Package (Recommended)
+- **Package**: `@nebula-ai/mcp-server`
+- **Best for**: Most users, easier installation, better performance
+- **Transport**: stdio + WebSocket support
+- **Requirements**: Node.js 18+
+
+### Python Package
+- **Package**: `nebula-mcp` 
+- **Best for**: Python developers, existing Python environments
+- **Transport**: stdio only
+- **Requirements**: Python 3.9+
+
+## Installation
+
+### Quick Setup (Recommended)
+
+#### For Claude Desktop
+```bash
+# Node.js version
+npx install-mcp "@nebula-ai/mcp-server --stdio" --client claude --env NEBULA_API_KEY=your_api_key
+
+# Python version  
+npx install-mcp "python -m nebula_mcp" --client claude --env NEBULA_API_KEY=your_api_key
+```
+
+#### For Cursor
+```bash
+# Node.js version
+npx install-mcp "@nebula-ai/mcp-server --stdio" --client cursor --env NEBULA_API_KEY=your_api_key
+
+# Python version
+npx install-mcp "python -m nebula_mcp" --client cursor --env NEBULA_API_KEY=your_api_key
+```
+
+#### For VS Code/Cline
+```bash
+# Node.js version
+npx install-mcp "@nebula-ai/mcp-server --stdio" --client cline --env NEBULA_API_KEY=your_api_key
+
+# Python version
+npx install-mcp "python -m nebula_mcp" --client cline --env NEBULA_API_KEY=your_api_key
+```
+
+### Manual Installation
+
+#### Node.js Manual Setup
+
+1. **Add to client configuration**:
+```json
+{
+  "mcpServers": {
+    "nebula": {
+      "command": "npx",
+      "args": ["-y", "@nebula-ai/mcp-server", "--stdio"],
+      "env": {
+        "NEBULA_API_KEY": "your_api_key_here",
+        "NEBULA_API_URL": "https://api.nebulacloud.app"
+      }
+    }
+  }
+}
+```
+
+#### Python Manual Setup
+
+1. **Install package**: `pip install nebula-mcp`
+2. **Add to client configuration**:
+```json
+{
+  "mcpServers": {
+    "nebula": {
+      "command": "python",
+      "args": ["-m", "nebula_mcp"],
+      "env": {
+        "NEBULA_API_KEY": "your_api_key_here",
+        "NEBULA_API_URL": "https://api.nebulacloud.app"
+      }
+    }
+  }
+}
+```
+
+## Configuration
+
+### Environment Variables
+
+- **`NEBULA_API_KEY`** (required): Your Nebula API key
+- **`NEBULA_API_URL`** (optional): Custom API endpoint (defaults to `https://api.nebulacloud.app`)
+
+### Client-Specific Config Files
+
+#### Claude Desktop
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`  
+- **Linux**: `~/.config/claude/claude_desktop_config.json`
+
+#### Cursor
+- **Global**: `~/.cursor/mcp.json`
+- **Project**: `.cursor/mcp.json` in project root
+
+#### VS Code Clients
+- **Cline**: `~/.cline/mcp.json`
+- **Roo**: `~/.roo-cline/mcp.json`  
+- **Windsurf**: `~/.windsurf/mcp.json`
+
+## Available Tools
+
+The MCP servers provide the following tools:
+
+### add_memory
+Add content to a Nebula cluster.
+
+**Parameters:**
+- `cluster_id` (string, required): Target cluster ID
+- `content` (string, required): Content to store
+- `role` (string, optional): For conversation messages ("user", "assistant", etc.)
+- `parent_id` (string, optional): Parent conversation ID
+- Additional metadata can be passed as keyword arguments
+
+**Usage Examples:**
+```
+# Add a document
+add_memory(cluster_id="research", content="Important research findings about AI")
+
+# Add a conversation message
+add_memory(cluster_id="conversations", content="Hello! How can I help you?", role="assistant", session="user123")
+```
+
+### search_memories  
+Search memories within a specific cluster.
+
+**Parameters:**
+- `query` (string, required): Search query
+- `cluster_id` (string, required): Target cluster ID  
+- `limit` (number, optional): Maximum results (default: 10)
+
+**Usage Examples:**
+```
+# Search for research about AI
+search_memories(query="artificial intelligence research", cluster_id="research", limit=5)
+
+# Search conversation history
+search_memories(query="previous discussion about pricing", cluster_id="conversations")
+```
+
+## Usage Examples
+
+### Typical Workflow
+
+1. **Setup**: Install and configure MCP server for your preferred AI client
+2. **Create clusters**: Use the Nebula SDK or web interface to create memory clusters
+3. **Store memories**: Use the `add_memory` tool to store important information
+4. **Search**: Use `search_memories` to find relevant information during conversations
+
+### Example Session
+
+```
+User: Remember that I prefer email communication over phone calls
+AI Assistant: I'll remember that for you.
+
+*Uses add_memory tool*
+add_memory(cluster_id="user_preferences", content="User prefers email communication over phone calls", preference_type="communication")
+
+Memory added successfully! I've stored your communication preference.
+
+---
+
+Later in a different conversation:
+
+User: What's the best way to reach me for updates?
+
+AI Assistant: Let me check your preferences.
+
+*Uses search_memories tool*
+search_memories(query="communication preferences contact method", cluster_id="user_preferences")
+
+Based on your stored preferences, you prefer email communication over phone calls. I'll make sure to use email for any updates or communications.
+```
+
+## Supported Clients
+
+### Claude Desktop
+- **Status**: ✅ Full support
+- **Installation**: One-command setup available
+- **Features**: All MCP tools available in conversation
+
+### Cursor  
+- **Status**: ✅ Full support
+- **Installation**: One-command setup available
+- **Features**: Project-specific and global configuration
+
+### VS Code Extensions
+- **Cline**: ✅ Full support
+- **Roo**: ✅ Full support  
+- **Windsurf**: ✅ Full support
+- **Installation**: One-command setup for each
+
+### Other MCP Clients
+The Nebula MCP servers follow standard MCP protocol and should work with any compliant client.
+
+## Troubleshooting
+
+### Common Issues
+
+#### Tools Not Appearing
+1. **Check API key**: Ensure `NEBULA_API_KEY` is correctly set
+2. **Verify installation**: Confirm the package is installed and accessible
+3. **Restart client**: Restart your AI client after configuration changes
+4. **Check transport**: Use `--stdio` for local clients
+
+#### Connection Errors
+1. **API key validation**: Test your API key with the SDK directly
+2. **Network connectivity**: Ensure you can reach `api.nebulacloud.app`
+3. **Custom endpoints**: Verify `NEBULA_API_URL` if using custom deployment
+
+#### Command Not Found
+1. **Node.js version**: Ensure Node.js 18+ is installed and in PATH
+2. **Python version**: Ensure Python 3.9+ is installed and accessible
+3. **Package installation**: Verify the package was installed correctly
+
+### Testing Your Installation
+
+#### Using MCP Inspector
+```bash
+# Test Node.js version
+npx @modelcontextprotocol/inspector npx @nebula-ai/mcp-server --stdio --api-key your_key
+
+# Test Python version  
+npx @modelcontextprotocol/inspector python -m nebula_mcp
+```
+
+#### Direct Server Test
+```bash
+# Node.js version
+npx @nebula-ai/mcp-server --stdio --api-key your_key
+
+# Python version
+python -m nebula_mcp
+```
+
+### Getting Help
+
+If you continue experiencing issues:
+
+1. **Check the logs**: Most clients provide MCP server logs
+2. **Verify cluster IDs**: Ensure your cluster IDs exist and are accessible
+3. **Test with SDK**: Verify functionality works with the direct SDK
+4. **GitHub Issues**: Report issues at [nebula-ai/nebula](https://github.com/nebula-ai/nebula/issues)
+
+## Advanced Configuration
+
+### Custom API Endpoints
+```json
+{
+  "env": {
+    "NEBULA_API_KEY": "your_key",
+    "NEBULA_API_URL": "https://your-custom-endpoint.com"
+  }
+}
+```
+
+### Multiple Environments
+Use project-specific configurations for different API keys/environments:
+
+```json
+// .cursor/mcp.json (project-specific)
+{
+  "servers": {
+    "nebula-dev": {
+      "command": "npx",
+      "args": ["-y", "@nebula-ai/mcp-server", "--stdio"],
+      "env": {
+        "NEBULA_API_KEY": "dev_api_key",
+        "NEBULA_API_URL": "https://dev-api.nebulacloud.app"
+      }
+    }
+  }
+}
+```
+
+### Performance Tips
+
+1. **Use specific cluster IDs**: Target searches to relevant clusters
+2. **Limit search results**: Use reasonable limits (10-20) for faster responses
+3. **Organize clusters**: Create topic-specific clusters for better organization
+4. **Batch operations**: Use the SDK directly for bulk operations
+
+## Package Comparison
+
+| Feature | Node.js | Python |
+|---------|---------|--------|
+| **Installation** | `npx` (no install needed) | `pip install` required |
+| **Transport** | stdio + WebSocket | stdio only |
+| **Performance** | Faster startup | Slower startup |
+| **Compatibility** | Node.js 18+ | Python 3.9+ |
+| **Tools** | ✅ add_memory, search_memories | ✅ add_memory, search_memories |
+| **One-Command Install** | ✅ | ✅ |
+
+## Next Steps
+
+1. **Choose your package** (Node.js recommended for most users)
+2. **Install for your AI client** using the one-command installation  
+3. **Create memory clusters** using the Nebula SDK or web interface
+4. **Start using the tools** in your AI conversations!
+
+For more information:
+- [Python SDK Documentation](/clients/python)
+- [JavaScript SDK Documentation](/clients/nodejs) 
+- [Nebula API Reference](/api-reference/overview)
+- [GitHub Repository](https://github.com/nebula-ai/nebula)

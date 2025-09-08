@@ -1,11 +1,11 @@
 ---
 title: 'Introduction'
-description: 'Welcome to Nebula API - A comprehensive file storage and retrieval system with AI-powered capabilities'
+description: 'Welcome to Nebula - AI-powered memory management and intelligent search platform'
 ---
 
-# Welcome to Nebula API
+# Welcome to Nebula
 
-Nebula is a powerful file storage and retrieval system that combines traditional file operations with advanced AI capabilities including Retrieval-Augmented Generation (RAG), knowledge graphs, and conversational AI.
+Nebula is an AI-powered memory management platform that enables intelligent storage, retrieval, and search of information through clusters (collections). Build applications with conversational AI, semantic search, and graph-based knowledge discovery.
 
 
 
@@ -13,40 +13,40 @@ Nebula is a powerful file storage and retrieval system that combines traditional
 
 <CardGroup cols={2}>
   <Card
-    title="File Operations"
-    href="/guides/file-operations"
+    title="Memory Management"
+    href="/guides/collections"
   >
-    Upload, download, organize, and manage files with full CRUD operations and folder hierarchies.
+    Store and organize information in clusters with rich metadata and automatic deduplication.
+  </Card>
+  <Card
+    title="Semantic Search"
+    href="/guides/search"
+  >
+    Advanced search capabilities with semantic understanding and relevance scoring.
+  </Card>
+  <Card
+    title="MCP Integration"
+    href="/mcp-integration"
+  >
+    Connect AI assistants like Claude Desktop, Cursor, and VS Code to your memory clusters.
   </Card>
   <Card
     title="API Key Management"
     href="/api-keys"
   >
-    Granular permissions system with cluster-based access control and secure API key management.
+    Secure API key management with granular permissions and cluster-based access control.
   </Card>
   <Card
-    title="Document Processing"
-    href="/guides/collections"
-  >
-    AI-powered document analysis with automatic entity extraction and relationship mapping.
-  </Card>
-  <Card
-    title="Knowledge Graphs"
-    href="/guides/graphs"
-  >
-    Build and query knowledge graphs to discover connections and insights in your data.
-  </Card>
-  <Card
-    title="Conversational AI"
+    title="Conversational Memory"
     href="/guides/conversations"
   >
-    Create intelligent chatbots and conversational interfaces powered by your data.
+    Store and retrieve conversation messages with role-based organization.
   </Card>
   <Card
-    title="RAG Applications"
-    href="/guides/retrieval-augmented-generation"
+    title="Graph Search"
+    href="/guides/graphs"
   >
-    Build retrieval-augmented generation applications with context-aware AI responses.
+    Discover connections and relationships in your data through graph-based search.
   </Card>
 </CardGroup>
 
@@ -55,25 +55,25 @@ Nebula is a powerful file storage and retrieval system that combines traditional
 Nebula is built on a modern, scalable architecture:
 
 <CardGroup cols={3}>
-  <Card title="Storage Layer">
+  <Card title="Memory Layer">
     <ul>
-      <li>AWS S3 for file storage</li>
-      <li>DynamoDB for metadata</li>
-      <li>Supabase for authentication</li>
+      <li>Cluster-based organization</li>
+      <li>Automatic deduplication</li>
+      <li>Rich metadata support</li>
     </ul>
   </Card>
   <Card title="API Layer">
     <ul>
       <li>RESTful API endpoints</li>
-      <li>Multiple client libraries</li>
-      <li>Granular permissions</li>
+      <li>Python & JavaScript SDKs</li>
+      <li>MCP protocol support</li>
     </ul>
   </Card>
   <Card title="AI Layer">
     <ul>
-      <li>Document processing</li>
-      <li>Entity extraction</li>
-      <li>Knowledge graph generation</li>
+      <li>Semantic search</li>
+      <li>Graph-based discovery</li>
+      <li>Conversation management</li>
     </ul>
   </Card>
 </CardGroup>
@@ -86,27 +86,35 @@ Get started with Nebula in just a few steps:
 # Install the Python client
 pip install nebula-client
 
-# Or use Node.js
-npm install @oronila/nebula-client
-
-# Or use Go
-go get github.com/oronila/nebula-client-go
+# Or use JavaScript/TypeScript
+npm install @nebula-ai/sdk
 ```
 
 ```python
-from nebula import NebulaClient
+from nebula_client import NebulaClient
 
 # Initialize client
 client = NebulaClient(api_key="your-api-key")
 
-# Upload a file
-result = client.upload_file(
-    cluster_id="your-cluster-id",
-    file_path="document.pdf"
+# Create a cluster
+cluster = client.create_cluster(
+    name="my_memories",
+    description="Personal memory cluster"
 )
 
-# Process with AI
-entities = client.documents.extract(id=result.file_id)
+# Store a memory
+memory_id = client.store_memory(
+    cluster_id=cluster.id,
+    content="Important information to remember",
+    metadata={"category": "personal"}
+)
+
+# Search memories
+results = client.search(
+    query="important information",
+    cluster_ids=[cluster.id],
+    limit=10
+)
 ```
 
 ## Client Libraries
@@ -115,22 +123,22 @@ Nebula provides official client libraries for multiple programming languages:
 
 <CardGroup cols={3}>
   <Card
-    title="Python"
+    title="Python SDK"
     href="/clients/python"
   >
-    Full-featured Python client with async support
+    Full-featured Python client (v0.0.21) with async support and conversation management
   </Card>
   <Card
-    title="Node.js"
+    title="JavaScript SDK"
     href="/clients/nodejs"
   >
-    TypeScript/JavaScript client with comprehensive types
+    TypeScript/JavaScript SDK (v0.0.19) with comprehensive type definitions
   </Card>
   <Card
-    title="Go"
-    href="/clients/go"
+    title="MCP Integration"
+    href="/mcp-integration"
   >
-    High-performance Go client for server applications
+    Connect AI assistants directly to your memory clusters via Model Context Protocol
   </Card>
 </CardGroup>
 
@@ -143,5 +151,5 @@ Nebula provides official client libraries for multiple programming languages:
 
 ## Support
 
-- **Email**: [Contact support](mailto:support@nebulacloud.app)
+- **Email**: [Contact support](mailto:support@trynebula.ai)
  

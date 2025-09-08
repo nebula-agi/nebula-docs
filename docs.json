@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Nebula Cloud",
+  "name": "Nebula",
   "colors": {
     "primary": "#7c4dff",
     "light": "#b39ddb",

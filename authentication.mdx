@@ -55,27 +55,27 @@ API keys support different permission levels:
 <Tabs>
   <Tab title="Python">
     ```python
-    from nebula import NebulaClient
+    from nebula import NebulaSDK
     
     # Initialize with API key
-    client = NebulaClient(api_key="neb_abcdef123456789")
+    client = NebulaSDK(api_key="neb_abcdef123456789")
     
     # Or use environment variable
     import os
-    client = NebulaClient(api_key=os.getenv("NEBULA_API_KEY"))
+    client = NebulaSDK(api_key=os.getenv("NEBULA_API_KEY"))
     ```
   </Tab>
   <Tab title="Node.js">
     ```javascript
-    const { NebulaClient } = require('@oronila/nebula-client');
+    const { NebulaSDK } = require('@nebula-ai/sdk');
     
     // Initialize with API key
-    const client = new NebulaClient({
+    const client = new NebulaSDK({
       apiKey: 'neb_abcdef123456789'
     });
     
     // Or use environment variable
-    const client = new NebulaClient({
+    const client = new NebulaSDK({
       apiKey: process.env.NEBULA_API_KEY
     });
     ```
@@ -260,7 +260,7 @@ curl -X POST https://api.nebulacloud.app/users/login \
     from dotenv import load_dotenv
     
     load_dotenv()
-    client = NebulaClient(api_key=os.getenv("NEBULA_API_KEY"))
+    client = NebulaSDK(api_key=os.getenv("NEBULA_API_KEY"))
     ```
   </Tab>
   <Tab title="Node.js">
@@ -270,7 +270,7 @@ curl -X POST https://api.nebulacloud.app/users/login \
     
     // In your code
     require('dotenv').config();
-    const client = new NebulaClient({
+    const client = new NebulaSDK({
       apiKey: process.env.NEBULA_API_KEY
     });
     ```

@@ -25,13 +25,15 @@ The official Python client library for the Nebula Memory API provides a simple a
 ### Prerequisites
 
 - Python 3.8+
-- Nebula Cloud API key
+- Nebula API key
 
 ### Installation
 
 ```bash
 pip install nebula-client
 ```
+
+**Current Version**: 0.0.21
 
 ### Environment Setup
 
@@ -155,15 +157,18 @@ success = client.delete_cluster("cluster_id_here")
 ### Store Individual Memory
 
 ```python
-memory = client.store(
-    content="User prefers email communication over phone calls",
+from nebula_client import Memory
+
+memory = Memory(
     cluster_id="user_preferences",  # Required
+    content="User prefers email communication over phone calls",
     metadata={
         "user_id": "user_123",
         "preference_type": "communication",
         "importance": "high"
     }
 )
+memory_id = client.store_memory(memory)
 ```
 
 **Parameters:**
@@ -178,7 +183,7 @@ memory = client.store(
 ### Get Specific Memory
 
 ```python
-memory = client.get("memory_id_here")
+memory = client.get_memory("memory_id_here")
 ```
 
 **Parameters:**
@@ -353,30 +358,32 @@ cluster = client.create_cluster(
     description="Customer support interactions"
 )
 
-# Store customer preferences
-memory = client.store(
-    content="Customer prefers email communication over phone calls",
-    metadata={
-        "user_id": "user_123",
-        "preference_type": "communication"
-    },
-    cluster_id=cluster.id
-)
+    # Store customer preferences
+    from nebula_client import Memory
+    memory = Memory(
+        cluster_id=cluster.id,
+        content="Customer prefers email communication over phone calls",
+        metadata={
+            "user_id": "user_123",
+            "preference_type": "communication"
+        }
+    )
+    memory_id = client.store_memory(memory)
 
 # Retrieve the stored memory
-retrieved_memory = client.get(memory.id)
+retrieved_memory = client.get_memory(memory_id)
 print(f"Retrieved content: {retrieved_memory.content}")
 print(f"Cluster IDs: {retrieved_memory.cluster_ids}")
 
 # List memories from the cluster
-cluster_memories = client.list_memories(cluster_id=cluster.id)
+cluster_memories = client.list_memories(cluster_ids=[cluster.id])
 for memory in cluster_memories:
     print(f"Memory: {memory.content[:100]}...")
 
 # Search within the cluster
 results = client.search(
     query="communication preferences",
-    cluster_id=cluster.id,
+    cluster_ids=[cluster.id],
     limit=5
 )
 
@@ -386,7 +393,7 @@ for result in results:
     print("---")
 
 # Clean up
-client.delete(memory.id)
+client.delete(memory_id)
 client.delete_cluster(cluster.id)
 ```
 
@@ -405,17 +412,20 @@ support_cluster = client.create_cluster(
 )
 
 # Store memories in different clusters
-client.store(
-    content="Machine learning algorithms overview",
+from nebula_client import Memory
+memory = Memory(
     cluster_id=research_cluster.id,
+    content="Machine learning algorithms overview",
     metadata={"topic": "ai", "type": "overview"}
 )
+client.store_memory(memory)
 
-client.store(
-    content="Customer login issue resolved",
+memory2 = Memory(
     cluster_id=support_cluster.id,
+    content="Customer login issue resolved",
     metadata={"issue_type": "login", "status": "resolved"}
 )
+client.store_memory(memory2)
 
 # List all clusters
 clusters = client.list_clusters()
@@ -426,8 +436,8 @@ for cluster in clusters:
     print("---")
 
 # Get memories from specific cluster
-memories = client.get_cluster_memories(
-    cluster_id=research_cluster.id,
+memories = client.list_memories(
+    cluster_ids=[research_cluster.id],
     limit=50
 )
 
@@ -443,7 +453,7 @@ for memory in memories:
 # Search with filters
 results = client.search(
     query="machine learning",
-    cluster_id="research_cluster_id",
+    cluster_ids=["research_cluster_id"],
     limit=5,
     filters={
         "metadata.topic": "ai",
@@ -460,7 +470,7 @@ for result in results:
 # Search within a specific cluster
 cluster_results = client.search(
     query="login issues",
-    cluster_id="support_cluster_id",
+    cluster_ids=["support_cluster_id"],
     retrieval_type="reasoning"
 )
 
@@ -472,32 +482,34 @@ for result in cluster_results:
 
 ```python
 # Store multiple memories
+from nebula_client import Memory
 memories = []
 for i in range(3):
-    memory = client.store(
-        content=f"Test memory {i+1} about Python programming",
+    memory = Memory(
         cluster_id="test_cluster_id",
+        content=f"Test memory {i+1} about Python programming",
         metadata={"test": True, "index": i}
     )
-    memories.append(memory)
+    memory_id = client.store_memory(memory)
+    memories.append({"id": memory_id, "content": memory.content})
 
 # List memories from specific cluster
 cluster_memories = client.list_memories(
-    cluster_id="test_cluster_id",
+    cluster_ids=["test_cluster_id"],
     limit=50
 )
 print(f"Cluster memories: {len(cluster_memories)}")
 
 # Get specific memory
 if memories:
-    specific_memory = client.get(memories[0].id)
+    specific_memory = client.get_memory(memories[0]["id"])
     print(f"Retrieved memory: {specific_memory.content}")
     print(f"Cluster IDs: {specific_memory.cluster_ids}")
 
 # Delete memories
 for memory in memories:
-    client.delete(memory.id)
-    print(f"Deleted memory: {memory.id}")
+    client.delete(memory["id"])
+    print(f"Deleted memory: {memory['id']}")
 ```
 
 ## Best Practices
@@ -518,7 +530,7 @@ for memory in memories:
 - **Rate Limits**: Varies by plan
 - **Request Timeout**: 30 seconds (configurable)
 
-For specific limits, check your Nebula Cloud plan details.
+For specific limits, check your Nebula plan details.
 
 ## Version History
 

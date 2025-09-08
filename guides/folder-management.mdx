@@ -42,10 +42,10 @@ ROOT/
 <Tabs>
   <Tab title="Python">
     ```python
-    from nebula import NebulaClient
+    from nebula import NebulaSDK
     import os
     
-    client = NebulaClient(api_key=os.getenv("NEBULA_API_KEY"))
+    client = NebulaSDK(api_key=os.getenv("NEBULA_API_KEY"))
     
     # Create a simple folder
     folder = client.create_folder(
@@ -58,9 +58,9 @@ ROOT/
   </Tab>
   <Tab title="Node.js">
     ```javascript
-    const { NebulaClient } = require('@oronila/nebula-client');
+    const { NebulaSDK } = require('@nebula-ai/sdk');
     
-    const client = new NebulaClient({
+    const client = new NebulaSDK({
       apiKey: process.env.NEBULA_API_KEY
     });
     
