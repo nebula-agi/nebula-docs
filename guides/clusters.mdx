@@ -9,12 +9,23 @@ Organize and manage memory clusters in Nebula for better organization and access
 
 ## What are Clusters?
 
-Clusters are logical groupings of memories that share common characteristics. They help with:
+Clusters are organizational units that allow you to manually separate and organize your memories. Think of them as folders or containers where you can group related memories together, keeping different types of content isolated and manageable.
 
-- **Organization**: Group related memories together
-- **Access Control**: Manage permissions at the cluster level  
-- **Search**: Find related memories across your cluster
-- **Processing**: Apply consistent rules to grouped memories
+### Key Benefits
+
+- **Manual Separation**: Put memories in different clusters to keep them organized
+- **Targeted API Calls**: Use specific cluster IDs when storing or searching memories
+- **Better Organization**: Group memories by project, topic, department, or any other logical division
+- **Improved Search**: Search within specific clusters to get more relevant results
+- **Access Control**: Manage permissions at the cluster level
+
+### How It Works
+
+When you create memories, you assign them to specific clusters using the cluster ID. This allows you to:
+
+1. **Store memories in different clusters** for manual organization
+2. **Search within specific clusters** to find relevant information
+3. **Keep different types of content separate** (e.g., work vs personal, different projects)
 
 ## Creating Clusters
 
@@ -48,30 +59,42 @@ clusters = [
 
 ## Managing Memories in Clusters
 
-**Store memories in clusters:**
+**Store memories in specific clusters using cluster IDs:**
 ```python
-# Store individual memory
-memory_id = client.store_memory({
-    "cluster_id": cluster.id,
-    "content": "Research paper about machine learning algorithms",
+# Create different clusters for manual separation
+work_cluster = client.create_cluster("Work", "Work-related memories")
+personal_cluster = client.create_cluster("Personal", "Personal memories")
+
+# Store memories in different clusters using cluster IDs
+work_memory = client.store_memory({
+    "cluster_id": work_cluster.id,  # Send to work cluster
+    "content": "Meeting notes about Q4 planning",
     "metadata": {
-        "title": "Advances in ML",
-        "author": "Dr. Smith",
-        "year": "2024"
+        "type": "meeting_notes",
+        "date": "2024-01-15"
     }
 })
 
-# Store multiple memories
+personal_memory = client.store_memory({
+    "cluster_id": personal_cluster.id,  # Send to personal cluster
+    "content": "Recipe for chocolate chip cookies",
+    "metadata": {
+        "type": "recipe",
+        "cuisine": "dessert"
+    }
+})
+
+# Store multiple memories to different clusters
 memories = [
     {
-        "cluster_id": cluster.id,
-        "content": "Machine learning fundamentals",
-        "metadata": {"topic": "basics"}
+        "cluster_id": work_cluster.id,  # Work cluster
+        "content": "Project deadline is next Friday",
+        "metadata": {"priority": "high", "project": "Q4"}
     },
     {
-        "cluster_id": cluster.id,
-        "content": "Neural network architectures",
-        "metadata": {"topic": "neural_networks"}
+        "cluster_id": personal_cluster.id,  # Personal cluster
+        "content": "Book recommendation: 'The Pragmatic Programmer'",
+        "metadata": {"category": "books", "genre": "technical"}
     }
 ]
 memory_ids = client.store_memories(memories)
@@ -79,19 +102,36 @@ memory_ids = client.store_memories(memories)
 
 ## Searching Clusters
 
-**Search within specific clusters:**
+**Search within specific clusters using cluster IDs:**
 ```python
-# Search in a specific cluster
-results = client.search(
-    query="machine learning algorithms",
-    cluster_ids=[cluster.id],
-    limit=10,
-    filters={"score_threshold": 0.7}
+# Search only in work cluster
+work_results = client.search(
+    query="project deadlines",
+    cluster_ids=[work_cluster.id],  # Only search work memories
+    limit=10
 )
 
-for result in results:
-    title = result.metadata.get('title', 'Unknown')
-    print(f"{title} (score: {result.score:.2f})")
+print(f"Found {len(work_results)} work-related results:")
+for result in work_results:
+    print(f"- {result.content[:50]}...")
+
+# Search only in personal cluster
+personal_results = client.search(
+    query="recipe",
+    cluster_ids=[personal_cluster.id],  # Only search personal memories
+    limit=5
+)
+
+print(f"Found {len(personal_results)} personal results:")
+for result in personal_results:
+    print(f"- {result.content[:50]}...")
+
+# Search across multiple specific clusters
+all_results = client.search(
+    query="important notes",
+    cluster_ids=[work_cluster.id, personal_cluster.id],  # Search both clusters
+    limit=15
+)
 ```
 
 
@@ -124,11 +164,12 @@ updated_cluster = client.update_cluster(
 
 ## Best Practices
 
-- **Logical Grouping**: Group memories by purpose, domain, or project
-- **Consistent Naming**: Use clear, descriptive names for clusters
-- **Metadata Standards**: Establish consistent metadata schemas
-- **Reasonable Sizes**: Keep clusters manageable (100-1000 memories)
-- **Search Scope**: Use specific cluster IDs in searches when possible
+- **Manual Separation**: Create separate clusters for different types of content (work vs personal, different projects, etc.)
+- **Consistent Cluster IDs**: Always use specific cluster IDs when storing and searching memories
+- **Clear Naming**: Use descriptive names that make it obvious what each cluster contains
+- **Purpose-Driven Organization**: Group memories by their intended use or context
+- **Targeted Searches**: Always specify cluster IDs in your API calls to get relevant results
+- **Reasonable Sizes**: Keep clusters focused and manageable (avoid putting everything in one cluster)
 
 ## Advanced Examples
 
@@ -145,6 +186,7 @@ results = client.search(
 **Cluster analytics:**
 ```python
 # Analyze cluster contents
+cluster_id = "your-cluster-id"  # Replace with actual cluster ID
 cluster = client.get_cluster(cluster_id)
 memories = client.list_memories(cluster_ids=[cluster_id], limit=1000)
 

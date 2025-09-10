@@ -113,20 +113,12 @@ memory = client.get_memory("memory_id_here")
 **List memories:**
 ```python
 memories = client.list_memories(
-    cluster_id="cluster_123",  # Required
+    cluster_ids=["cluster_123"],  # Required - list of cluster IDs
     limit=100,      # Default: 100
     offset=0        # Default: 0
 )
 ```
 
-**Get cluster memories:**
-```python
-memories = client.get_cluster_memories(
-    cluster_id="cluster_id_here",
-    limit=100,    # Default: 100
-    offset=0      # Default: 0
-)
-```
 
 ## Search Operations
 
@@ -134,7 +126,7 @@ memories = client.get_cluster_memories(
 ```python
 results = client.search(
     query="artificial intelligence",
-    cluster_id="research_cluster",               # Required
+    cluster_ids=["research_cluster"],            # Required - list of cluster IDs
     limit=10,                                    # Default: 10
     retrieval_type="simple",                     # Default: "simple"
     filters={"metadata.topic": "ai"}             # Optional
@@ -228,7 +220,7 @@ memory_id = client.store_memory({
 })
 
 # Search
-results = client.search("hello", cluster_id=cluster.id)
+results = client.search("hello", cluster_ids=[cluster.id])
 ```
 
 ## Next Steps
