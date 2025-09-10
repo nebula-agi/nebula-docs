@@ -13,31 +13,15 @@ API keys are the primary authentication method for the Nebula API. They provide 
 
 ### Creating API Keys
 
-You can create API keys through the Nebula dashboard or programmatically using the API.
+API keys can be created through the Nebula dashboard.
 
 #### Via Dashboard
 
-1. Log in to your [Nebula dashboard](https://nebulacloud.app)
+1. Log in to your [Nebula dashboard](https://trynebula.ai)
 2. Navigate to **API Keys** section
 3. Click **Create New API Key**
 4. Configure permissions for specific clusters
 5. Copy the generated API key (it's only shown once)
-
-#### Via API
-
-```bash
-curl -X POST https://api.nebulacloud.app/api-keys \
-  -H "Authorization: ApiKey YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "My API Key",
-    "description": "For accessing project files",
-    "clusters": [
-      {"id": "cluster-uuid-1", "permission": "write"},
-      {"id": "cluster-uuid-2", "permission": "read"}
-    ]
-  }'
-```
 
 ### Permission Levels
 
@@ -99,48 +83,6 @@ API keys support different permission levels:
   </Tab>
 </Tabs>
 
-### Managing API Keys
-
-#### List API Keys
-
-```bash
-curl -H "Authorization: ApiKey YOUR_API_KEY" \
-     https://api.nebulacloud.app/api-keys
-```
-
-#### Update API Key
-
-```bash
-curl -X PUT https://api.nebulacloud.app/api-keys/KEY_ID \
-  -H "Authorization: ApiKey YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Updated API Key Name",
-    "description": "Updated description",
-    "active": true
-  }'
-```
-
-#### Update Permissions
-
-```bash
-curl -X PUT https://api.nebulacloud.app/api-keys/KEY_ID/permissions \
-  -H "Authorization: ApiKey YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "clusters": [
-      {"id": "cluster-uuid-1", "permission": "admin"},
-      {"id": "cluster-uuid-2", "permission": "read"}
-    ]
-  }'
-```
-
-#### Delete API Key
-
-```bash
-curl -X DELETE https://api.nebulacloud.app/api-keys/KEY_ID \
-  -H "Authorization: ApiKey YOUR_API_KEY"
-```
 
 
 ## Security Best Practices
@@ -149,9 +91,8 @@ curl -X DELETE https://api.nebulacloud.app/api-keys/KEY_ID \
 
 1. **Keep API keys secret**: Never commit API keys to version control
 2. **Use environment variables**: Store API keys in environment variables
-3. **Rotate regularly**: Periodically rotate your API keys
-4. **Limit permissions**: Use the minimum required permissions for each API key
-5. **Monitor usage**: Regularly check API key usage and revoke unused keys
+3. **Limit permissions**: Use the minimum required permissions for each API key
+4. **Monitor usage**: Regularly check API key usage in the dashboard
 
 ### Environment Variables
 
@@ -199,11 +140,19 @@ curl -X DELETE https://api.nebulacloud.app/api-keys/KEY_ID \
   </Tab>
 </Tabs>
 
+## Quick Test
+
+Verify your key quickly:
+
+```bash
+curl -s -H "Authorization: ApiKey YOUR_API_KEY" \
+  https://api.nebulacloud.app/v3/health
+```
+
 
 ## Next Steps
 
 - [Error Handling](/error-handling) - Learn about NebulaException and error handling patterns
-- [File Operations](/guides/file-operations) - Start working with files
-- [Collections](/guides/collections) - Learn about organizing your data
+- [Memory Operations](/guides/memory-operations) - Start working with memories
 - [Conversations](/guides/conversations) - Work with conversational AI
 - [API Reference](/api-reference/overview) - Explore all available endpoints 

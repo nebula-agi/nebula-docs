@@ -5,11 +5,9 @@ description: 'Learn how to create and manage conversational AI interactions in N
 
 # Conversations Guide
 
-This guide covers how to create and manage conversational AI interactions using Nebula's conversation system.
+Create and manage conversational AI interactions using Nebula's conversation system for context-aware chat experiences.
 
 ## Understanding Conversations
-
-### What are Conversations?
 
 Conversations in Nebula are persistent chat sessions that maintain context and history. They enable:
 
@@ -18,700 +16,97 @@ Conversations in Nebula are persistent chat sessions that maintain context and h
 - **Multi-turn Interactions**: Build complex conversations over multiple exchanges
 - **History Management**: Track and review conversation history
 
-### Purpose of Conversations
-
-**Conversations are primarily designed for storing conversational data so you can retrieve the raw text back.** This is different from the memory retrieval operations addressed in the [Memory Operations](/guides/memory-operations). While both systems handle text data, conversations focus on preserving the chronological flow and context of multi-turn interactions, whereas memory operations are optimized for semantic search and retrieval across stored information.
+**Purpose**: Conversations store conversational data for raw text retrieval, focusing on chronological flow and context, while memory operations are optimized for semantic search across stored information.
 
 
 ## Creating Conversations
 
-### Basic Conversation Creation
+**Basic conversation creation:**
+```python
+from nebula_client import NebulaClient
 
-<Tabs>
-  <Tab title="Python">
-    ```python
-    from nebula_client import NebulaClient
-    import os
+client = NebulaClient(api_key="your-api-key")
 
-    client = NebulaClient(api_key=os.getenv("NEBULA_API_KEY"))
-    
-    # Create a new conversation
-    conversation = client.conversations.create(
-        name="Research Discussion"
-    )
-    print(f"Created conversation: {conversation.name} with ID: {conversation.id}")
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    const { NebulaSDK } = require('@nebula-ai/sdk');
-    
-    const client = new NebulaSDK({
-      apiKey: process.env.NEBULA_API_KEY
-    });
-    
-    // Create a new conversation
-    async function createConversation() {
-      try {
-        const conversation = await client.conversations.create({
-          name: 'Research Discussion'
-        });
-        console.log(`Created conversation: ${conversation.name} with ID: ${conversation.id}`);
-      } catch (error) {
-        console.error('Error creating conversation:', error);
-      }
-    }
-    
-    createConversation();
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-    package main
-    
-    import (
-        "fmt"
-        "log"
-        "os"
-        
-        "github.com/oronila/nebula-client-go/nebulaclient"
-    )
-    
-    func main() {
-        client := nebulaclient.NewClient(os.Getenv("NEBULA_API_KEY"))
-        
-        // Create a new conversation
-        conversation, err := client.Conversations.Create(nebulaclient.CreateConversationRequest{
-            Name: "Research Discussion",
-        })
-        if err != nil {
-            log.Fatalf("Error creating conversation: %v", err)
-        }
-        fmt.Printf("Created conversation: %s with ID: %s\n", conversation.Name, conversation.ID)
-    }
-    ```
-  </Tab>
-</Tabs>
+# Create a new conversation
+conversation = client.conversations.create(
+    name="Research Discussion"
+)
+print(f"Created conversation: {conversation.name} with ID: {conversation.id}")
+```
 
-### Creating Conversations with Context
-
-<Tabs>
-  <Tab title="Python">
-    ```python
-def create_contextual_conversation(client, name, collection_id=None):
-    """Create a conversation with specific context"""
-    conversation = client.conversations.create(
-        name=name
-    )
-        
-        print(f"Created contextual conversation: {conversation.name}")
-        return conversation
-    
-    # Create conversation with collection context
-    conversation = create_contextual_conversation(
-        client,
-        "ML Research Discussion",
-        collection_id="collection-uuid"
-    )
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-async function createContextualConversation(client, name, collectionId = null) {
-  const conversation = await client.conversations.create({
-    name: name
-  });
-
-  console.log(`Created contextual conversation: ${conversation.name}`);
-  return conversation;
-}
-    
-    // Create conversation with collection context
-    createContextualConversation(
-      client,
-      'ML Research Discussion',
-      'collection-uuid'
-    ).then(conversation => {
-      console.log('Conversation created:', conversation.id);
-    });
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-func createContextualConversation(client *nebulaclient.Client, name string, collectionID string) (*nebulaclient.Conversation, error) {
-    conversation, err := client.Conversations.Create(nebulaclient.CreateConversationRequest{
-        Name: name,
-    })
-    if err != nil {
-        return nil, fmt.Errorf("error creating conversation: %v", err)
-    }
-
-    fmt.Printf("Created contextual conversation: %s\n", conversation.Name)
-    return conversation, nil
-}
-    
-    // Create conversation with collection context
-    conversation, err := createContextualConversation(client, "ML Research Discussion", "collection-uuid")
-    if err != nil {
-        log.Fatalf("Error: %v", err)
-    }
-    ```
-  </Tab>
-</Tabs>
+**Create conversation with context:**
+```python
+# Create conversation with specific context
+conversation = client.conversations.create(
+    name="ML Research Discussion"
+)
+print(f"Created contextual conversation: {conversation.name}")
+```
 
 ## Sending Messages
 
-### Basic Message Sending
-
-<Tabs>
-  <Tab title="Python">
-    ```python
-def send_message(client, conversation_id, content, collection_id):
-    """Send a message in a conversation"""
-    try:
-        message = client.conversations.add_message(
-            conversation_id=conversation_id,
-            messages=[{
-                "content": content,
-                "role": "user"
-            }],
-            collection_id=collection_id
-        )
-        print(f"Sent message: {message.content}")
-        return message
-    except Exception as e:
-        print(f"Error sending message: {e}")
-        return None
-
-    # Send a message
-    message = send_message(client, "conversation-uuid", "Hello, how can you help me?", "collection-uuid")
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-async function sendMessage(client, conversationId, content, collectionId) {
-  try {
-    const message = await client.conversations.addMessage({
-      conversationId: conversationId,
-      messages: [{
-        content: content,
-        role: 'user'
-      }],
-      collectionId: collectionId
-    });
-    console.log(`Sent message: ${message.content}`);
-    return message;
-  } catch (error) {
-    console.error('Error sending message:', error);
-    return null;
-  }
-}
-
-    // Send a message
-    sendMessage(client, 'conversation-uuid', 'Hello, how can you help me?', 'collection-uuid')
-      .then(message => {
-        if (message) {
-          console.log('Message sent successfully');
-        }
-      });
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-func sendMessage(client *nebulaclient.Client, conversationID, content, collectionID string) (*nebulaclient.Message, error) {
-    message, err := client.Conversations.AddMessage(nebulaclient.AddMessageRequest{
-        ConversationID: conversationID,
-        Messages: []nebulaclient.MessageData{{
-            Content: content,
-            Role:    "user",
-        }},
-        CollectionID: collectionID,
-    })
-    if err != nil {
-        return nil, fmt.Errorf("error sending message: %v", err)
-    }
-    fmt.Printf("Sent message: %s\n", message.Content)
-    return message, nil
-}
-
-    // Send a message
-    message, err := sendMessage(client, "conversation-uuid", "Hello, how can you help me?", "collection-uuid")
-    if err != nil {
-        log.Fatalf("Error: %v", err)
-    }
-    ```
-  </Tab>
-</Tabs>
+**Send a message in a conversation:**
+```python
+# Send a message
+message = client.conversations.add_message(
+    conversation_id="conversation-uuid",
+    messages=[{
+        "content": "Hello, how can you help me?",
+        "role": "user"
+    }],
+    collection_id="collection-uuid"
+)
+print(f"Sent message: {message.content}")
+```
 
 
 ## Managing Conversation History
 
-### Retrieving Conversation History
+**Get conversation history:**
+```python
+# Get conversation history
+conversation = client.conversations.get("conversation-uuid")
 
-<Tabs>
-  <Tab title="Python">
-    ```python
-def get_conversation_history(client, conversation_id):
-    """Get conversation history"""
-    try:
-        conversation = client.conversations.get(conversation_id)
-
-        print(f"Conversation history ({len(conversation.messages)} messages):")
-        for message in conversation.messages:
-            role = message.role.upper()
-            content = message.content[:100] + "..." if len(message.content) > 100 else message.content
-            print(f"  [{role}]: {content}")
-
-        return conversation
-
-    except Exception as e:
-        print(f"Error getting conversation history: {e}")
-        return None
-
-    # Get conversation history
-    history = get_conversation_history(client, "conversation-uuid")
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-async function getConversationHistory(client, conversationId) {
-  try {
-    const conversation = await client.conversations.get(conversationId);
-
-    console.log(`Conversation history (${conversation.messages.length} messages):`);
-    conversation.messages.forEach(message => {
-      const role = message.role.toUpperCase();
-      const content = message.content.length > 100
-        ? message.content.substring(0, 100) + '...'
-        : message.content;
-      console.log(`  [${role}]: ${content}`);
-    });
-
-    return conversation;
-
-  } catch (error) {
-    console.error('Error getting conversation history:', error);
-    return null;
-  }
-}
-
-    // Get conversation history
-    getConversationHistory(client, 'conversation-uuid')
-      .then(history => {
-        if (history) {
-          console.log('History retrieved successfully');
-        }
-      });
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-func getConversationHistory(client *nebulaclient.Client, conversationID string) (*nebulaclient.ConversationResponse, error) {
-    conversation, err := client.Conversations.Get(conversationID)
-    if err != nil {
-        return nil, fmt.Errorf("error getting conversation: %v", err)
-    }
-
-    fmt.Printf("Conversation history (%d messages):\n", len(conversation.Messages))
-    for _, message := range conversation.Messages {
-        role := strings.ToUpper(message.Role)
-        content := message.Content
-        if len(content) > 100 {
-            content = content[:100] + "..."
-        }
-        fmt.Printf("  [%s]: %s\n", role, content)
-    }
-
-    return conversation, nil
-}
-
-    // Get conversation history
-    conversation, err := getConversationHistory(client, "conversation-uuid")
-    if err != nil {
-        log.Fatalf("Error: %v", err)
-    }
-    ```
-  </Tab>
-</Tabs>
-
-### Exporting Conversation History
-
-<Tabs>
-  <Tab title="Python">
-    ```python
-    def export_conversation(client, conversation_id, format="json"):
-        """Export conversation history in various formats"""
-        try:
-            # Get conversation details
-            conversation = client.conversations.get(conversation_id)
-            history = client.conversations.get_message_history(conversation_id)
-            
-            export_data = {
-                "conversation": {
-                    "id": conversation.id,
-                    "title": conversation.title,
-                    "created_at": conversation.created_at,
-                    "message_count": conversation.message_count
-                },
-                "messages": history['messages']
-            }
-            
-            if format == "json":
-                import json
-                return json.dumps(export_data, indent=2)
-            elif format == "text":
-                text = f"Conversation: {conversation.title}\n"
-                text += f"Created: {conversation.created_at}\n"
-                text += f"Messages: {conversation.message_count}\n\n"
-                
-                for message in history['messages']:
-                    text += f"[{message['role'].upper()}]: {message['content']}\n\n"
-                
-                return text
-            else:
-                raise ValueError(f"Unsupported format: {format}")
-                
-        except Exception as e:
-            print(f"Error exporting conversation: {e}")
-            return None
-    
-    # Export conversation
-    export = export_conversation(client, "conversation-uuid", "json")
-    if export:
-        with open("conversation_export.json", "w") as f:
-            f.write(export)
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    async function exportConversation(client, conversationId, format = 'json') {
-      try {
-        // Get conversation details
-        const conversation = await client.conversations.get(conversationId);
-        const history = await client.conversations.getMessageHistory({ conversationId });
-        
-        const exportData = {
-          conversation: {
-            id: conversation.id,
-            title: conversation.title,
-            createdAt: conversation.createdAt,
-            messageCount: conversation.messageCount
-          },
-          messages: history.messages
-        };
-        
-        if (format === 'json') {
-          return JSON.stringify(exportData, null, 2);
-        } else if (format === 'text') {
-          let text = `Conversation: ${conversation.title}\n`;
-          text += `Created: ${conversation.createdAt}\n`;
-          text += `Messages: ${conversation.messageCount}\n\n`;
-          
-          history.messages.forEach(message => {
-            text += `[${message.role.toUpperCase()}]: ${message.content}\n\n`;
-          });
-          
-          return text;
-        } else {
-          throw new Error(`Unsupported format: ${format}`);
-        }
-        
-      } catch (error) {
-        console.error('Error exporting conversation:', error);
-        return null;
-      }
-    }
-    
-    // Export conversation
-    exportConversation(client, 'conversation-uuid', 'json')
-      .then(export => {
-        if (export) {
-          const fs = require('fs');
-          fs.writeFileSync('conversation_export.json', export);
-          console.log('Conversation exported successfully');
-        }
-      });
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-    func exportConversation(client *nebulaclient.Client, conversationID, format string) (string, error) {
-        // Get conversation details
-        conversation, err := client.Conversations.Get(conversationID)
-        if err != nil {
-            return "", fmt.Errorf("error getting conversation: %v", err)
-        }
-        
-        history, err := client.Conversations.GetMessageHistory(nebulaclient.GetMessageHistoryRequest{
-            ConversationID: conversationID,
-        })
-        if err != nil {
-            return "", fmt.Errorf("error getting message history: %v", err)
-        }
-        
-        if format == "json" {
-            exportData := map[string]interface{}{
-                "conversation": map[string]interface{}{
-                    "id":            conversation.ID,
-                    "title":         conversation.Title,
-                    "created_at":    conversation.CreatedAt,
-                    "message_count": conversation.MessageCount,
-                },
-                "messages": history.Messages,
-            }
-            
-            jsonData, err := json.MarshalIndent(exportData, "", "  ")
-            if err != nil {
-                return "", fmt.Errorf("error marshaling JSON: %v", err)
-            }
-            return string(jsonData), nil
-            
-        } else if format == "text" {
-            text := fmt.Sprintf("Conversation: %s\n", conversation.Title)
-            text += fmt.Sprintf("Created: %s\n", conversation.CreatedAt)
-            text += fmt.Sprintf("Messages: %d\n\n", conversation.MessageCount)
-            
-            for _, message := range history.Messages {
-                text += fmt.Sprintf("[%s]: %s\n\n", strings.ToUpper(message.Role), message.Content)
-            }
-            
-            return text, nil
-            
-        } else {
-            return "", fmt.Errorf("unsupported format: %s", format)
-        }
-    }
-    
-    // Export conversation
-    export, err := exportConversation(client, "conversation-uuid", "json")
-    if err != nil {
-        log.Fatalf("Error: %v", err)
-    }
-    
-    err = os.WriteFile("conversation_export.json", []byte(export), 0644)
-    if err != nil {
-        log.Fatalf("Error writing file: %v", err)
-    }
-    ```
-  </Tab>
-</Tabs>
+print(f"Conversation history ({len(conversation.messages)} messages):")
+for message in conversation.messages:
+    role = message.role.upper()
+    content = message.content[:100] + "..." if len(message.content) > 100 else message.content
+    print(f"  [{role}]: {content}")
+```
 
 ## Conversation Management
 
-### Listing Conversations
+**List conversations:**
+```python
+# List all conversations
+conversations = client.conversations.list_conversations(limit=50)
 
-<Tabs>
-  <Tab title="Python">
-    ```python
-    def list_conversations(client, limit=50):
-        """List all conversations"""
-        try:
-            conversations = client.conversations.list_conversations(
-                limit=limit
-            )
-            
-            print(f"Found {len(conversations['conversations'])} conversations:")
-            for conv in conversations['conversations']:
-                print(f"  - {conv['title']} ({conv['message_count']} messages)")
-                print(f"    Created: {conv['created_at']}")
-                print(f"    ID: {conv['id']}")
-                print()
-            
-            return conversations
-            
-        except Exception as e:
-            print(f"Error listing conversations: {e}")
-            return None
-    
-    # List conversations
-    list_conversations(client)
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    async function listConversations(client, limit = 50) {
-      try {
-        const conversations = await client.conversations.listConversations({
-          limit: limit
-        });
-        
-        console.log(`Found ${conversations.conversations.length} conversations:`);
-        conversations.conversations.forEach(conv => {
-          console.log(`  - ${conv.title} (${conv.messageCount} messages)`);
-          console.log(`    Created: ${conv.createdAt}`);
-          console.log(`    ID: ${conv.id}`);
-          console.log();
-        });
-        
-        return conversations;
-        
-      } catch (error) {
-        console.error('Error listing conversations:', error);
-        return null;
-      }
-    }
-    
-    // List conversations
-    listConversations(client);
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-    func listConversations(client *nebulaclient.Client, limit int) (*nebulaclient.ListConversationsResponse, error) {
-        if limit == 0 {
-            limit = 50
-        }
-        
-        conversations, err := client.Conversations.ListConversations(nebulaclient.ListConversationsRequest{
-            Limit: limit,
-        })
-        if err != nil {
-            return nil, fmt.Errorf("error listing conversations: %v", err)
-        }
-        
-        fmt.Printf("Found %d conversations:\n", len(conversations.Conversations))
-        for _, conv := range conversations.Conversations {
-            fmt.Printf("  - %s (%d messages)\n", conv.Title, conv.MessageCount)
-            fmt.Printf("    Created: %s\n", conv.CreatedAt)
-            fmt.Printf("    ID: %s\n", conv.ID)
-            fmt.Println()
-        }
-        
-        return conversations, nil
-    }
-    
-    // List conversations
-    conversations, err := listConversations(client, 50)
-    if err != nil {
-        log.Fatalf("Error: %v", err)
-    }
-    ```
-  </Tab>
-</Tabs>
+for conv in conversations['conversations']:
+    print(f"{conv['title']} ({conv['message_count']} messages)")
+    print(f"  Created: {conv['created_at']}")
+    print(f"  ID: {conv['id']}")
+```
 
-### Updating Conversation Metadata
-
-<Tabs>
-  <Tab title="Python">
-    ```python
-def update_conversation(client, conversation_id, name):
-    """Update conversation name"""
-    try:
-        result = client.conversations.update(
-            conversation_id=conversation_id,
-            name=name
-        )
-        print(f"Successfully updated conversation: {result.name}")
-        return result
-    except Exception as e:
-        print(f"Error updating conversation: {e}")
-        return None
-
-    # Update conversation
-    update_conversation(client, "conversation-uuid", "Updated Research Discussion")
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-async function updateConversation(client, conversationId, name) {
-  try {
-    const result = await client.conversations.update({
-      conversationId: conversationId,
-      name: name
-    });
-    console.log(`Successfully updated conversation: ${result.name}`);
-    return result;
-  } catch (error) {
-    console.error('Error updating conversation:', error);
-    return null;
-  }
-}
-
-    // Update conversation
-    updateConversation(client, 'conversation-uuid', 'Updated Research Discussion');
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-func updateConversation(client *nebulaclient.Client, conversationID string, name string) (*nebulaclient.Conversation, error) {
-    result, err := client.Conversations.Update(conversationID, name)
-    if err != nil {
-        return nil, fmt.Errorf("error updating conversation: %v", err)
-    }
-    fmt.Printf("Successfully updated conversation: %s\n", result.Name)
-    return result, nil
-}
-
-    // Update conversation
-    result, err := updateConversation(client, "conversation-uuid", "Updated Research Discussion")
-    if err != nil {
-        log.Fatalf("Error: %v", err)
-    }
-    ```
-  </Tab>
-</Tabs>
+**Update conversation:**
+```python
+# Update conversation name
+result = client.conversations.update(
+    conversation_id="conversation-uuid",
+    name="Updated Research Discussion"
+)
+print(f"Updated conversation: {result.name}")
+```
 
 ## Best Practices
 
-### Conversation Organization
-
-1. **Clear Titles**: Use descriptive titles for easy identification
-2. **Metadata Strategy**: Use metadata to categorize conversations
-3. **Context Management**: Include relevant documents and collections
-4. **Regular Cleanup**: Archive or delete old conversations
-
-### Performance Optimization
-
+- **Clear Titles**: Use descriptive titles for easy identification
+- **Metadata Strategy**: Use metadata to categorize conversations
+- **Context Management**: Include relevant documents and collections
 - **Message Limits**: Keep conversations at a reasonable size
-- **Context Window**: Be mindful of AI model context limits
-- **Batch Operations**: Use batch operations for multiple conversations
-- **Caching**: Cache frequently accessed conversation data
+- **Regular Cleanup**: Archive or delete old conversations
 
-### Security Considerations
+## Next Steps
 
-- **Access Control**: Implement proper permissions for conversations
-- **Data Privacy**: Be careful with sensitive information in conversations
-- **Audit Logging**: Track conversation access and modifications
-- **Data Retention**: Implement conversation retention policies
-
-## Common Patterns
-
-### Conversation Templates
-
-Create reusable conversation templates:
-
-```python
-def create_research_conversation(client, topic, collection_id):
-    """Create a standardized research conversation"""
-    return client.conversations.create(
-        title=f"Research Discussion: {topic}",
-        metadata={
-            "topic": "research",
-            "subject": topic,
-            "collection_id": collection_id,
-            "type": "research_discussion"
-        }
-    )
-```
-
-### Conversation Analytics
-
-Monitor conversation usage and performance:
-
-```python
-def get_conversation_stats(client, conversation_id):
-    """Get statistics for a conversation"""
-    conversation = client.conversations.get(conversation_id)
-    history = client.conversations.get_message_history(conversation_id)
-    
-    stats = {
-        "total_messages": len(history['messages']),
-        "user_messages": len([m for m in history['messages'] if m['role'] == 'user']),
-        "assistant_messages": len([m for m in history['messages'] if m['role'] == 'assistant']),
-        "avg_message_length": sum(len(m['content']) for m in history['messages']) / len(history['messages'])
-    }
-    
-    return stats
-```
-
-This guide provides comprehensive coverage of conversation management in Nebula. For more advanced operations, refer to the [API Reference](/api-reference/conversations) for detailed endpoint documentation. 
+- [Memory Operations](/guides/memory-operations) - Store and search memories
+- [Clusters Guide](/guides/clusters) - Organize memories effectively
+- [API Reference](/api-reference/overview) - Complete API reference 

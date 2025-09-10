@@ -5,471 +5,87 @@ description: 'Get started with Nebula API in minutes'
 
 # Quick Start Guide
 
-Get up and running with Nebula API in just a few minutes. This guide will walk you through setting up authentication, installing a client library, and performing your first operations.
+Get up and running with Nebula API in minutes.
 
 ## Prerequisites
 
-- A Nebula account (sign up at [trynebula.ai](https://trynebula.ai))
-- An API key (see [Authentication](/authentication) for details)
-- Basic knowledge of your chosen programming language
+- A Nebula account ([trynebula.ai](https://trynebula.ai))
+- An API key ([Authentication](/authentication) guide)
 
-## Step 1: Install a Client Library
+## 1. Install
 
-Choose your preferred programming language:
+```bash
+# Python
+pip install nebula-client
 
-<Tabs>
-  <Tab title="Python">
-    ```bash
-    pip install nebula-client
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```bash
-    npm install @nebula-ai/sdk
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```bash
-    go get github.com/nebula-ai/nebula-client-go
-    ```
-  </Tab>
-</Tabs>
+# Node.js
+npm install @nebula-ai/sdk
 
-## Step 2: Initialize the Client
+# Go
+go get github.com/nebula-ai/nebula-client-go
+```
 
-<Tabs>
-  <Tab title="Python">
-    ```python
-    from nebula_client import NebulaClient
+## 2. Initialize Client
 
-    # Initialize with your API key
-    client = NebulaClient(api_key="your-api-key-here")
+```python
+from nebula_client import NebulaClient
 
-    # Or use environment variable
-    # export NEBULA_API_KEY=your-api-key-here
-    # client = NebulaClient()
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    const { NebulaSDK } = require('@nebula-ai/sdk');
-    
-    // Initialize with your API key
-    const client = new NebulaSDK({
-      apiKey: 'your-api-key-here'
-    });
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-    import "github.com/nebula-ai/nebula-client-go/nebulaclient"
-    
-    // Initialize with your API key
-    client := nebulaclient.NewClient("your-api-key-here")
-    ```
-  </Tab>
-</Tabs>
+# With API key
+client = NebulaClient(api_key="your-api-key-here")
 
-## Step 3: Test the Connection
+# Or set NEBULA_API_KEY environment variable
+# client = NebulaClient()
+```
 
-<Tabs>
-  <Tab title="Python">
-    ```python
-    # Check API health
-    try:
-        health = client.system.health()
-        print(f"API Status: {health}")
-    except Exception as e:
-        print(f"Connection failed: {e}")
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    // Check API health
-    try {
-        const health = await client.system.health();
-        console.log('API Status:', health);
-    } catch (error) {
-        console.error('Connection failed:', error);
-    }
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-    // Check API health
-    health, err := client.SystemHealth()
-    if err != nil {
-        log.Fatalf("Connection failed: %v", err)
-    }
-    fmt.Printf("API Status: %+v\n", health)
-    ```
-  </Tab>
-</Tabs>
+```javascript
+const { NebulaSDK } = require('@nebula-ai/sdk');
 
-## Step 4: Your First Memory Operation
+const client = new NebulaSDK({
+  apiKey: 'your-api-key-here'
+});
+```
 
-Let's store a memory to get started:
+## 3. Store & Search
 
-<Tabs>
-  <Tab title="Python">
-    ```python
-    # Store a memory
-    try:
-        from nebula_client import Memory
-        memory = Memory(
-            cluster_id="your-cluster-id",
-            content="This is an important piece of information to remember"
-        )
-        result = client.store_memory(memory)
-        print(f"Memory stored: {result}")
-        
-        # List memories in the cluster
-        memories = client.list_memories(cluster_ids=["your-cluster-id"])
-        print(f"Memories in cluster: {len(memories)}")
-        
-    except Exception as e:
-        print(f"Error: {e}")
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    // Store a memory
-    try {
-        const result = await client.storeMemory({
-            cluster_id: 'your-cluster-id',
-            content: 'This is an important piece of information to remember'
-        });
-        console.log('Memory stored:', result);
-        
-        // List memories in the cluster
-        const memories = await client.listMemories(['your-cluster-id']);
-        console.log('Memories in cluster:', memories.length);
-        
-    } catch (error) {
-        console.error('Error:', error);
-    }
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-    // Store a memory
-    result, err := client.StoreMemory("your-cluster-id", "This is an important piece of information to remember")
-    if err != nil {
-        log.Fatalf("Error storing memory: %v", err)
-    }
-    fmt.Printf("Memory stored: %+v\n", result)
-    
-    // List memories in the cluster
-    memories, err := client.ListMemories("your-cluster-id")
-    if err != nil {
-        log.Fatalf("Error listing memories: %v", err)
-    }
-    fmt.Printf("Memories in cluster: %d\n", len(memories))
-    ```
-  </Tab>
-</Tabs>
+```python
+# Create a cluster
+cluster = client.create_cluster("my_notes", "Personal notes")
 
-## Step 5: Search Your Memories
+# Store a memory
+memory_id = client.store_memory({
+    "cluster_id": cluster.id,
+    "content": "Machine learning is transforming healthcare",
+    "metadata": {"topic": "AI", "importance": "high"}
+})
 
-Now let's search through your stored memories:
+# Search memories
+results = client.search(
+    query="machine learning healthcare",
+    cluster_ids=[cluster.id],
+    limit=5
+)
 
-<Tabs>
-  <Tab title="Python">
-    ```python
-    # Search memories
-    try:
-        results = client.search(
-            query="important information",
-            cluster_ids=["your-cluster-id"],
-            limit=5
-        )
-        print(f"Search results: {len(results)} found")
-        
-        for result in results:
-            print(f"Score: {result.score:.3f}")
-            print(f"Content: {result.content[:100]}...")
-            print("---")
-        
-    except Exception as e:
-        print(f"Error: {e}")
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    // Search memories
-    try {
-        const results = await client.search({
-            query: 'important information',
-            clusterIds: ['your-cluster-id'],
-            limit: 5
-        });
-        console.log('Search results:', results.length, 'found');
-        
-        for (const result of results) {
-            console.log('Score:', result.score.toFixed(3));
-            console.log('Content:', result.content.substring(0, 100) + '...');
-            console.log('---');
-        }
-        
-    } catch (error) {
-        console.error('Error:', error);
-    }
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-    // Search memories
-    results, err := client.Search("important information", "your-cluster-id", 5)
-    if err != nil {
-        log.Fatalf("Error searching memories: %v", err)
-    }
-    fmt.Printf("Search results: %d found\n", len(results))
-    
-    for _, result := range results {
-        fmt.Printf("Score: %.3f\n", result.Score)
-        content := result.Content
-        if len(content) > 100 {
-            content = content[:100] + "..."
-        }
-        fmt.Printf("Content: %s\n", content)
-        fmt.Println("---")
-    }
-    ```
-  </Tab>
-</Tabs>
+for result in results:
+    print(f"Score: {result.score:.2f}")
+    print(f"Content: {result.content}")
+```
 
-## Step 6: Store and Search Conversations
+## 4. Test Connection
 
-Let's store conversation messages and search through them:
-
-<Tabs>
-  <Tab title="Python">
-    ```python
-    # Store a conversation message
-    try:
-        from nebula_client import Memory
-        message = Memory(
-            cluster_id="your-cluster-id",
-            content="What can you tell me about the stored information?",
-            role="user"
-        )
-        message_id = client.store_memory(message)
-        print(f"Message stored: {message_id}")
-        
-        # Search for relevant information
-        results = client.search(
-            query="stored information",
-            cluster_ids=["your-cluster-id"],
-            limit=3
-        )
-        print(f"Found {len(results)} relevant memories")
-        
-    except Exception as e:
-        print(f"Error: {e}")
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    // Store a conversation message
-    try {
-        const messageId = await client.storeMemory({
-            cluster_id: 'your-cluster-id',
-            content: 'What can you tell me about the stored information?',
-            role: 'user'
-        });
-        console.log('Message stored:', messageId);
-        
-        // Search for relevant information
-        const results = await client.search({
-            query: 'stored information',
-            clusterIds: ['your-cluster-id'],
-            limit: 3
-        });
-        console.log('Found', results.length, 'relevant memories');
-        
-    } catch (error) {
-        console.error('Error:', error);
-    }
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-    // Store a conversation message
-    messageId, err := client.StoreMemory("your-cluster-id", "What can you tell me about the stored information?")
-    if err != nil {
-        log.Fatalf("Error storing message: %v", err)
-    }
-    fmt.Printf("Message stored: %s\n", messageId)
-    
-    // Search for relevant information
-    results, err := client.Search("stored information", "your-cluster-id", 3)
-    if err != nil {
-        log.Fatalf("Error searching: %v", err)
-    }
-    fmt.Printf("Found %d relevant memories\n", len(results))
-    ```
-  </Tab>
-</Tabs>
-
-## Complete Example
-
-Here's a complete example that demonstrates the full workflow:
-
-<Tabs>
-  <Tab title="Python">
-    ```python
-    from nebula_client import NebulaClient, Memory
-    import os
-    
-    # Initialize client
-    client = NebulaClient(api_key=os.getenv("NEBULA_API_KEY"))
-    
-    # Create a cluster
-    cluster = client.create_cluster(
-        name="Research Papers",
-        description="Collection of research documents"
-    )
-    
-    # Store research information
-    memory = Memory(
-        cluster_id=cluster.id,
-        content="This research paper discusses machine learning algorithms and their applications in healthcare. Key findings include improved diagnostic accuracy and reduced processing time.",
-        metadata={"topic": "machine learning", "domain": "healthcare"}
-    )
-    memory_id = client.store_memory(memory)
-    
-    # Store additional research notes
-    notes = Memory(
-        cluster_id=cluster.id,
-        content="The study involved 1000 patients and showed 95% accuracy in disease detection using the new ML model.",
-        metadata={"study_size": 1000, "accuracy": 0.95}
-    )
-    notes_id = client.store_memory(notes)
-    
-    # Search for information about the research
-    results = client.search(
-        query="machine learning healthcare research findings",
-        cluster_ids=[cluster.id],
-        limit=5
-    )
-    
-    print(f"Found {len(results)} relevant memories:")
-    for result in results:
-        print(f"- {result.content[:100]}... (Score: {result.score:.3f})")
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    const { NebulaSDK } = require('@nebula-ai/sdk');
-    
-    async function main() {
-        // Initialize client
-        const client = new NebulaSDK({
-            apiKey: process.env.NEBULA_API_KEY
-        });
-        
-        // Create a cluster
-        const cluster = await client.createCluster({
-            name: 'Research Papers',
-            description: 'Collection of research documents'
-        });
-        
-        // Store research information
-        const memoryId = await client.storeMemory({
-            cluster_id: cluster.id,
-            content: 'This research paper discusses machine learning algorithms and their applications in healthcare. Key findings include improved diagnostic accuracy and reduced processing time.',
-            metadata: { topic: 'machine learning', domain: 'healthcare' }
-        });
-        
-        // Store additional research notes
-        const notesId = await client.storeMemory({
-            cluster_id: cluster.id,
-            content: 'The study involved 1000 patients and showed 95% accuracy in disease detection using the new ML model.',
-            metadata: { study_size: 1000, accuracy: 0.95 }
-        });
-        
-        // Search for information about the research
-        const results = await client.search({
-            query: 'machine learning healthcare research findings',
-            clusterIds: [cluster.id],
-            limit: 5
-        });
-        
-        console.log(`Found ${results.length} relevant memories:`);
-        for (const result of results) {
-            console.log(`- ${result.content.substring(0, 100)}... (Score: ${result.score.toFixed(3)})`);
-        }
-    }
-    
-    main().catch(console.error);
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-    package main
-    
-    import (
-        "fmt"
-        "log"
-        "os"
-        
-        "github.com/nebula-ai/nebula-client-go/nebulaclient"
-    )
-    
-    func main() {
-        // Initialize client
-        client := nebulaclient.NewClient(os.Getenv("NEBULA_API_KEY"))
-        
-        // Create a cluster
-        cluster, err := client.CreateCluster("Research Papers", "Collection of research documents")
-        if err != nil {
-            log.Fatalf("Error creating cluster: %v", err)
-        }
-        
-        // Store research information
-        memoryId, err := client.StoreMemory(cluster.ID, "This research paper discusses machine learning algorithms and their applications in healthcare. Key findings include improved diagnostic accuracy and reduced processing time.")
-        if err != nil {
-            log.Fatalf("Error storing memory: %v", err)
-        }
-        
-        // Store additional research notes
-        notesId, err := client.StoreMemory(cluster.ID, "The study involved 1000 patients and showed 95% accuracy in disease detection using the new ML model.")
-        if err != nil {
-            log.Fatalf("Error storing notes: %v", err)
-        }
-        
-        // Search for information about the research
-        results, err := client.Search("machine learning healthcare research findings", cluster.ID, 5)
-        if err != nil {
-            log.Fatalf("Error searching: %v", err)
-        }
-        
-        fmt.Printf("Found %d relevant memories:\n", len(results))
-        for _, result := range results {
-            content := result.Content
-            if len(content) > 100 {
-                content = content[:100] + "..."
-            }
-            fmt.Printf("- %s (Score: %.3f)\n", content, result.Score)
-        }
-    }
-    ```
-  </Tab>
-</Tabs>
+```bash
+# Verify your setup
+curl -s -H "Authorization: ApiKey YOUR_API_KEY" \
+  https://api.nebulacloud.app/v3/health
+```
 
 ## Next Steps
 
-Now that you've completed the quick start, explore these resources:
-
-- [Authentication Guide](/authentication) - Learn about API keys and security
-- [Memory Operations](/guides/memory-operations) - Master memory operations
-- [Clusters Guide](/guides/clusters) - Organize your documents
-- [Conversations Guide](/guides/conversations) - Build conversational AI
-- [API Reference](/api-reference/overview) - Explore all available endpoints
+- [Memory Operations Guide](/guides/memory-operations) - Detailed examples and advanced usage
+- [Clusters Guide](/guides/clusters) - Organize your memories effectively
+- [Authentication](/authentication) - API key management and security
+- [API Reference](/api-reference/overview) - Complete endpoint documentation
 
 ## Need Help?
 
-- **Documentation**: Browse our comprehensive guides
-- **Examples**: Check out [practical examples](/guides/memory-operations)
-- **Community**: Join our [Discord server](https://discord.gg/JrqWU45Ccj)
-- **Support**: Email us at [support@trynebula.ai](mailto:support@trynebula.ai) 
+- **Examples**: See detailed examples in [Memory Operations](/guides/memory-operations)
+- **Support**: Email [support@trynebula.ai](mailto:support@trynebula.ai) 

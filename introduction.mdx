@@ -1,121 +1,40 @@
 ---
 title: 'Introduction'
-description: 'Welcome to Nebula - AI-powered memory management and intelligent search platform'
+description: 'Welcome to Nebula — the simplest way to add self-improving memory to your apps.'
 ---
 
 # Welcome to Nebula
 
-Nebula is an AI-powered memory management platform that enables intelligent storage, retrieval, and search of information through clusters (collections). Build applications with conversational AI, semantic search, and graph-based knowledge discovery.
-
+Nebula is an AI-powered memory layer that makes it easy to store, recall, and search information. With just a few lines of code, you can give your applications long-term memory and build more intelligent, context-aware experiences.
 
 
 ## Key Features
 
-<CardGroup cols={2}>
+<CardGroup cols={3}>
   <Card
-    title="Memory Management"
+    title="Memory"
+    href="/guides/memory-operations"
+  >
+    Store, search, and retrieve information with semantic understanding and rich metadata.
+  </Card>
+  <Card
+    title="Clusters"
     href="/guides/clusters"
   >
-    Store and organize information in clusters with rich metadata and automatic deduplication.
+    Organize information in logical collections with automatic deduplication and relationship mapping.
   </Card>
   <Card
-    title="Semantic Search"
-    href="/guides/search"
-  >
-    Advanced search capabilities with semantic understanding and relevance scoring.
-  </Card>
-  <Card
-    title="MCP Integration"
+    title="API & MCP"
     href="/mcp-integration"
   >
-    Connect AI assistants like Claude Desktop, Cursor, and VS Code to your memory clusters.
-  </Card>
-  <Card
-    title="API Key Management"
-    href="/api-keys"
-  >
-    Secure API key management with granular permissions and cluster-based access control.
-  </Card>
-  <Card
-    title="Conversational Memory"
-    href="/guides/conversations"
-  >
-    Store and retrieve conversation messages with role-based organization.
-  </Card>
-  <Card
-    title="Graph Search"
-    href="/guides/graphs"
-  >
-    Discover connections and relationships in your data through graph-based search.
+    RESTful APIs, SDKs, and MCP protocol support for seamless integration with any application.
   </Card>
 </CardGroup>
 
-## Architecture
-
-Nebula is built on a modern, scalable architecture:
-
-<CardGroup cols={3}>
-  <Card title="Memory Layer">
-    <ul>
-      <li>Cluster-based organization</li>
-      <li>Automatic deduplication</li>
-      <li>Rich metadata support</li>
-    </ul>
-  </Card>
-  <Card title="API Layer">
-    <ul>
-      <li>RESTful API endpoints</li>
-      <li>Python & JavaScript SDKs</li>
-      <li>MCP protocol support</li>
-    </ul>
-  </Card>
-  <Card title="AI Layer">
-    <ul>
-      <li>Semantic search</li>
-      <li>Graph-based discovery</li>
-      <li>Conversation management</li>
-    </ul>
-  </Card>
-</CardGroup>
 
 ## Quick Start
 
-Get started with Nebula in just a few steps:
-
-```bash
-# Install the Python client
-pip install nebula-client
-
-# Or use JavaScript/TypeScript
-npm install @nebula-ai/sdk
-```
-
-```python
-from nebula_client import NebulaClient
-
-# Initialize client
-client = NebulaClient(api_key="your-api-key")
-
-# Create a cluster
-cluster = client.create_cluster(
-    name="my_memories",
-    description="Personal memory cluster"
-)
-
-# Store a memory
-memory_id = client.store_memory(
-    cluster_id=cluster.id,
-    content="Important information to remember",
-    metadata={"category": "personal"}
-)
-
-# Search memories
-results = client.search(
-    query="important information",
-    cluster_ids=[cluster.id],
-    limit=10
-)
-```
+Start here: [Quick Start Guide](/quickstart).
 
 ## Client Libraries
 
@@ -146,8 +65,8 @@ Nebula provides official client libraries for multiple programming languages:
 
 - [Quick Start Guide](/quickstart) - Get up and running in minutes
 - [Authentication](/authentication) - Learn about API keys and authentication
-- [API Reference](/api-reference/overview) - Explore all available endpoints
 - [Memory Operations](/guides/memory-operations) - See practical usage examples
+- [Clusters Guide](/guides/clusters) - Learn about organizing your data
 
 ## Support
 

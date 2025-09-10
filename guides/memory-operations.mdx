@@ -5,785 +5,165 @@ description: 'Store and search memories with practical examples'
 
 # Memory Operations
 
-This guide provides practical examples of common memory operations using the Nebula API. These examples demonstrate real-world usage patterns and best practices for storing and searching memories.
+Practical examples for storing and searching memories with the Nebula API.
 
-## Memory Storage Examples
+## Core Operations
 
-### Store a Single Memory
+### Store Memories
 
-<Tabs>
-  <Tab title="Python">
-    ```python
-    from nebula_client import NebulaClient
-    import os
-    
-    # Initialize client
-    client = NebulaClient(api_key=os.getenv("NEBULA_API_KEY"))
-    
-    def store_memory_example():
-        """Store a single memory in a cluster"""
-        try:
-            memory_data = {
-                "cluster_id": "my-research-cluster",
-                "content": "Machine learning is a method of data analysis that automates analytical model building.",
-                "metadata": {
-                    "topic": "AI",
-                    "difficulty": "intermediate",
-                    "tags": ["machine learning", "AI", "data science"]
-                }
-            }
-            
-            memory_id = client.store_memory(memory_data)
-            print(f"✅ Memory stored successfully with ID: {memory_id}")
-            return memory_id
-            
-        except Exception as e:
-            print(f"❌ Error storing memory: {e}")
-            return None
-    
-    # Run the example
-    memory_id = store_memory_example()
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    const { NebulaSDK } = require('@nebula-ai/sdk');
-    
-    // Initialize client
-    const client = new NebulaSDK({
-      apiKey: process.env.NEBULA_API_KEY
-    });
-    
-    async function storeMemoryExample() {
-      try {
-        const memoryData = {
-          cluster_id: 'my-research-cluster',
-          content: 'Machine learning is a method of data analysis that automates analytical model building.',
-          metadata: {
-            topic: 'AI',
-            difficulty: 'intermediate',
-            tags: ['machine learning', 'AI', 'data science']
-          }
-        };
-        
-        const memoryId = await client.storeMemory(memoryData);
-        console.log(`✅ Memory stored successfully with ID: ${memoryId}`);
-        return memoryId;
-        
-      } catch (error) {
-        console.error('❌ Error storing memory:', error);
-        return null;
-      }
+**Single memory:**
+```python
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
+# Store a memory
+memory_id = client.store_memory({
+    "cluster_id": "research-cluster",
+    "content": "Machine learning automates analytical model building",
+    "metadata": {"topic": "AI", "difficulty": "intermediate"}
+})
+```
+
+**Multiple memories:**
+```python
+# Store multiple memories at once
+memories = [
+    {
+        "cluster_id": "research-cluster",
+        "content": "Supervised learning uses labeled training data",
+        "metadata": {"type": "definition", "topic": "ML"}
+    },
+    {
+        "cluster_id": "research-cluster",
+        "content": "Neural networks are inspired by biological systems",
+        "metadata": {"type": "concept", "topic": "AI"}
     }
-    
-    // Run the example
-    storeMemoryExample();
-    ```
-  </Tab>
-</Tabs>
+]
+memory_ids = client.store_memories(memories)
+```
 
-### Store Multiple Memories
+**Conversation messages:**
+```python
+# Store conversation with roles
+conversation_id = client.store_memory({
+    "cluster_id": "support-cluster",
+    "content": "Hello! How can I help you?",
+    "role": "assistant",
+    "metadata": {"session_id": "session_123"}
+})
 
-<Tabs>
-  <Tab title="Python">
-    ```python
-    def store_multiple_memories():
-        """Store multiple memories at once"""
-        try:
-            memories = [
-                {
-                    "cluster_id": "my-research-cluster",
-                    "content": "Supervised learning uses labeled training data to learn patterns.",
-                    "metadata": {"type": "definition", "topic": "ML"}
-                },
-                {
-                    "cluster_id": "my-research-cluster", 
-                    "content": "Unsupervised learning finds hidden patterns in data without labels.",
-                    "metadata": {"type": "definition", "topic": "ML"}
-                },
-                {
-                    "cluster_id": "my-research-cluster",
-                    "content": "Neural networks are computing systems inspired by biological neural networks.",
-                    "metadata": {"type": "concept", "topic": "AI"}
-                }
-            ]
-            
-            memory_ids = client.store_memories(memories)
-            print(f"✅ Stored {len(memory_ids)} memories successfully")
-            print(f"Memory IDs: {memory_ids}")
-            return memory_ids
-            
-        except Exception as e:
-            print(f"❌ Error storing memories: {e}")
-            return []
-    
-    # Run the example
-    memory_ids = store_multiple_memories()
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    async function storeMultipleMemories() {
-      try {
-        const memories = [
-          {
-            cluster_id: 'my-research-cluster',
-            content: 'Supervised learning uses labeled training data to learn patterns.',
-            metadata: { type: 'definition', topic: 'ML' }
-          },
-          {
-            cluster_id: 'my-research-cluster',
-            content: 'Unsupervised learning finds hidden patterns in data without labels.',
-            metadata: { type: 'definition', topic: 'ML' }
-          },
-          {
-            cluster_id: 'my-research-cluster',
-            content: 'Neural networks are computing systems inspired by biological neural networks.',
-            metadata: { type: 'concept', topic: 'AI' }
-          }
-        ];
-        
-        const memoryIds = await client.storeMemories(memories);
-        console.log(`✅ Stored ${memoryIds.length} memories successfully`);
-        console.log(`Memory IDs:`, memoryIds);
-        return memoryIds;
-        
-      } catch (error) {
-        console.error('❌ Error storing memories:', error);
-        return [];
-      }
+# User response
+client.store_memory({
+    "cluster_id": "support-cluster",
+    "content": "I need help with my account",
+    "role": "user",
+    "parent_id": conversation_id
+})
+```
+
+### Search Memories
+
+**Basic search:**
+```python
+# Search for memories
+results = client.search(
+    query="machine learning algorithms",
+    cluster_ids=["research-cluster"],
+    limit=10
+)
+
+for result in results:
+    print(f"Score: {result.score:.3f}")
+    print(f"Content: {result.content[:100]}...")
+    print(f"Metadata: {result.metadata}")
+```
+
+**Search with filters:**
+```python
+# Filter by metadata and score threshold
+results = client.search(
+    query="artificial intelligence",
+    cluster_ids=["research-cluster"],
+    limit=5,
+    filters={
+        "metadata.topic": "AI",
+        "score_threshold": 0.6
     }
-    
-    // Run the example
-    storeMultipleMemories();
-    ```
-  </Tab>
-</Tabs>
+)
+```
 
-### Store Conversation Messages
+### Retrieve & List Memories
 
-<Tabs>
-  <Tab title="Python">
-    ```python
-    def store_conversation():
-        """Store a conversation between user and assistant"""
-        try:
-            # Start a conversation
-            conversation_id = client.store_memory({
-                "cluster_id": "support-cluster",
-                "content": "Hello! How can I help you today?",
-                "role": "assistant",
-                "metadata": {
-                    "session_id": "session_12345",
-                    "conversation_type": "customer_support"
-                }
-            })
-            
-            # User response
-            client.store_memory({
-                "cluster_id": "support-cluster",
-                "content": "I'm having trouble accessing my account settings.",
-                "role": "user",
-                "parent_id": conversation_id,
-                "metadata": {
-                    "session_id": "session_12345",
-                    "conversation_type": "customer_support"
-                }
-            })
-            
-            # Assistant response
-            client.store_memory({
-                "cluster_id": "support-cluster", 
-                "content": "I'd be happy to help you with your account settings. Could you please tell me what specific issue you're experiencing?",
-                "role": "assistant",
-                "parent_id": conversation_id,
-                "metadata": {
-                    "session_id": "session_12345",
-                    "conversation_type": "customer_support"
-                }
-            })
-            
-            print(f"✅ Conversation stored successfully with ID: {conversation_id}")
-            return conversation_id
-            
-        except Exception as e:
-            print(f"❌ Error storing conversation: {e}")
-            return None
-    
-    # Run the example
-    conversation_id = store_conversation()
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    async function storeConversation() {
-      try {
-        // Start a conversation
-        const conversationId = await client.storeMemory({
-          cluster_id: 'support-cluster',
-          content: 'Hello! How can I help you today?',
-          role: 'assistant',
-          metadata: {
-            session_id: 'session_12345',
-            conversation_type: 'customer_support'
-          }
-        });
-        
-        // User response
-        await client.storeMemory({
-          cluster_id: 'support-cluster',
-          content: 'I\'m having trouble accessing my account settings.',
-          role: 'user',
-          parent_id: conversationId,
-          metadata: {
-            session_id: 'session_12345',
-            conversation_type: 'customer_support'
-          }
-        });
-        
-        // Assistant response
-        await client.storeMemory({
-          cluster_id: 'support-cluster',
-          content: 'I\'d be happy to help you with your account settings. Could you please tell me what specific issue you\'re experiencing?',
-          role: 'assistant',
-          parent_id: conversationId,
-          metadata: {
-            session_id: 'session_12345',
-            conversation_type: 'customer_support'
-          }
-        });
-        
-        console.log(`✅ Conversation stored successfully with ID: ${conversationId}`);
-        return conversationId;
-        
-      } catch (error) {
-        console.error('❌ Error storing conversation:', error);
-        return null;
-      }
+**Get specific memory:**
+```python
+# Retrieve a memory by ID
+memory = client.get_memory(memory_id)
+print(f"Content: {memory.content}")
+print(f"Metadata: {memory.metadata}")
+print(f"Created: {memory.created_at}")
+```
+
+**List memories in cluster:**
+```python
+# List memories in a cluster
+memories = client.list_memories(
+    cluster_ids=["research-cluster"],
+    limit=20,
+    offset=0
+)
+
+for memory in memories:
+    print(f"ID: {memory.id}")
+    print(f"Content: {memory.content[:60]}...")
+    print(f"Created: {memory.created_at}")
+```
+
+## Complete Workflow
+
+```python
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
+# 1. Create cluster and store memories
+cluster = client.create_cluster("demo-cluster", "Example cluster")
+memories = [
+    {
+        "cluster_id": cluster.id,
+        "content": "Python is a high-level programming language",
+        "metadata": {"language": "python", "type": "fact"}
+    },
+    {
+        "cluster_id": cluster.id,
+        "content": "JavaScript is used for web development",
+        "metadata": {"language": "javascript", "type": "fact"}
     }
-    
-    // Run the example
-    storeConversation();
-    ```
-  </Tab>
-</Tabs>
+]
+memory_ids = client.store_memories(memories)
 
-## Memory Search Examples
+# 2. Search memories
+results = client.search(
+    query="programming languages",
+    cluster_ids=[cluster.id],
+    limit=5
+)
 
-### Basic Search
-
-<Tabs>
-  <Tab title="Python">
-    ```python
-    def search_memories():
-        """Search for memories in a cluster"""
-        try:
-            query = "machine learning algorithms"
-            cluster_ids = ["my-research-cluster"]
-            
-            results = client.search(
-                query=query,
-                cluster_ids=cluster_ids,
-                limit=10
-            )
-            
-            print(f"🔍 Search results for '{query}':")
-            print(f"Found {len(results)} results")
-            
-            for i, result in enumerate(results, 1):
-                print(f"\n{i}. Score: {result.score:.3f}")
-                print(f"   Content: {result.content[:100]}{'...' if len(result.content) > 100 else ''}")
-                if result.metadata:
-                    print(f"   Metadata: {result.metadata}")
-                    
-            return results
-            
-        except Exception as e:
-            print(f"❌ Error searching memories: {e}")
-            return []
-    
-    # Run the example
-    results = search_memories()
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    async function searchMemories() {
-      try {
-        const query = 'machine learning algorithms';
-        const clusterIds = ['my-research-cluster'];
-        
-        const results = await client.search({
-          query: query,
-          cluster_ids: clusterIds,
-          limit: 10
-        });
-        
-        console.log(`🔍 Search results for '${query}':`);
-        console.log(`Found ${results.length} results`);
-        
-        results.forEach((result, index) => {
-          console.log(`\n${index + 1}. Score: ${result.score.toFixed(3)}`);
-          console.log(`   Content: ${result.content.substring(0, 100)}${result.content.length > 100 ? '...' : ''}`);
-          if (result.metadata) {
-            console.log(`   Metadata:`, result.metadata);
-          }
-        });
-        
-        return results;
-        
-      } catch (error) {
-        console.error('❌ Error searching memories:', error);
-        return [];
-      }
-    }
-    
-    // Run the example
-    searchMemories();
-    ```
-  </Tab>
-</Tabs>
-
-### Search with Filters
-
-<Tabs>
-  <Tab title="Python">
-    ```python
-    def search_with_filters():
-        """Search memories with metadata filters"""
-        try:
-            results = client.search(
-                query="artificial intelligence",
-                cluster_ids=["my-research-cluster"],
-                limit=5,
-                filters={
-                    "metadata.topic": "AI",
-                    "score_threshold": 0.6
-                }
-            )
-            
-            print("🎯 Filtered search results:")
-            for result in results:
-                print(f"Score: {result.score:.3f}")
-                print(f"Topic: {result.metadata.get('topic', 'N/A')}")
-                print(f"Content: {result.content[:80]}...")
-                print("---")
-                
-            return results
-            
-        except Exception as e:
-            print(f"❌ Error in filtered search: {e}")
-            return []
-    
-    # Run the example
-    filtered_results = search_with_filters()
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    async function searchWithFilters() {
-      try {
-        const results = await client.search({
-          query: 'artificial intelligence',
-          cluster_ids: ['my-research-cluster'],
-          limit: 5,
-          filters: {
-            'metadata.topic': 'AI',
-            score_threshold: 0.6
-          }
-        });
-        
-        console.log('🎯 Filtered search results:');
-        results.forEach(result => {
-          console.log(`Score: ${result.score.toFixed(3)}`);
-          console.log(`Topic: ${result.metadata?.topic || 'N/A'}`);
-          console.log(`Content: ${result.content.substring(0, 80)}...`);
-          console.log('---');
-        });
-        
-        return results;
-        
-      } catch (error) {
-        console.error('❌ Error in filtered search:', error);
-        return [];
-      }
-    }
-    
-    // Run the example
-    searchWithFilters();
-    ```
-  </Tab>
-</Tabs>
-
-## Memory Management Examples
-
-### Retrieve Specific Memory
-
-<Tabs>
-  <Tab title="Python">
-    ```python
-    def retrieve_memory(memory_id):
-        """Retrieve a specific memory by ID"""
-        try:
-            memory = client.get_memory(memory_id)
-            
-            print("📖 Retrieved Memory:")
-            print(f"ID: {memory.id}")
-            print(f"Content: {memory.content}")
-            print(f"Cluster IDs: {memory.cluster_ids}")
-            print(f"Created: {memory.created_at}")
-            
-            if memory.metadata:
-                print("Metadata:")
-                for key, value in memory.metadata.items():
-                    print(f"  {key}: {value}")
-                    
-            return memory
-            
-        except Exception as e:
-            print(f"❌ Error retrieving memory: {e}")
-            return None
-    
-    # Run the example (use a memory ID from previous examples)
-    if memory_id:
-        retrieved_memory = retrieve_memory(memory_id)
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    async function retrieveMemory(memoryId) {
-      try {
-        const memory = await client.getMemory(memoryId);
-        
-        console.log('📖 Retrieved Memory:');
-        console.log(`ID: ${memory.id}`);
-        console.log(`Content: ${memory.content}`);
-        console.log(`Cluster IDs: ${memory.cluster_ids}`);
-        console.log(`Created: ${memory.created_at}`);
-        
-        if (memory.metadata) {
-          console.log('Metadata:');
-          Object.entries(memory.metadata).forEach(([key, value]) => {
-            console.log(`  ${key}: ${value}`);
-          });
-        }
-        
-        return memory;
-        
-      } catch (error) {
-        console.error('❌ Error retrieving memory:', error);
-        return null;
-      }
-    }
-    
-    // Run the example (use a memory ID from previous examples)
-    if (memoryId) {
-      retrieveMemory(memoryId);
-    }
-    ```
-  </Tab>
-</Tabs>
-
-### List Memories in Cluster
-
-<Tabs>
-  <Tab title="Python">
-    ```python
-    def list_cluster_memories():
-        """List memories in a cluster"""
-        try:
-            memories = client.list_memories(
-                cluster_ids=["my-research-cluster"],
-                limit=20,
-                offset=0
-            )
-            
-            print(f"📋 Found {len(memories)} memories in cluster:")
-            
-            for i, memory in enumerate(memories, 1):
-                print(f"\n{i}. {memory.content[:60]}{'...' if len(memory.content) > 60 else ''}")
-                print(f"   Created: {memory.created_at}")
-                print(f"   ID: {memory.id}")
-                
-            return memories
-            
-        except Exception as e:
-            print(f"❌ Error listing memories: {e}")
-            return []
-    
-    # Run the example
-    cluster_memories = list_cluster_memories()
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    async function listClusterMemories() {
-      try {
-        const memories = await client.listMemories({
-          cluster_ids: ['my-research-cluster'],
-          limit: 20,
-          offset: 0
-        });
-        
-        console.log(`📋 Found ${memories.length} memories in cluster:`);
-        
-        memories.forEach((memory, index) => {
-          console.log(`\n${index + 1}. ${memory.content.substring(0, 60)}${memory.content.length > 60 ? '...' : ''}`);
-          console.log(`   Created: ${memory.created_at}`);
-          console.log(`   ID: ${memory.id}`);
-        });
-        
-        return memories;
-        
-      } catch (error) {
-        console.error('❌ Error listing memories:', error);
-        return [];
-      }
-    }
-    
-    // Run the example
-    listClusterMemories();
-    ```
-  </Tab>
-</Tabs>
-
-## Advanced Examples
-
-### Complete Workflow
-
-<Tabs>
-  <Tab title="Python">
-    ```python
-    def complete_workflow():
-        """Complete example showing store, search, and retrieve workflow"""
-        try:
-            print("🚀 Starting complete memory workflow...")
-            
-            # 1. Store some memories
-            print("\n📝 Storing memories...")
-            memories = [
-                {
-                    "cluster_id": "demo-cluster",
-                    "content": "Python is a high-level programming language known for its simplicity.",
-                    "metadata": {"language": "python", "type": "fact"}
-                },
-                {
-                    "cluster_id": "demo-cluster",
-                    "content": "JavaScript is a programming language commonly used for web development.",
-                    "metadata": {"language": "javascript", "type": "fact"}
-                },
-                {
-                    "cluster_id": "demo-cluster",
-                    "content": "Both Python and JavaScript support object-oriented programming.",
-                    "metadata": {"topic": "comparison", "type": "fact"}
-                }
-            ]
-            
-            memory_ids = client.store_memories(memories)
-            print(f"✅ Stored {len(memory_ids)} memories")
-            
-            # 2. Search for memories
-            print("\n🔍 Searching for 'programming languages'...")
-            search_results = client.search(
-                query="programming languages",
-                cluster_ids=["demo-cluster"],
-                limit=5
-            )
-            
-            print(f"Found {len(search_results)} results:")
-            for result in search_results:
-                print(f"  • {result.content[:50]}... (score: {result.score:.2f})")
-            
-            # 3. Retrieve specific memory
-            if memory_ids:
-                print(f"\n📖 Retrieving memory {memory_ids[0]}...")
-                memory = client.get_memory(memory_ids[0])
-                print(f"Content: {memory.content}")
-                
-            print("\n✨ Workflow completed successfully!")
-            
-        except Exception as e:
-            print(f"❌ Error in workflow: {e}")
-    
-    # Run the complete example
-    complete_workflow()
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    async function completeWorkflow() {
-      try {
-        console.log('🚀 Starting complete memory workflow...');
-        
-        // 1. Store some memories
-        console.log('\n📝 Storing memories...');
-        const memories = [
-          {
-            cluster_id: 'demo-cluster',
-            content: 'Python is a high-level programming language known for its simplicity.',
-            metadata: { language: 'python', type: 'fact' }
-          },
-          {
-            cluster_id: 'demo-cluster',
-            content: 'JavaScript is a programming language commonly used for web development.',
-            metadata: { language: 'javascript', type: 'fact' }
-          },
-          {
-            cluster_id: 'demo-cluster',
-            content: 'Both Python and JavaScript support object-oriented programming.',
-            metadata: { topic: 'comparison', type: 'fact' }
-          }
-        ];
-        
-        const memoryIds = await client.storeMemories(memories);
-        console.log(`✅ Stored ${memoryIds.length} memories`);
-        
-        // 2. Search for memories
-        console.log('\n🔍 Searching for \'programming languages\'...');
-        const searchResults = await client.search({
-          query: 'programming languages',
-          cluster_ids: ['demo-cluster'],
-          limit: 5
-        });
-        
-        console.log(`Found ${searchResults.length} results:`);
-        searchResults.forEach(result => {
-          console.log(`  • ${result.content.substring(0, 50)}... (score: ${result.score.toFixed(2)})`);
-        });
-        
-        // 3. Retrieve specific memory
-        if (memoryIds.length > 0) {
-          console.log(`\n📖 Retrieving memory ${memoryIds[0]}...`);
-          const memory = await client.getMemory(memoryIds[0]);
-          console.log(`Content: ${memory.content}`);
-        }
-        
-        console.log('\n✨ Workflow completed successfully!');
-        
-      } catch (error) {
-        console.error('❌ Error in workflow:', error);
-      }
-    }
-    
-    // Run the complete example
-    completeWorkflow();
-    ```
-  </Tab>
-</Tabs>
-
-## Error Handling
-
-<Tabs>
-  <Tab title="Python">
-    ```python
-    def robust_memory_operations():
-        """Example with comprehensive error handling"""
-        try:
-            # Store memory with validation
-            memory_data = {
-                "cluster_id": "demo-cluster",
-                "content": "This is a test memory",
-                "metadata": {"test": True}
-            }
-            
-            if not memory_data.get("cluster_id"):
-                raise ValueError("cluster_id is required")
-            
-            if not memory_data.get("content"):
-                raise ValueError("content is required")
-            
-            memory_id = client.store_memory(memory_data)
-            print(f"✅ Memory stored: {memory_id}")
-            
-            # Search with error handling
-            try:
-                results = client.search(
-                    query="test memory",
-                    cluster_ids=["demo-cluster"]
-                )
-                print(f"✅ Search successful: {len(results)} results")
-            except Exception as search_error:
-                print(f"⚠️ Search failed: {search_error}")
-            
-        except ValueError as ve:
-            print(f"❌ Validation error: {ve}")
-        except Exception as e:
-            print(f"❌ Unexpected error: {e}")
-    
-    # Run the robust example
-    robust_memory_operations()
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    async function robustMemoryOperations() {
-      try {
-        // Store memory with validation
-        const memoryData = {
-          cluster_id: 'demo-cluster',
-          content: 'This is a test memory',
-          metadata: { test: true }
-        };
-        
-        if (!memoryData.cluster_id) {
-          throw new Error('cluster_id is required');
-        }
-        
-        if (!memoryData.content) {
-          throw new Error('content is required');
-        }
-        
-        const memoryId = await client.storeMemory(memoryData);
-        console.log(`✅ Memory stored: ${memoryId}`);
-        
-        // Search with error handling
-        try {
-          const results = await client.search({
-            query: 'test memory',
-            cluster_ids: ['demo-cluster']
-          });
-          console.log(`✅ Search successful: ${results.length} results`);
-        } catch (searchError) {
-          console.error('⚠️ Search failed:', searchError.message);
-        }
-        
-      } catch (error) {
-        if (error.message.includes('required')) {
-          console.error('❌ Validation error:', error.message);
-        } else {
-          console.error('❌ Unexpected error:', error.message);
-        }
-      }
-    }
-    
-    // Run the robust example
-    robustMemoryOperations();
-    ```
-  </Tab>
-</Tabs>
+# 3. Retrieve specific memory
+memory = client.get_memory(memory_ids[0])
+print(f"Retrieved: {memory.content}")
+```
 
 ## Best Practices
 
-### Memory Storage
-- **Rich Content**: Store comprehensive, searchable information
-- **Metadata**: Use descriptive metadata for better organization
-- **Batch Operations**: Use `store_memories`/`storeMemories` for multiple items
-- **Validation**: Always validate required fields before storing
-
-### Search Optimization
-- **Natural Language**: Use conversational queries for best results
-- **Filters**: Combine semantic search with metadata filters
-- **Limits**: Set appropriate result limits to manage performance
-- **Clusters**: Search specific clusters when possible
-
-### Error Handling
-- **Try-Catch**: Wrap all operations in try-catch blocks
-- **Validation**: Validate input data before API calls
-- **Logging**: Log errors for debugging
-- **Graceful Degradation**: Handle failures gracefully
+- **Use descriptive metadata** for better organization and filtering
+- **Batch operations** with `store_memories()` for multiple items
+- **Set appropriate limits** in search to manage performance
+- **Use natural language queries** for best search results
+- **Validate required fields** before storing memories
 
 ## Next Steps
 
-- [Clusters Guide](/guides/clusters) - Organize memories into clusters
+- [Clusters Guide](/guides/clusters) - Organize memories effectively
 - [Conversations Guide](/guides/conversations) - Build conversational AI
-- [API Reference](/api-reference/overview) - Complete API reference
+- [API Reference](/api-reference/overview) - Complete endpoint documentation

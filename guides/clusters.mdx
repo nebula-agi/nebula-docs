@@ -5,524 +5,155 @@ description: 'Learn how to organize and manage document clusters in Nebula'
 
 # Clusters Guide
 
-This guide covers how to effectively organize and manage document clusters in Nebula for better document processing and retrieval.
+Organize and manage memory clusters in Nebula for better organization and access control.
 
-## Understanding Clusters
+## What are Clusters?
 
-### What are Clusters?
+Clusters are logical groupings of memories that share common characteristics. They help with:
 
-Clusters are logical groupings of documents that share common characteristics or purposes. They help organize your documents for:
-
-- **Semantic Search**: Find related documents across your cluster
-- **Document Processing**: Apply consistent processing rules
-- **Access Control**: Manage permissions at the cluster level
-
-### Cluster Structure
-
-```
-Clusters/
-├── Research Papers/
-│   ├── Machine Learning (25 docs)
-│   ├── Computer Vision (18 docs)
-│   └── Natural Language Processing (32 docs)
-├── Company Documents/
-│   ├── Policies (12 docs)
-│   ├── Procedures (8 docs)
-│   └── Reports (45 docs)
-└── Project Documentation/
-    ├── Project Alpha (15 docs)
-    └── Project Beta (22 docs)
-```
+- **Organization**: Group related memories together
+- **Access Control**: Manage permissions at the cluster level  
+- **Search**: Find related memories across your cluster
+- **Processing**: Apply consistent rules to grouped memories
 
 ## Creating Clusters
 
-### Basic Cluster Creation
+**Basic cluster creation:**
+```python
+from nebula_client import NebulaClient
 
-<Tabs>
-  <Tab title="Python">
-    ```python
-    from nebula_client import NebulaClient
-    import os
+client = NebulaClient(api_key="your-api-key")
 
-    client = NebulaClient(api_key=os.getenv("NEBULA_API_KEY"))
-
-    # Create a simple cluster
-    cluster = client.create_cluster(
-        name="Research Papers",
-        description="Cluster of academic research papers",
-        metadata={
-            "category": "academic",
-            "language": "en",
-            "domain": "computer_science"
-        }
-    )
-    print(f"Created cluster: {cluster.name} with ID: {cluster.id}")
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    const { NebulaSDK } = require('@nebula-ai/sdk');
-
-    const client = new NebulaSDK({
-      apiKey: process.env.NEBULA_API_KEY
-    });
-
-    // Create a simple cluster
-    async function createCluster() {
-      try {
-        const cluster = await client.createCluster({
-          name: 'Research Papers',
-          description: 'Cluster of academic research papers',
-          metadata: {
-            category: 'academic',
-            language: 'en',
-            domain: 'computer_science'
-          }
-        });
-        console.log(`Created cluster: ${cluster.name} with ID: ${cluster.id}`);
-      } catch (error) {
-        console.error('Error creating cluster:', error);
-      }
+# Create a cluster
+cluster = client.create_cluster(
+    name="Research Papers",
+    description="Academic research documents",
+    metadata={
+        "category": "academic",
+        "domain": "computer_science"
     }
+)
+print(f"Created cluster: {cluster.name} with ID: {cluster.id}")
+```
 
-    createCluster();
-    ```
-  </Tab>
-</Tabs>
+**Multiple clusters:**
+```python
+# Create different types of clusters
+clusters = [
+    client.create_cluster("Research", "Academic papers"),
+    client.create_cluster("Business", "Corporate documents"),
+    client.create_cluster("Projects", "Project documentation")
+]
+```
 
-### Creating Clusters with Templates
+## Managing Memories in Clusters
 
-<Tabs>
-  <Tab title="Python">
-    ```python
-    def create_cluster_template(client, template_name, custom_metadata=None):
-        """Create a cluster using predefined templates"""
-        templates = {
-            "research": {
-                "name": "Research Cluster",
-                "description": "Cluster for research documents and papers",
-                "metadata": {
-                    "category": "research",
-                    "processing": "academic",
-                    "search_enabled": True
-                }
-            },
-            "business": {
-                "name": "Business Documents",
-                "description": "Cluster for business and corporate documents",
-                "metadata": {
-                    "category": "business",
-                    "processing": "corporate",
-                    "search_enabled": True
-                }
-            },
-            "project": {
-                "name": "Project Documentation",
-                "description": "Cluster for project-related documents",
-                "metadata": {
-                    "category": "project",
-                    "processing": "technical",
-                    "search_enabled": True
-                }
-            }
-        }
-
-        if template_name not in templates:
-            raise ValueError(f"Unknown template: {template_name}")
-
-        template = templates[template_name].copy()
-
-        # Merge custom metadata
-        if custom_metadata:
-            template["metadata"].update(custom_metadata)
-
-        return client.create_cluster(**template)
-
-    # Create a research cluster
-    research_cluster = create_cluster_template(
-        client, "research",
-        {"domain": "machine_learning", "year": "2024"}
-    )
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    async function createClusterTemplate(client, templateName, customMetadata = null) {
-      const templates = {
-        research: {
-          name: 'Research Cluster',
-          description: 'Cluster for research documents and papers',
-          metadata: {
-            category: 'research',
-            processing: 'academic',
-            search_enabled: true
-          }
-        },
-        business: {
-          name: 'Business Documents',
-          description: 'Cluster for business and corporate documents',
-          metadata: {
-            category: 'business',
-            processing: 'corporate',
-            search_enabled: true
-          }
-        },
-        project: {
-          name: 'Project Documentation',
-          description: 'Cluster for project-related documents',
-          metadata: {
-            category: 'project',
-            processing: 'technical',
-            search_enabled: true
-          }
-        }
-      };
-
-      if (!templates[templateName]) {
-        throw new Error(`Unknown template: ${templateName}`);
-      }
-
-      const template = { ...templates[templateName] };
-
-      // Merge custom metadata
-      if (customMetadata) {
-        template.metadata = { ...template.metadata, ...customMetadata };
-      }
-
-      return await client.createCluster(template);
+**Store memories in clusters:**
+```python
+# Store individual memory
+memory_id = client.store_memory({
+    "cluster_id": cluster.id,
+    "content": "Research paper about machine learning algorithms",
+    "metadata": {
+        "title": "Advances in ML",
+        "author": "Dr. Smith",
+        "year": "2024"
     }
+})
 
-    // Create a research cluster
-    createClusterTemplate(client, 'research', {
-      domain: 'machine_learning',
-      year: '2024'
-    }).then(cluster => {
-      console.log('Created research cluster:', cluster.name);
-    });
-    ```
-  </Tab>
-</Tabs>
-
-## Managing Documents in Clusters
-
-### Storing Documents in Clusters
-
-<Tabs>
-  <Tab title="Python">
-    ```python
-    # Store individual memory in cluster
-    memory_data = {
-        "cluster_id": "research-cluster-id",
-        "content": "This is a research paper about machine learning...",
-        "metadata": {
-            "title": "Advances in Machine Learning",
-            "author": "Dr. Jane Smith",
-            "year": "2024"
-        }
+# Store multiple memories
+memories = [
+    {
+        "cluster_id": cluster.id,
+        "content": "Machine learning fundamentals",
+        "metadata": {"topic": "basics"}
+    },
+    {
+        "cluster_id": cluster.id,
+        "content": "Neural network architectures",
+        "metadata": {"topic": "neural_networks"}
     }
-    memory_id = client.store_memory(memory_data)
-    print(f"Stored memory: {memory_id}")
-
-    # Store multiple memories in cluster
-    memories = [
-        {
-            "cluster_id": "research-cluster-id",
-            "content": "Machine learning fundamentals...",
-            "metadata": {"topic": "basics"}
-        },
-        {
-            "cluster_id": "research-cluster-id",
-            "content": "Neural network architectures...",
-            "metadata": {"topic": "neural_networks"}
-        }
-    ]
-    memory_ids = client.store_memories(memories)
-    print(f"Stored {len(memory_ids)} memories")
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    // Store individual memory in cluster
-    const memoryId = await client.storeMemory({
-      cluster_id: 'research-cluster-id',
-      content: 'This is a research paper about machine learning...',
-      metadata: {
-        title: 'Advances in Machine Learning',
-        author: 'Dr. Jane Smith',
-        year: '2024'
-      }
-    });
-    console.log(`Stored memory: ${memoryId}`);
-
-    // Store multiple memories in cluster
-    const memories = [
-      {
-        cluster_id: 'research-cluster-id',
-        content: 'Machine learning fundamentals...',
-        metadata: { topic: 'basics' }
-      },
-      {
-        cluster_id: 'research-cluster-id',
-        content: 'Neural network architectures...',
-        metadata: { topic: 'neural_networks' }
-      }
-    ];
-    const memoryIds = await client.storeMemories(memories);
-    console.log(`Stored ${memoryIds.length} memories`);
-    ```
-  </Tab>
-</Tabs>
-
+]
+memory_ids = client.store_memories(memories)
+```
 
 ## Searching Clusters
 
-### Semantic Search in Clusters
+**Search within specific clusters:**
+```python
+# Search in a specific cluster
+results = client.search(
+    query="machine learning algorithms",
+    cluster_ids=[cluster.id],
+    limit=10,
+    filters={"score_threshold": 0.7}
+)
 
-<Tabs>
-  <Tab title="Python">
-    ```python
-    def search_cluster(client, cluster_id, query, limit=10):
-        """Search for documents in a cluster"""
-        try:
-            results = client.search(
-                query=query,
-                cluster_ids=[cluster_id],
-                limit=limit,
-                filters={"score_threshold": 0.7}
-            )
-
-            print(f"Found {len(results)} documents for query: '{query}'")
-            for result in results:
-                title = result.metadata.get('title', 'Unknown')
-                print(f"  - {title} (score: {result.score:.2f})")
-
-            return results
-
-        except Exception as e:
-            print(f"Error searching cluster: {e}")
-            return None
-
-    # Search in cluster
-    search_cluster(client, "cluster-uuid", "machine learning algorithms")
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    async function searchCluster(client, clusterId, query, limit = 10) {
-      try {
-        const results = await client.search({
-          query: query,
-          cluster_ids: [clusterId],
-          limit: limit,
-          filters: { score_threshold: 0.7 }
-        });
-
-        console.log(`Found ${results.length} documents for query: '${query}'`);
-        results.forEach(result => {
-          const title = result.metadata?.title || 'Unknown';
-          console.log(`  - ${title} (score: ${result.score.toFixed(2)})`);
-        });
-
-        return results;
-
-      } catch (error) {
-        console.error('Error searching cluster:', error);
-        return null;
-      }
-    }
-
-    // Search in cluster
-    searchCluster(client, 'cluster-uuid', 'machine learning algorithms');
-    ```
-  </Tab>
-</Tabs>
+for result in results:
+    title = result.metadata.get('title', 'Unknown')
+    print(f"{title} (score: {result.score:.2f})")
+```
 
 
 ## Cluster Management
 
-### Listing Clusters
+**List all clusters:**
+```python
+# List clusters
+clusters = client.list_clusters(limit=50)
 
-<Tabs>
-  <Tab title="Python">
-    ```python
-    def list_clusters(client, limit=50):
-        """List all clusters"""
-        try:
-            clusters = client.list_clusters(limit=limit)
+for cluster in clusters:
+    print(f"{cluster.name} ({cluster.memory_count} memories)")
+    print(f"  Description: {cluster.description}")
+    print(f"  Created: {cluster.created_at}")
+```
 
-            print(f"Found {len(clusters)} clusters:")
-            for cluster in clusters:
-                print(f"  - {cluster.name} ({cluster.memory_count} docs)")
-                print(f"    Description: {cluster.description}")
-                print(f"    Created: {cluster.created_at}")
-                print()
-
-            return clusters
-
-        except Exception as e:
-            print(f"Error listing clusters: {e}")
-            return None
-
-    # List all clusters
-    list_clusters(client)
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    async function listClusters(client, limit = 50) {
-      try {
-        const clusters = await client.listClusters(limit);
-
-        console.log(`Found ${clusters.length} clusters:`);
-        clusters.forEach(cluster => {
-          console.log(`  - ${cluster.name} (${cluster.memory_count} docs)`);
-          console.log(`    Description: ${cluster.description}`);
-          console.log(`    Created: ${cluster.created_at}`);
-          console.log();
-        });
-
-        return clusters;
-
-      } catch (error) {
-        console.error('Error listing clusters:', error);
-        return null;
-      }
+**Update cluster:**
+```python
+# Update cluster metadata
+updated_cluster = client.update_cluster(
+    cluster_id=cluster.id,
+    name="Updated Research Papers",
+    description="Updated description",
+    metadata={
+        "category": "updated_category",
+        "last_updated": "2024-01-01"
     }
-
-    // List all clusters
-    listClusters(client);
-    ```
-  </Tab>
-</Tabs>
-
-### Updating Cluster Metadata
-
-<Tabs>
-  <Tab title="Python">
-    ```python
-    def update_cluster(client, cluster_id, name=None, description=None, metadata=None):
-        """Update cluster metadata"""
-        try:
-            result = client.update_cluster(
-                cluster_id=cluster_id,
-                name=name,
-                description=description,
-                metadata=metadata
-            )
-            print(f"Successfully updated cluster: {result.name}")
-            return result
-        except Exception as e:
-            print(f"Error updating cluster: {e}")
-            return None
-
-    # Update cluster
-    update_cluster(
-        client,
-        "cluster-uuid",
-        name="Updated Research Papers",
-        description="Updated description for research papers",
-        metadata={
-            "category": "updated_category",
-            "last_updated": "2024-01-01"
-        }
-    )
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    async function updateCluster(client, clusterId, name, description, metadata) {
-      try {
-        const result = await client.updateCluster({
-          clusterId: clusterId,
-          name: name,
-          description: description,
-          metadata: metadata
-        });
-        console.log(`Successfully updated cluster: ${result.name}`);
-        return result;
-      } catch (error) {
-        console.error('Error updating cluster:', error);
-        return null;
-      }
-    }
-
-    // Update cluster
-    updateCluster(
-      client,
-      'cluster-uuid',
-      'Updated Research Papers',
-      'Updated description for research papers',
-      {
-        category: 'updated_category',
-        last_updated: '2024-01-01'
-      }
-    );
-    ```
-  </Tab>
-</Tabs>
+)
+```
 
 ## Best Practices
 
-### Cluster Organization
+- **Logical Grouping**: Group memories by purpose, domain, or project
+- **Consistent Naming**: Use clear, descriptive names for clusters
+- **Metadata Standards**: Establish consistent metadata schemas
+- **Reasonable Sizes**: Keep clusters manageable (100-1000 memories)
+- **Search Scope**: Use specific cluster IDs in searches when possible
 
-1. **Logical Grouping**: Group documents by purpose, topic, or project
-2. **Consistent Naming**: Use clear, descriptive names for clusters
-3. **Metadata Strategy**: Use metadata to categorize and filter clusters
-4. **Size Management**: Keep clusters at a reasonable size (100-1000 documents)
+## Advanced Examples
 
-### Performance Optimization
-
-- **Indexing**: Ensure clusters are properly indexed for search
-- **Caching**: Cache frequently accessed cluster metadata
-- **Batch Operations**: Use batch operations for large document sets
-- **Regular Updates**: Keep cluster metadata up to date
-
-### Security Considerations
-
-- **Access Control**: Implement proper permissions for clusters
-- **Audit Logging**: Track cluster access and modifications
-- **Data Classification**: Use metadata to classify sensitive documents
-- **Backup Strategy**: Ensure clusters are properly backed up
-
-## Common Patterns
-
-### Cluster Templates
-
-Create reusable cluster templates for common use cases:
-
+**Multi-cluster search:**
 ```python
-def create_research_cluster(client, domain, year):
-    """Create a standardized research cluster"""
-    return client.create_cluster(
-        name=f"{domain} Research {year}",
-        description=f"Research papers in {domain} from {year}",
-        metadata={
-            "category": "research",
-            "domain": domain,
-            "year": year,
-            "processing": "academic",
-            "search_enabled": True
-        }
-    )
+# Search across multiple clusters
+results = client.search(
+    query="machine learning",
+    cluster_ids=["research-cluster-1", "research-cluster-2"],
+    limit=20
+)
 ```
 
-### Cluster Analytics
-
-Monitor cluster usage and performance:
-
+**Cluster analytics:**
 ```python
-def get_cluster_stats(client, cluster_id):
-    """Get statistics for a cluster"""
-    cluster = client.get_cluster(cluster_id)
+# Analyze cluster contents
+cluster = client.get_cluster(cluster_id)
+memories = client.list_memories(cluster_ids=[cluster_id], limit=1000)
 
-    stats = {
-        "total_documents": cluster.memory_count,
-        "search_queries": 0,  # Would come from analytics
-        "avg_query_time": 0.0,
-        "popular_queries": []
-    }
-
-    return stats
+print(f"Cluster: {cluster.name}")
+print(f"Total memories: {len(memories)}")
 ```
 
-This guide provides comprehensive coverage of cluster management in Nebula. For more advanced operations, refer to the [API Reference](/api-reference/clusters) for detailed endpoint documentation. 
+## Next Steps
+
+- [Memory Operations](/guides/memory-operations) - Store and search memories
+- [Conversations Guide](/guides/conversations) - Build conversational AI
+- [API Reference](/api-reference/overview) - Complete API reference 

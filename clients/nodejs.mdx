@@ -7,57 +7,33 @@ description: 'Official Node.js client library for the Nebula Memory API'
 
 The official Node.js client library for the Nebula Memory API provides a simple and intuitive interface for storing, retrieving, and searching memories with advanced clustering capabilities.
 
-## Table of Contents
-
-1. [Installation & Setup](#installation--setup)
-2. [Client Initialization](#client-initialization)
-3. [Cluster Management](#cluster-management)
-4. [Memory Storage](#memory-storage)
-5. [Memory Retrieval](#memory-retrieval)
-6. [Search Operations](#search-operations)
-7. [Memory Management](#memory-management)
-8. [Error Handling](#error-handling)
-9. [Data Models](#data-models)
-10. [Examples](#examples)
 
 ## Installation & Setup
 
-### Prerequisites
-
-- Node.js 16+
-- Nebula API key
-
-### Installation
-
+**Install:**
 ```bash
 npm install @nebula-ai/sdk
 ```
 
-**Current Version**: 0.0.19
-
-### Environment Setup
-
+**Environment setup:**
 ```bash
 export NEBULA_API_KEY="your_api_key_here"
 ```
 
 ## Client Initialization
 
-### Basic Initialization
-
+**Basic usage:**
 ```javascript
 import { NebulaSDK } from '@nebula-ai/sdk';
 // or
 const { NebulaSDK } = require('@nebula-ai/sdk');
 
-// Initialize with API key (required)
 const client = new NebulaSDK({
   apiKey: 'your_api_key_here'
 });
 ```
 
-### Advanced Configuration
-
+**Advanced configuration:**
 ```javascript
 const client = new NebulaSDK({
   apiKey: 'your_api_key_here',
@@ -66,25 +42,9 @@ const client = new NebulaSDK({
 });
 ```
 
-### Async/Await Usage
-
-```javascript
-(async () => {
-  const client = new NebulaSDK({ apiKey: 'your_api_key' });
-  // Your operations here
-  const memoryId = await client.storeMemory({ 
-    content: 'Hello world', 
-    cluster_id: 'cluster_123' 
-  });
-})();
-```
-
 ## Cluster Management
 
-Clusters help organize memories and provide access control.
-
-### Create Cluster
-
+**Create cluster:**
 ```javascript
 const cluster = await client.createCluster({
   name: 'research_notes',
@@ -93,26 +53,12 @@ const cluster = await client.createCluster({
 });
 ```
 
-**Parameters:**
-- `name` (string): Cluster name (required)
-- `description` (string, optional): Cluster description
-- `metadata` (object, optional): Additional metadata
-
-**Returns:** `Cluster` object with cluster details
-
-### Get Cluster
-
+**Get cluster:**
 ```javascript
 const cluster = await client.getCluster('cluster_id_here');
 ```
 
-**Parameters:**
-- `cluster_id` (string): ID of the cluster to retrieve
-
-**Returns:** `Cluster` object
-
-### List Clusters
-
+**List clusters:**
 ```javascript
 const clusters = await client.listClusters({
   limit: 100, // Default: 100
@@ -120,14 +66,7 @@ const clusters = await client.listClusters({
 });
 ```
 
-**Parameters:**
-- `limit` (number): Maximum number of clusters to return (1-1000)
-- `offset` (number): Number of clusters to skip
-
-**Returns:** Array of `Cluster` objects
-
-### Update Cluster
-
+**Update cluster:**
 ```javascript
 const updatedCluster = await client.updateCluster({
   clusterId: 'cluster_id_here',
@@ -137,33 +76,16 @@ const updatedCluster = await client.updateCluster({
 });
 ```
 
-**Parameters:**
-- `cluster_id` (string): ID of the cluster to update
-- `name` (string, optional): New name
-- `description` (string, optional): New description
-- `metadata` (object, optional): New metadata
-
-**Returns:** Updated `Cluster` object
-
-**Note:** Update operations may fail if the new name conflicts with existing clusters.
-
-### Delete Cluster
-
+**Delete cluster:**
 ```javascript
 const success = await client.deleteCluster('cluster_id_here');
 ```
 
-**Parameters:**
-- `cluster_id` (string): ID of the cluster to delete
-
-**Returns:** `true` if successful
-
 ## Memory Storage
 
-### Store Memory
-
+**Store memory:**
 ```javascript
-// Store a regular memory
+// Using plain object (recommended)
 const memoryId = await client.storeMemory({
   cluster_id: 'user_preferences', // Required
   content: 'User prefers email communication over phone calls',
@@ -174,7 +96,22 @@ const memoryId = await client.storeMemory({
   }
 });
 
-// Store a conversation message
+// Using Memory interface
+const memory = {
+  cluster_id: 'user_preferences',
+  content: 'User prefers email communication over phone calls',
+  role: undefined,
+  parent_id: undefined,
+  metadata: {
+    userId: 'user_123',
+    preferenceType: 'communication'
+  }
+};
+const memoryId = await client.storeMemory(memory);
+```
+
+**Store conversation message:**
+```javascript
 const messageId = await client.storeMemory({
   cluster_id: 'conversations',
   content: 'Hello, how can I help you?',
@@ -184,19 +121,8 @@ const messageId = await client.storeMemory({
 });
 ```
 
-**Parameters:**
-- `cluster_id` (string): Cluster to store the memory in (required)
-- `content` (string): The memory content to store (required)
-- `role` (string, optional): For conversation messages ('user', 'assistant', etc.)
-- `parent_id` (string, optional): Parent conversation ID
-- `metadata` (object, optional): Additional metadata
-
-**Returns:** Document ID as string
-
-### Store Multiple Memories
-
+**Store multiple memories:**
 ```javascript
-// Store multiple memories at once
 const memories = [
   {
     cluster_id: 'research',
@@ -213,61 +139,15 @@ const memories = [
 const memoryIds = await client.storeMemories(memories);
 ```
 
-**Parameters:**
-- `memories` (array): Array of memory objects
-
-**Returns:** Array of document IDs
-
-### Input Patterns
-
-The SDK supports two ways to provide memory data:
-
-#### Option 1: Plain Objects (Recommended)
-```javascript
-const memoryId = await client.storeMemory({
-  cluster_id: 'user_preferences',
-  content: 'User prefers email communication over phone calls',
-  metadata: {
-    userId: 'user_123',
-    preferenceType: 'communication'
-  }
-});
-```
-
-#### Option 2: Memory Interface Objects
-```javascript
-const memory = {
-  cluster_id: 'user_preferences',
-  content: 'User prefers email communication over phone calls',
-  role: undefined,
-  parent_id: undefined,
-  metadata: {
-    userId: 'user_123',
-    preferenceType: 'communication'
-  }
-};
-const memoryId = await client.storeMemory(memory);
-```
-
-Both approaches work identically and accept the same parameters: `cluster_id`, `content`, `role`, `parent_id`, and `metadata`.
-
 ## Memory Retrieval
 
-### Get Specific Memory
-
+**Get specific memory:**
 ```javascript
 const memory = await client.getMemory('memory_id_here');
 ```
 
-**Parameters:**
-- `memoryId` (string): ID of the memory to retrieve (required)
-
-**Returns:** `MemoryResponse` object with content retrieved from chunks
-
-### List Memories
-
+**List memories:**
 ```javascript
-// List memories from specific clusters
 const memories = await client.listMemories(
   ['cluster_123', 'cluster_456'], // Required array of cluster IDs
   100, // limit (optional, default: 100)
@@ -275,15 +155,7 @@ const memories = await client.listMemories(
 );
 ```
 
-**Parameters:**
-- `cluster_ids` (array): Array of cluster IDs to retrieve memories from (required)
-- `limit` (number): Maximum number of memories to return
-- `offset` (number): Number of memories to skip
-
-**Returns:** Array of `MemoryResponse` objects with content retrieved from chunks
-
-### Get Cluster Memories
-
+**Get cluster memories:**
 ```javascript
 const memories = await client.getClusterMemories({
   clusterId: 'cluster_id_here',
@@ -292,17 +164,9 @@ const memories = await client.getClusterMemories({
 });
 ```
 
-**Parameters:**
-- `cluster_id` (string): ID of the cluster (required)
-- `limit` (number): Maximum number of memories to return
-- `offset` (number): Number of memories to skip
-
-**Returns:** Array of `Memory` objects
-
 ## Search Operations
 
-### General Search
-
+**Search memories:**
 ```javascript
 const results = await client.search({
   query: 'artificial intelligence',
@@ -313,55 +177,59 @@ const results = await client.search({
 });
 ```
 
-**Parameters:**
-- `query` (string): Search query (required)
-- `cluster_ids` (array): Clusters to search within (required)
-- `limit` (number): Maximum number of results to return
-- `retrievalType` (string): Type of retrieval ('simple', 'reasoning', 'planning')
-- `filters` (object, optional): Search filters
-
-**Returns:** Array of `SearchResult` objects
-
-### Search Types
-
-The SDK supports different retrieval types:
-
-- **`simple`**: Basic semantic search
-- **`reasoning`**: Enhanced reasoning-based search
-- **`planning`**: Planning-oriented search
+**Search types:**
+- `simple`: Basic semantic search
+- `reasoning`: Enhanced reasoning-based search
+- `planning`: Planning-oriented search
 
 ## Memory Management
 
-### Delete Memory
-
+**Delete memory:**
 ```javascript
 const success = await client.delete('memory_id_here');
 ```
 
-**Parameters:**
-- `memoryId` (string): ID of the memory to delete (required)
+## TypeScript Interfaces
 
-**Returns:** `true` if successful
+**Memory interface (for writing):**
+```typescript
+interface Memory {
+  cluster_id: string;        // Required: cluster to store in
+  content: string;           // Required: text content
+  role?: string;             // Optional: 'user', 'assistant', or custom (for conversations)
+  parent_id?: string;        // Optional: conversation ID (for conversations)
+  metadata?: Record<string, any>; // Optional: additional metadata
+}
+```
+
+**MemoryResponse interface (for reading):**
+```typescript
+interface MemoryResponse {
+  id: string;
+  content?: string;
+  chunks?: string[];
+  metadata: Record<string, any>;
+  cluster_ids: string[];
+  created_at?: string;
+  updated_at?: string;
+}
+```
 
 ## Error Handling
 
-### Exception Types
+**Exception types:**
+- `NebulaException` - Base exception
+- `NebulaSDKException` - Client-side errors
+- `NebulaAuthenticationException` - Authentication errors
+- `NebulaRateLimitException` - Rate limiting errors
+- `NebulaValidationException` - Validation errors
 
-The SDK throws errors as JavaScript `Error` objects, with custom error types for specific cases:
-
-- `NebulaException`              // Base exception
-- `NebulaSDKException`        // Client-side errors
-- `NebulaAuthenticationException` // Authentication errors
-- `NebulaRateLimitException`     // Rate limiting errors
-- `NebulaValidationException`    // Validation errors
-
-### Error Handling Example
-
+**Error handling:**
 ```javascript
 try {
-  const memory = await client.store({
+  const memory = await client.storeMemory({
     content: 'Test memory',
-    clusterId: 'test_cluster'
+    cluster_id: 'test_cluster'
   });
 } catch (error) {
   if (error instanceof NebulaAuthenticationException) {
@@ -378,265 +246,39 @@ try {
 }
 ```
 
-## Data Models
-
-### Memory Object
-
-```typescript
-interface Memory {
-  id: string;                // Memory/document ID
-  content: string;           // Memory content (retrieved from chunks)
-  metadata: Record<string, any>; // Additional metadata
-  clusterIds: string[];      // Associated clusters
-  createdAt: string;         // Creation timestamp
-  updatedAt: string;         // Last update timestamp
-}
-```
-
-### Cluster Object
-
-```typescript
-interface Cluster {
-  id: string;                // Cluster ID
-  name: string;              // Cluster name
-  description: string;       // Cluster description
-  metadata: Record<string, any>; // Additional metadata
-  userCount: number;         // Number of users
-  documentCount: number;     // Number of documents
-  createdAt: string;         // Creation timestamp
-  updatedAt: string;         // Last update timestamp
-}
-```
-
-### SearchResult Object
-
-```typescript
-interface SearchResult {
-  id: string;                // Result ID
-  content: string;           // Result content
-  score: number;             // Relevance score (0.0-1.0)
-  metadata: Record<string, any>; // Additional metadata
-  documentId: string;        // Source document ID
-}
-```
-
-## Examples
-
-### Complete Workflow Example
+## Quick Example
 
 ```javascript
 const { NebulaSDK } = require('@nebula-ai/sdk');
 
 (async () => {
-  // Initialize client
   const client = new NebulaSDK({ apiKey: 'your_api_key' });
 
-  // Create a cluster
+  // Create cluster and store memory
   const cluster = await client.createCluster({
     name: 'customer_support',
     description: 'Customer support interactions'
   });
 
-  // Store customer preferences
-  const memory = await client.store({
+  const memory = await client.storeMemory({
     content: 'Customer prefers email communication over phone calls',
-    metadata: {
-      userId: 'user_123',
-      preferenceType: 'communication'
-    },
-    clusterId: cluster.id
+    cluster_id: cluster.id,
+    metadata: { userId: 'user_123', preferenceType: 'communication' }
   });
 
-  // Retrieve the stored memory
-  const retrievedMemory = await client.get(memory.id);
-  console.log('Retrieved content:', retrievedMemory.content);
-  console.log('Cluster IDs:', retrievedMemory.clusterIds);
-
-  // List memories from the cluster
-  const clusterMemories = await client.listMemories({ cluster_ids: [cluster.id] });
-  for (const memory of clusterMemories) {
-    console.log('Memory:', memory.content.slice(0, 100) + '...');
-  }
-
-  // Search within the cluster
+  // Search
   const results = await client.search({
     query: 'communication preferences',
     cluster_ids: [cluster.id],
     limit: 5
   });
 
-  for (const result of results) {
-    console.log('Score:', result.score.toFixed(3));
-    console.log('Content:', result.content);
-    console.log('---');
-  }
-
-  // Clean up
-  await client.delete(memory.id);
-  await client.deleteCluster(cluster.id);
+  console.log('Search results:', results.length);
 })();
 ```
-
-### Cluster Management Example
-
-```javascript
-// Create multiple clusters
-const researchCluster = await client.createCluster({
-  name: 'Research Notes',
-  description: 'Academic research materials'
-});
-
-const supportCluster = await client.createCluster({
-  name: 'Customer Support',
-  description: 'Customer support interactions'
-});
-
-// Store memories in different clusters
-await client.store({
-  content: 'Machine learning algorithms overview',
-  clusterId: researchCluster.id,
-  metadata: { topic: 'ai', type: 'overview' }
-});
-
-await client.store({
-  content: 'Customer login issue resolved',
-  clusterId: supportCluster.id,
-  metadata: { issueType: 'login', status: 'resolved' }
-});
-
-// List all clusters
-const clusters = await client.listClusters();
-for (const cluster of clusters) {
-  console.log('Cluster:', cluster.name);
-  console.log('ID:', cluster.id);
-  console.log('Documents:', cluster.documentCount);
-  console.log('---');
-}
-
-// Get memories from specific cluster
-const memories = await client.getClusterMemories({
-  clusterId: researchCluster.id,
-  limit: 50
-});
-
-for (const memory of memories) {
-  console.log('Memory:', memory.content.slice(0, 100) + '...');
-  console.log('Cluster IDs:', memory.clusterIds);
-  console.log('---');
-}
-```
-
-### Search and Filter Example
-
-```javascript
-// Search with filters
-const results = await client.search({
-  query: 'machine learning',
-  cluster_ids: ['research_cluster_id'],
-  limit: 5,
-  filters: {
-    'metadata.topic': 'ai',
-    'metadata.importance': 'high'
-  }
-});
-
-for (const result of results) {
-  console.log('Score:', result.score.toFixed(3));
-  console.log('Content:', result.content);
-  console.log('Document ID:', result.documentId);
-  console.log('---');
-}
-
-// Search within a specific cluster
-const clusterResults = await client.search({
-  query: 'login issues',
-  cluster_ids: ['support_cluster_id'],
-  retrievalType: 'reasoning'
-});
-
-for (const result of clusterResults) {
-  console.log('Cluster Result:', result.content);
-}
-```
-
-### Memory Management Example
-
-```javascript
-// Store multiple memories
-const memories = [];
-for (let i = 0; i < 3; i++) {
-  const memory = await client.store({
-    content: `Test memory ${i + 1} about JavaScript programming`,
-    clusterId: 'test_cluster_id',
-    metadata: { test: true, index: i }
-  });
-  memories.push(memory);
-}
-
-// List memories from specific cluster
-const clusterMemories = await client.listMemories({
-  cluster_ids: ['test_cluster_id'],
-  limit: 50
-});
-console.log('Cluster memories:', clusterMemories.length);
-
-// Get specific memory
-if (memories.length > 0) {
-  const specificMemory = await client.get(memories[0].id);
-  console.log('Retrieved memory:', specificMemory.content);
-  console.log('Cluster IDs:', specificMemory.clusterIds);
-}
-
-// Delete memories
-for (const memory of memories) {
-  await client.delete(memory.id);
-  console.log('Deleted memory:', memory.id);
-}
-```
-
-## Best Practices
-
-1. **Use Clusters**: Organize memories into clusters for better management
-2. **Rich Metadata**: Include relevant metadata for better search and filtering
-3. **Content Retrieval**: The SDK automatically retrieves content from chunks
-4. **Error Handling**: Always implement proper error handling
-5. **Rate Limiting**: Be mindful of API rate limits
-6. **Deterministic IDs**: The SDK automatically handles deduplication
-7. **Cluster Filtering**: Use cluster filtering for targeted searches
-
-## API Limits
-
-- **Clusters**: Varies by plan
-- **Documents**: Varies by plan
-- **Chunks**: Varies by plan
-- **Rate Limits**: Varies by plan
-- **Request Timeout**: 30 seconds (configurable)
-
-For specific limits, check your Nebula plan details.
-
-## Version History
-
-### Version 0.0.18 (Current)
-- Fixed `listMemories` to retrieve content from chunks
-- Fixed `get` method to handle `results` wrapper
-- Fixed cluster filtering in all methods
-- Improved content retrieval from document chunks
-- All core functionality working correctly
-
-### Version 0.0.17
-- Fixed `get` method to retrieve content from chunks
-- Fixed `updateCluster` to use POST method
-- Fixed `getCluster` to handle `results` wrapper
-
-### Version 0.0.14
-- Unified `retrieve` into `search` method
-- Removed `agentId` concept
-- Updated to use cluster terminology
-- Fixed cluster filtering with `$overlap` operator
 
 ## Next Steps
 
 - [Quick Start Guide](/quickstart) - Get up and running quickly
 - [API Reference](/api-reference/overview) - Explore all available endpoints
-- [Memory Operations](/guides/memory-operations) - See practical usage examples
-- [Error Handling](/guides/error-handling) - Learn about error handling patterns 
+- [Memory Operations](/guides/memory-operations) - See practical usage examples 
