@@ -279,12 +279,12 @@ If you continue experiencing issues:
 
 ## Advanced Configuration
 
-### Custom API Endpoints
+### API Configuration
 ```json
 {
   "env": {
     "NEBULA_API_KEY": "your_key",
-    "NEBULA_API_URL": "https://your-custom-endpoint.com"
+    "NEBULA_API_URL": "https://api.nebulacloud.app"
   }
 }
 ```
@@ -301,7 +301,7 @@ Use project-specific configurations for different API keys/environments:
       "args": ["-y", "@nebula-ai/mcp-server", "--stdio"],
       "env": {
         "NEBULA_API_KEY": "dev_api_key",
-        "NEBULA_API_URL": "https://dev-api.nebulacloud.app"
+        "NEBULA_API_URL": "https://api.nebulacloud.app"
       }
     }
   }

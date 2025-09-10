@@ -1,41 +1,60 @@
 ---
-title: 'File Operations'
-description: 'Complete guide to file operations in Nebula API'
+title: 'Memory Operations Guide'
+description: 'Learn how to store and search memories in Nebula'
 ---
 
-# File Operations
+# Memory Operations Guide
 
-Nebula provides comprehensive file management capabilities including upload, download, organization, and metadata management. This guide covers all aspects of working with files in Nebula.
+This guide covers the core memory operations in Nebula: storing memories and searching through them. Nebula provides powerful semantic search capabilities to help you find relevant information across your stored memories.
 
 ## Overview
 
-Nebula's file system is organized into clusters, which act as isolated storage spaces. Within each cluster, files are organized in a hierarchical folder structure.
+Nebula's memory system allows you to store and retrieve information using semantic search. Memories can be stored individually or in batches, and searched using natural language queries.
 
 ### Key Concepts
 
-- **Clusters**: Isolated storage spaces with their own permissions
-- **Folders**: Hierarchical organization within clusters
-- **Files**: Individual files with metadata and content
-- **Permissions**: Granular access control at the cluster level
+- **Memories**: Individual pieces of information with content and metadata
+- **Clusters**: Logical groupings of memories for organization
+- **Semantic Search**: Natural language search across stored memories
+- **Metadata**: Additional information attached to memories for filtering and organization
 
-## File Upload
+## Storing Memories
 
-### Basic Upload
+### Store Individual Memory
 
 <Tabs>
   <Tab title="Python">
     ```python
-    from nebula import NebulaSDK
+    from nebula_client import NebulaClient
     
-    client = NebulaSDK(api_key="your-api-key")
+    client = NebulaClient(api_key="your-api-key")
     
-    # Upload a file to the root folder
-    result = client.upload_file(
-        cluster_id="your-cluster-id",
-        file_path="document.pdf"
+    # Store a memory using dict
+    memory_id = client.store_memory({
+        "cluster_id": "research-cluster",
+        "content": "Machine learning is a subset of artificial intelligence",
+        "metadata": {
+            "topic": "AI",
+            "difficulty": "beginner"
+        }
+    })
+    
+    print(f"Memory stored: {memory_id}")
+    ```
+    
+    ```python
+    # Or using Memory class
+    from nebula_client import Memory
+    
+    memory = Memory(
+        cluster_id="research-cluster",
+        content="Machine learning is a subset of artificial intelligence",
+        metadata={
+            "topic": "AI",
+            "difficulty": "beginner"
+        }
     )
-    
-    print(f"File uploaded: {result.file_id}")
+    memory_id = client.store_memory(memory)
     ```
   </Tab>
   <Tab title="Node.js">
@@ -46,899 +65,388 @@ Nebula's file system is organized into clusters, which act as isolated storage s
       apiKey: 'your-api-key'
     });
     
-    // Upload a file to the root folder
-    const result = await client.uploadFile({
-      clusterId: 'your-cluster-id',
-      filePath: 'document.pdf'
-    });
-    
-    console.log(`File uploaded: ${result.fileId}`);
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-    import "github.com/oronila/nebula-client-go/nebulaclient"
-    
-    client := nebulaclient.NewClient("your-api-key")
-    
-    // Upload a file to the root folder
-    file, err := os.Open("document.pdf")
-    if err != nil {
-        log.Fatalf("Error opening file: %v", err)
-    }
-    defer file.Close()
-    
-    result, err := client.UploadFile("your-cluster-id", file, "document.pdf", "ROOT")
-    if err != nil {
-        log.Fatalf("Error uploading file: %v", err)
-    }
-    
-    fmt.Printf("File uploaded: %s\n", result.ID)
-    ```
-  </Tab>
-</Tabs>
-
-### Upload to Specific Folder
-
-<Tabs>
-  <Tab title="Python">
-    ```python
-    # Upload to a specific folder
-    result = client.upload_file(
-        cluster_id="your-cluster-id",
-        file_path="document.pdf",
-        folder_id="folder-uuid"
-    )
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    // Upload to a specific folder
-    const result = await client.uploadFile({
-      clusterId: 'your-cluster-id',
-      filePath: 'document.pdf',
-      folderId: 'folder-uuid'
-    });
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-    // Upload to a specific folder
-    result, err := client.UploadFile("your-cluster-id", file, "document.pdf", "folder-uuid")
-    ```
-  </Tab>
-</Tabs>
-
-### Upload with Custom Content Type
-
-<Tabs>
-  <Tab title="Python">
-    ```python
-    # Upload with custom content type
-    result = client.upload_file(
-        cluster_id="your-cluster-id",
-        file_path="document.pdf",
-        content_type="application/pdf"
-    )
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    // Upload with custom content type
-    const result = await client.uploadFile({
-      clusterId: 'your-cluster-id',
-      filePath: 'document.pdf',
-      contentType: 'application/pdf'
-    });
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-    // Content type is automatically determined from file extension
-    result, err := client.UploadFile("your-cluster-id", file, "document.pdf", "ROOT")
-    ```
-  </Tab>
-</Tabs>
-
-### Batch Upload
-
-<Tabs>
-  <Tab title="Python">
-    ```python
-    import os
-    
-    # Upload multiple files
-    files_to_upload = ["file1.pdf", "file2.pdf", "file3.pdf"]
-    uploaded_files = []
-    
-    for file_path in files_to_upload:
-        try:
-            result = client.upload_file(
-                cluster_id="your-cluster-id",
-                file_path=file_path
-            )
-            uploaded_files.append(result)
-            print(f"Uploaded: {file_path}")
-        except Exception as e:
-            print(f"Failed to upload {file_path}: {e}")
-    
-    print(f"Successfully uploaded {len(uploaded_files)} files")
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    // Upload multiple files
-    const filesToUpload = ['file1.pdf', 'file2.pdf', 'file3.pdf'];
-    const uploadedFiles = [];
-    
-    for (const filePath of filesToUpload) {
-      try {
-        const result = await client.uploadFile({
-          clusterId: 'your-cluster-id',
-          filePath: filePath
-        });
-        uploadedFiles.push(result);
-        console.log(`Uploaded: ${filePath}`);
-      } catch (error) {
-        console.error(`Failed to upload ${filePath}:`, error);
+    // Store a memory
+    const memoryId = await client.storeMemory({
+      cluster_id: 'research-cluster',
+      content: 'Machine learning is a subset of artificial intelligence',
+      metadata: {
+        topic: 'AI',
+        difficulty: 'beginner'
       }
-    }
+    });
     
-    console.log(`Successfully uploaded ${uploadedFiles.length} files`);
+    console.log(`Memory stored: ${memoryId}`);
     ```
   </Tab>
-  <Tab title="Go">
-    ```go
-    // Upload multiple files
-    filesToUpload := []string{"file1.pdf", "file2.pdf", "file3.pdf"}
-    uploadedFiles := make([]*nebulaclient.File, 0)
+</Tabs>
+
+### Store Multiple Memories
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    from nebula_client import NebulaClient, Memory
     
-    for _, filePath := range filesToUpload {
-        file, err := os.Open(filePath)
-        if err != nil {
-            log.Printf("Error opening %s: %v", filePath, err)
-            continue
+    client = NebulaClient(api_key="your-api-key")
+    
+    # Store multiple memories at once
+    memories = [
+        {
+            "cluster_id": "research-cluster",
+            "content": "Supervised learning uses labeled training data",
+            "metadata": {"type": "definition"}
+        },
+        {
+            "cluster_id": "research-cluster", 
+            "content": "Unsupervised learning finds patterns in unlabeled data",
+            "metadata": {"type": "definition"}
+        },
+        {
+            "cluster_id": "research-cluster",
+            "content": "Neural networks are computing systems inspired by biological brains",
+            "metadata": {"type": "concept"}
         }
-        
-        result, err := client.UploadFile("your-cluster-id", file, filepath.Base(filePath), "ROOT")
-        file.Close()
-        
-        if err != nil {
-            log.Printf("Failed to upload %s: %v", filePath, err)
-            continue
-        }
-        
-        uploadedFiles = append(uploadedFiles, result)
-        fmt.Printf("Uploaded: %s\n", filePath)
-    }
+    ]
     
-    fmt.Printf("Successfully uploaded %d files\n", len(uploadedFiles))
-    ```
-  </Tab>
-</Tabs>
-
-## File Download
-
-### Basic Download
-
-<Tabs>
-  <Tab title="Python">
-    ```python
-    # Download to a specific path
-    client.download_file(
-        cluster_id="your-cluster-id",
-        file_id="file-uuid",
-        output_path="downloaded_file.pdf"
-    )
+    memory_ids = client.store_memories(memories)
+    print(f"Stored {len(memory_ids)} memories")
     ```
   </Tab>
   <Tab title="Node.js">
     ```javascript
-    // Download to a specific path
-    await client.downloadFile({
-      clusterId: 'your-cluster-id',
-      fileId: 'file-uuid',
-      outputPath: 'downloaded_file.pdf'
-    });
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-    // Download to a specific path
-    err := client.DownloadFile("your-cluster-id", "file-uuid", "downloaded_file.pdf")
-    if err != nil {
-        log.Fatalf("Error downloading file: %v", err)
-    }
-    ```
-  </Tab>
-</Tabs>
-
-### Download to Directory
-
-<Tabs>
-  <Tab title="Python">
-    ```python
-    # Download to a directory (uses original filename)
-    client.download_file(
-        cluster_id="your-cluster-id",
-        file_id="file-uuid",
-        output_path="./downloads/"
-    )
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    // Download to a directory (uses original filename)
-    await client.downloadFile({
-      clusterId: 'your-cluster-id',
-      fileId: 'file-uuid',
-      outputPath: './downloads/'
-    });
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-    // Download to a directory (uses original filename)
-    err := client.DownloadFile("your-cluster-id", "file-uuid", "./downloads/")
-    ```
-  </Tab>
-</Tabs>
-
-## File Listing
-
-### List Files in Root
-
-<Tabs>
-  <Tab title="Python">
-    ```python
-    # List files in root folder
-    files = client.list_files(cluster_id="your-cluster-id")
+    const { NebulaSDK } = require('@nebula-ai/sdk');
     
-    for file in files:
-        print(f"File: {file.name} ({file.type}) - Size: {file.size} bytes")
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    // List files in root folder
-    const files = await client.listFiles({
-      clusterId: 'your-cluster-id'
+    const client = new NebulaSDK({
+      apiKey: 'your-api-key'
     });
     
-    files.forEach(file => {
-      console.log(`File: ${file.name} (${file.type}) - Size: ${file.size} bytes`);
-    });
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-    // List files in root folder
-    files, err := client.ListFiles("your-cluster-id", "ROOT")
-    if err != nil {
-        log.Fatalf("Error listing files: %v", err)
-    }
-    
-    for _, file := range files {
-        fmt.Printf("File: %s (%s) - Size: %d bytes\n", 
-            file.Name, file.Type, file.Size)
-    }
-    ```
-  </Tab>
-</Tabs>
-
-### List Files in Folder
-
-<Tabs>
-  <Tab title="Python">
-    ```python
-    # List files in a specific folder
-    files = client.list_files(
-        cluster_id="your-cluster-id",
-        folder_id="folder-uuid"
-    )
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    // List files in a specific folder
-    const files = await client.listFiles({
-      clusterId: 'your-cluster-id',
-      folderId: 'folder-uuid'
-    });
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-    // List files in a specific folder
-    files, err := client.ListFiles("your-cluster-id", "folder-uuid")
-    ```
-  </Tab>
-</Tabs>
-
-## Folder Management
-
-### Create Folders
-
-<Tabs>
-  <Tab title="Python">
-    ```python
-    # Create folder in root
-    folder = client.create_folder(
-        cluster_id="your-cluster-id",
-        folder_name="New Folder"
-    )
-    
-    # Create folder in a specific parent folder
-    subfolder = client.create_folder(
-        cluster_id="your-cluster-id",
-        folder_name="Subfolder",
-        parent_folder_id="parent-folder-uuid"
-    )
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    // Create folder in root
-    const folder = await client.createFolder({
-      clusterId: 'your-cluster-id',
-      folderName: 'New Folder'
-    });
-    
-    // Create folder in a specific parent folder
-    const subfolder = await client.createFolder({
-      clusterId: 'your-cluster-id',
-      folderName: 'Subfolder',
-      parentFolderId: 'parent-folder-uuid'
-    });
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-    // Create folder in root
-    folder, err := client.CreateFolder("your-cluster-id", "New Folder", "ROOT")
-    if err != nil {
-        log.Fatalf("Error creating folder: %v", err)
-    }
-    
-    // Create folder in a specific parent folder
-    subfolder, err := client.CreateFolder("your-cluster-id", "Subfolder", "parent-folder-uuid")
-    ```
-  </Tab>
-</Tabs>
-
-### Create Folder Structure
-
-<Tabs>
-  <Tab title="Python">
-    ```python
-    def create_folder_structure(client, cluster_id, structure):
-        """Create a nested folder structure"""
-        created_folders = {}
-        
-        for path, folder_name in structure.items():
-            parent_id = "ROOT"
-            
-            # Create parent folders if needed
-            if "/" in path:
-                parent_path = "/".join(path.split("/")[:-1])
-                if parent_path in created_folders:
-                    parent_id = created_folders[parent_path]
-            
-            folder = client.create_folder(
-                cluster_id=cluster_id,
-                folder_name=folder_name,
-                parent_folder_id=parent_id
-            )
-            created_folders[path] = folder.id
-        
-        return created_folders
-    
-    # Example usage
-    structure = {
-        "documents": "Documents",
-        "documents/research": "Research",
-        "documents/reports": "Reports",
-        "images": "Images",
-        "images/photos": "Photos"
-    }
-    
-    folders = create_folder_structure(client, "your-cluster-id", structure)
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    async function createFolderStructure(client, clusterId, structure) {
-      const createdFolders = {};
-      
-      for (const [path, folderName] of Object.entries(structure)) {
-        let parentId = 'ROOT';
-        
-        // Create parent folders if needed
-        if (path.includes('/')) {
-          const parentPath = path.split('/').slice(0, -1).join('/');
-          if (createdFolders[parentPath]) {
-            parentId = createdFolders[parentPath];
-          }
-        }
-        
-        const folder = await client.createFolder({
-          clusterId: clusterId,
-          folderName: folderName,
-          parentFolderId: parentId
-        });
-        
-        createdFolders[path] = folder.id;
+    // Store multiple memories
+    const memories = [
+      {
+        cluster_id: 'research-cluster',
+        content: 'Supervised learning uses labeled training data',
+        metadata: { type: 'definition' }
+      },
+      {
+        cluster_id: 'research-cluster',
+        content: 'Unsupervised learning finds patterns in unlabeled data', 
+        metadata: { type: 'definition' }
+      },
+      {
+        cluster_id: 'research-cluster',
+        content: 'Neural networks are computing systems inspired by biological brains',
+        metadata: { type: 'concept' }
       }
-      
-      return createdFolders;
-    }
+    ];
     
-    // Example usage
-    const structure = {
-      'documents': 'Documents',
-      'documents/research': 'Research',
-      'documents/reports': 'Reports',
-      'images': 'Images',
-      'images/photos': 'Photos'
-    };
-    
-    const folders = await createFolderStructure(client, 'your-cluster-id', structure);
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-    func createFolderStructure(client *nebulaclient.Client, clusterID string, structure map[string]string) map[string]string {
-        createdFolders := make(map[string]string)
-        
-        for path, folderName := range structure {
-            parentID := "ROOT"
-            
-            // Create parent folders if needed
-            if strings.Contains(path, "/") {
-                parts := strings.Split(path, "/")
-                parentPath := strings.Join(parts[:len(parts)-1], "/")
-                if parentID, exists := createdFolders[parentPath]; exists {
-                    parentID = parentID
-                }
-            }
-            
-            folder, err := client.CreateFolder(clusterID, folderName, parentID)
-            if err != nil {
-                log.Printf("Error creating folder %s: %v", folderName, err)
-                continue
-            }
-            
-            createdFolders[path] = folder.ID
-        }
-        
-        return createdFolders
-    }
-    
-    // Example usage
-    structure := map[string]string{
-        "documents": "Documents",
-        "documents/research": "Research",
-        "documents/reports": "Reports",
-        "images": "Images",
-        "images/photos": "Photos",
-    }
-    
-    folders := createFolderStructure(client, "your-cluster-id", structure)
+    const memoryIds = await client.storeMemories(memories);
+    console.log(`Stored ${memoryIds.length} memories`);
     ```
   </Tab>
 </Tabs>
 
-## File Operations
-
-### Delete Files
+### Store Conversation Messages
 
 <Tabs>
   <Tab title="Python">
     ```python
-    # Delete a single file
-    client.delete_files(
-        cluster_id="your-cluster-id",
-        file_ids=["file-uuid"]
-    )
+    from nebula_client import NebulaClient
     
-    # Delete multiple files/folders
-    client.delete_files(
-        cluster_id="your-cluster-id",
-        file_ids=["file-uuid-1", "file-uuid-2", "folder-uuid"]
-    )
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    // Delete a single file
-    await client.deleteFiles({
-      clusterId: 'your-cluster-id',
-      fileIds: ['file-uuid']
-    });
+    client = NebulaClient(api_key="your-api-key")
     
-    // Delete multiple files/folders
-    await client.deleteFiles({
-      clusterId: 'your-cluster-id',
-      fileIds: ['file-uuid-1', 'file-uuid-2', 'folder-uuid']
-    });
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-    // Delete a single file
-    err := client.DeleteFiles("your-cluster-id", []string{"file-uuid"})
-    if err != nil {
-        log.Fatalf("Error deleting file: %v", err)
-    }
+    # Store a conversation message
+    conversation_id = client.store_memory({
+        "cluster_id": "support-cluster",
+        "content": "How can I help you today?",
+        "role": "assistant",
+        "metadata": {
+            "session_id": "session_123",
+            "timestamp": "2024-01-01T10:00:00Z"
+        }
+    })
     
-    // Delete multiple files/folders
-    err = client.DeleteFiles("your-cluster-id", []string{
-        "file-uuid-1", 
-        "file-uuid-2", 
-        "folder-uuid",
+    # Continue the conversation
+    client.store_memory({
+        "cluster_id": "support-cluster", 
+        "content": "I need help with my account",
+        "role": "user",
+        "parent_id": conversation_id,  # Links to previous message
+        "metadata": {
+            "session_id": "session_123"
+        }
     })
     ```
   </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    const { NebulaSDK } = require('@nebula-ai/sdk');
+    
+    const client = new NebulaSDK({
+      apiKey: 'your-api-key'
+    });
+    
+    // Store a conversation message
+    const conversationId = await client.storeMemory({
+      cluster_id: 'support-cluster',
+      content: 'How can I help you today?',
+      role: 'assistant',
+      metadata: {
+        session_id: 'session_123',
+        timestamp: '2024-01-01T10:00:00Z'
+      }
+    });
+    
+    // Continue the conversation
+    await client.storeMemory({
+      cluster_id: 'support-cluster',
+      content: 'I need help with my account',
+      role: 'user', 
+      parent_id: conversationId,  // Links to previous message
+      metadata: {
+        session_id: 'session_123'
+      }
+    });
+    ```
+  </Tab>
 </Tabs>
 
-### Move Files
+## Searching Memories
+
+### Basic Search
 
 <Tabs>
   <Tab title="Python">
     ```python
-    # Move files to a different folder
-    client.move_files(
-        cluster_id="your-cluster-id",
-        file_ids=["file-uuid-1", "file-uuid-2"],
-        target_folder_id="destination-folder-uuid"
+    from nebula_client import NebulaClient
+    
+    client = NebulaClient(api_key="your-api-key")
+    
+    # Search for memories
+    results = client.search(
+        query="machine learning algorithms",
+        cluster_ids=["research-cluster"],
+        limit=10
+    )
+    
+    print(f"Found {len(results)} results:")
+    for result in results:
+        print(f"Score: {result.score:.2f}")
+        print(f"Content: {result.content[:100]}...")
+        print("---")
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    const { NebulaSDK } = require('@nebula-ai/sdk');
+    
+    const client = new NebulaSDK({
+      apiKey: 'your-api-key'
+    });
+    
+    // Search for memories
+    const results = await client.search({
+      query: 'machine learning algorithms',
+      cluster_ids: ['research-cluster'],
+      limit: 10
+    });
+    
+    console.log(`Found ${results.length} results:`);
+    results.forEach(result => {
+      console.log(`Score: ${result.score.toFixed(2)}`);
+      console.log(`Content: ${result.content.substring(0, 100)}...`);
+      console.log('---');
+    });
+    ```
+  </Tab>
+</Tabs>
+
+### Search with Filters
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    # Search with metadata filters
+    results = client.search(
+        query="artificial intelligence",
+        cluster_ids=["research-cluster"],
+        limit=5,
+        filters={
+            "metadata.topic": "AI",
+            "metadata.difficulty": "beginner"
+        }
+    )
+    
+    # Search with score threshold
+    results = client.search(
+        query="neural networks",
+        cluster_ids=["research-cluster"],
+        limit=10,
+        filters={"score_threshold": 0.7}
     )
     ```
   </Tab>
   <Tab title="Node.js">
     ```javascript
-    // Move files to a different folder
-    await client.moveFiles({
-      clusterId: 'your-cluster-id',
-      fileIds: ['file-uuid-1', 'file-uuid-2'],
-      targetFolderId: 'destination-folder-uuid'
+    // Search with metadata filters
+    const results = await client.search({
+      query: 'artificial intelligence',
+      cluster_ids: ['research-cluster'],
+      limit: 5,
+      filters: {
+        'metadata.topic': 'AI',
+        'metadata.difficulty': 'beginner'
+      }
     });
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-    // Move files to a different folder
-    err := client.MoveFiles("your-cluster-id", []string{
-        "file-uuid-1", 
-        "file-uuid-2",
-    }, "destination-folder-uuid")
+    
+    // Search with score threshold
+    const results2 = await client.search({
+      query: 'neural networks',
+      cluster_ids: ['research-cluster'],
+      limit: 10,
+      filters: { score_threshold: 0.7 }
+    });
     ```
   </Tab>
 </Tabs>
 
-### Rename Files
+## Memory Management
+
+### Retrieve Specific Memory
 
 <Tabs>
   <Tab title="Python">
     ```python
-    # Rename a file or folder
-    client.rename_file(
-        cluster_id="your-cluster-id",
-        file_id="file-uuid",
-        new_name="New File Name.pdf"
-    )
+    from nebula_client import NebulaClient
+    
+    client = NebulaClient(api_key="your-api-key")
+    
+    # Get a specific memory by ID
+    memory = client.get_memory("memory-id-here")
+    print(f"Content: {memory.content}")
+    print(f"Metadata: {memory.metadata}")
+    print(f"Cluster: {memory.cluster_ids}")
     ```
   </Tab>
   <Tab title="Node.js">
     ```javascript
-    // Rename a file or folder
-    await client.renameFile({
-      clusterId: 'your-cluster-id',
-      fileId: 'file-uuid',
-      newName: 'New File Name.pdf'
+    const { NebulaSDK } = require('@nebula-ai/sdk');
+    
+    const client = new NebulaSDK({
+      apiKey: 'your-api-key'
     });
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-    // Rename a file or folder
-    err := client.RenameFile("your-cluster-id", "file-uuid", "New File Name.pdf")
+    
+    // Get a specific memory by ID
+    const memory = await client.getMemory('memory-id-here');
+    console.log(`Content: ${memory.content}`);
+    console.log(`Metadata:`, memory.metadata);
+    console.log(`Cluster: ${memory.cluster_ids}`);
     ```
   </Tab>
 </Tabs>
 
-## File Organization Best Practices
+### List Memories in Cluster
 
-### 1. Use Descriptive Folder Names
+<Tabs>
+  <Tab title="Python">
+    ```python
+    # List memories in a cluster
+    memories = client.list_memories(
+        cluster_ids=["research-cluster"],
+        limit=20,
+        offset=0
+    )
+    
+    print(f"Found {len(memories)} memories in cluster:")
+    for memory in memories:
+        print(f"- {memory.content[:50]}...")
+        print(f"  Created: {memory.created_at}")
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    // List memories in a cluster
+    const memories = await client.listMemories({
+      cluster_ids: ['research-cluster'],
+      limit: 20,
+      offset: 0
+    });
+    
+    console.log(`Found ${memories.length} memories in cluster:`);
+    memories.forEach(memory => {
+      console.log(`- ${memory.content.substring(0, 50)}...`);
+      console.log(`  Created: ${memory.created_at}`);
+    });
+    ```
+  </Tab>
+</Tabs>
 
-```
-Good:
-/documents
-/documents/research-papers
-/documents/reports
-/images
-/images/product-photos
+### Delete Memory
 
-Bad:
-/folder1
-/folder2
-/temp
-```
+<Tabs>
+  <Tab title="Python">
+    ```python
+    # Delete a memory
+    success = client.delete("memory-id-here")
+    if success:
+        print("Memory deleted successfully")
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    // Delete a memory
+    const success = await client.delete('memory-id-here');
+    if (success) {
+      console.log('Memory deleted successfully');
+    }
+    ```
+  </Tab>
+</Tabs>
 
-### 2. Implement Consistent Naming Conventions
+## Best Practices
+
+### Memory Organization
+
+1. **Use Descriptive Content**: Store clear, comprehensive information in your memories
+2. **Rich Metadata**: Include relevant metadata for better search and filtering
+3. **Logical Clusters**: Group related memories into meaningful clusters
+4. **Consistent Naming**: Use consistent metadata keys across similar memories
+
+### Search Optimization
+
+- **Natural Language**: Use natural language queries for best results
+- **Metadata Filters**: Combine semantic search with metadata filtering
+- **Score Thresholds**: Set appropriate score thresholds to filter low-relevance results
+- **Limit Results**: Use appropriate limits to manage response size
+
+### Performance Considerations
+
+- **Batch Operations**: Use `store_memories`/`storeMemories` for bulk operations
+- **Cluster Targeting**: Search specific clusters when possible
+- **Metadata Indexing**: Use metadata filters to reduce search scope
+- **Pagination**: Use offset and limit for large result sets
+
+### Error Handling
 
 ```python
-# Example: Organize by date and type
-import datetime
-
-def organize_by_date(client, cluster_id, file_path):
-    today = datetime.date.today()
-    folder_name = today.strftime("%Y-%m-%d")
-    
-    # Create date folder if it doesn't exist
-    try:
-        folder = client.create_folder(
-            cluster_id=cluster_id,
-            folder_name=folder_name
-        )
-    except:
-        # Folder might already exist
-        pass
-    
-    # Upload file to date folder
-    result = client.upload_file(
-        cluster_id=cluster_id,
-        file_path=file_path,
-        folder_id=folder.id
-    )
-    
-    return result
+# Python error handling
+try:
+    memory_id = client.store_memory(memory_data)
+except Exception as e:
+    print(f"Error storing memory: {e}")
 ```
 
-### 3. Use Tags and Metadata
-
-```python
-# Example: Add metadata to file names
-def upload_with_metadata(client, cluster_id, file_path, metadata):
-    # Create filename with metadata
-    base_name = os.path.splitext(os.path.basename(file_path))[0]
-    extension = os.path.splitext(file_path)[1]
-    
-    # Add metadata to filename
-    metadata_str = "_".join([f"{k}-{v}" for k, v in metadata.items()])
-    new_filename = f"{base_name}_{metadata_str}{extension}"
-    
-    # Upload with new filename
-    result = client.upload_file(
-        cluster_id=cluster_id,
-        file_path=file_path
-    )
-    
-    # Rename to include metadata
-    client.rename_file(
-        cluster_id=cluster_id,
-        file_id=result.file_id,
-        new_name=new_filename
-    )
-    
-    return result
-
-# Usage
-metadata = {
-    "type": "report",
-    "author": "john-doe",
-    "date": "2024-01-15"
+```javascript
+// Node.js error handling
+try {
+  const memoryId = await client.storeMemory(memoryData);
+} catch (error) {
+  console.error('Error storing memory:', error);
 }
-
-result = upload_with_metadata(client, "your-cluster-id", "document.pdf", metadata)
 ```
-
-### 4. Implement Backup Strategies
-
-```python
-def backup_files(client, source_cluster, backup_cluster):
-    """Backup all files from source to backup cluster"""
-    files = client.list_files(cluster_id=source_cluster)
-    
-    for file in files:
-        if file.type == "file":
-            # Download from source
-            temp_path = f"/tmp/{file.name}"
-            client.download_file(
-                cluster_id=source_cluster,
-                file_id=file.id,
-                output_path=temp_path
-            )
-            
-            # Upload to backup
-            with open(temp_path, 'rb') as f:
-                client.upload_file(
-                    cluster_id=backup_cluster,
-                    file_path=temp_path
-                )
-            
-            # Clean up
-            os.remove(temp_path)
-```
-
-## Error Handling
-
-### Handle Upload Errors
-
-<Tabs>
-  <Tab title="Python">
-    ```python
-    def safe_upload(client, cluster_id, file_path, max_retries=3):
-        for attempt in range(max_retries):
-            try:
-                result = client.upload_file(
-                    cluster_id=cluster_id,
-                    file_path=file_path
-                )
-                return result
-            except Exception as e:
-                if attempt == max_retries - 1:
-                    raise e
-                print(f"Upload attempt {attempt + 1} failed: {e}")
-                time.sleep(2 ** attempt)  # Exponential backoff
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    async function safeUpload(client, clusterId, filePath, maxRetries = 3) {
-      for (let attempt = 0; attempt < maxRetries; attempt++) {
-        try {
-          const result = await client.uploadFile({
-            clusterId: clusterId,
-            filePath: filePath
-          });
-          return result;
-        } catch (error) {
-          if (attempt === maxRetries - 1) {
-            throw error;
-          }
-          console.log(`Upload attempt ${attempt + 1} failed:`, error);
-          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
-        }
-      }
-    }
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-    func safeUpload(client *nebulaclient.Client, clusterID, filePath string, maxRetries int) (*nebulaclient.File, error) {
-        var lastErr error
-        
-        for attempt := 0; attempt < maxRetries; attempt++ {
-            file, err := os.Open(filePath)
-            if err != nil {
-                return nil, err
-            }
-            
-            result, err := client.UploadFile(clusterID, file, filepath.Base(filePath), "ROOT")
-            file.Close()
-            
-            if err != nil {
-                lastErr = err
-                if attempt == maxRetries-1 {
-                    return nil, err
-                }
-                log.Printf("Upload attempt %d failed: %v", attempt+1, err)
-                time.Sleep(time.Duration(1<<uint(attempt)) * time.Second)
-                continue
-            }
-            
-            return result, nil
-        }
-        
-        return nil, lastErr
-    }
-    ```
-  </Tab>
-</Tabs>
-
-## Performance Optimization
-
-### Parallel Uploads
-
-<Tabs>
-  <Tab title="Python">
-    ```python
-    import asyncio
-    from concurrent.futures import ThreadPoolExecutor
-    
-    def upload_files_parallel(client, cluster_id, file_paths, max_workers=5):
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = [
-                executor.submit(client.upload_file, cluster_id, file_path)
-                for file_path in file_paths
-            ]
-            
-            results = []
-            for future in futures:
-                try:
-                    result = future.result()
-                    results.append(result)
-                except Exception as e:
-                    print(f"Upload failed: {e}")
-            
-            return results
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    async function uploadFilesParallel(client, clusterId, filePaths, maxConcurrency = 5) {
-      const results = [];
-      const chunks = [];
-      
-      // Split files into chunks
-      for (let i = 0; i < filePaths.length; i += maxConcurrency) {
-        chunks.push(filePaths.slice(i, i + maxConcurrency));
-      }
-      
-      for (const chunk of chunks) {
-        const promises = chunk.map(filePath =>
-          client.uploadFile({
-            clusterId: clusterId,
-            filePath: filePath
-          }).catch(error => {
-            console.error(`Upload failed for ${filePath}:`, error);
-            return null;
-          })
-        );
-        
-        const chunkResults = await Promise.all(promises);
-        results.push(...chunkResults.filter(result => result !== null));
-      }
-      
-      return results;
-    }
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-    func uploadFilesParallel(client *nebulaclient.Client, clusterID string, filePaths []string, maxWorkers int) []*nebulaclient.File {
-        results := make([]*nebulaclient.File, 0)
-        semaphore := make(chan struct{}, maxWorkers)
-        var mu sync.Mutex
-        var wg sync.WaitGroup
-        
-        for _, filePath := range filePaths {
-            wg.Add(1)
-            go func(path string) {
-                defer wg.Done()
-                semaphore <- struct{}{} // Acquire
-                defer func() { <-semaphore }() // Release
-                
-                file, err := os.Open(path)
-                if err != nil {
-                    log.Printf("Error opening %s: %v", path, err)
-                    return
-                }
-                defer file.Close()
-                
-                result, err := client.UploadFile(clusterID, file, filepath.Base(path), "ROOT")
-                if err != nil {
-                    log.Printf("Failed to upload %s: %v", path, err)
-                    return
-                }
-                
-                mu.Lock()
-                results = append(results, result)
-                mu.Unlock()
-            }(filePath)
-        }
-        
-        wg.Wait()
-        return results
-    }
-    ```
-  </Tab>
-</Tabs>
 
 ## Next Steps
 
-- [Folder Management](/guides/folder-management) - Advanced folder organization
-- [Collections](/guides/collections) - Organize files into collections
-- [Document Processing](/guides/document-processing) - Process uploaded documents
+- [Clusters Guide](/guides/clusters) - Learn about organizing memories into clusters
+- [Conversations Guide](/guides/conversations) - Build conversational AI applications  
 - [Error Handling](/guides/error-handling) - Comprehensive error handling patterns
-- [API Reference](/api-reference/files) - Complete file operation API reference 
+- [API Reference](/api-reference/memories) - Complete memory operations API reference

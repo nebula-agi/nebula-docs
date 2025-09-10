@@ -107,7 +107,7 @@ const cluster = await client.getCluster('cluster_id_here');
 ```
 
 **Parameters:**
-- `clusterId` (string): ID of the cluster to retrieve
+- `cluster_id` (string): ID of the cluster to retrieve
 
 **Returns:** `Cluster` object
 
@@ -138,7 +138,7 @@ const updatedCluster = await client.updateCluster({
 ```
 
 **Parameters:**
-- `clusterId` (string): ID of the cluster to update
+- `cluster_id` (string): ID of the cluster to update
 - `name` (string, optional): New name
 - `description` (string, optional): New description
 - `metadata` (object, optional): New metadata
@@ -154,7 +154,7 @@ const success = await client.deleteCluster('cluster_id_here');
 ```
 
 **Parameters:**
-- `clusterId` (string): ID of the cluster to delete
+- `cluster_id` (string): ID of the cluster to delete
 
 **Returns:** `true` if successful
 
@@ -218,6 +218,39 @@ const memoryIds = await client.storeMemories(memories);
 
 **Returns:** Array of document IDs
 
+### Input Patterns
+
+The SDK supports two ways to provide memory data:
+
+#### Option 1: Plain Objects (Recommended)
+```javascript
+const memoryId = await client.storeMemory({
+  cluster_id: 'user_preferences',
+  content: 'User prefers email communication over phone calls',
+  metadata: {
+    userId: 'user_123',
+    preferenceType: 'communication'
+  }
+});
+```
+
+#### Option 2: Memory Interface Objects
+```javascript
+const memory = {
+  cluster_id: 'user_preferences',
+  content: 'User prefers email communication over phone calls',
+  role: undefined,
+  parent_id: undefined,
+  metadata: {
+    userId: 'user_123',
+    preferenceType: 'communication'
+  }
+};
+const memoryId = await client.storeMemory(memory);
+```
+
+Both approaches work identically and accept the same parameters: `cluster_id`, `content`, `role`, `parent_id`, and `metadata`.
+
 ## Memory Retrieval
 
 ### Get Specific Memory
@@ -243,7 +276,7 @@ const memories = await client.listMemories(
 ```
 
 **Parameters:**
-- `clusterIds` (array): Array of cluster IDs to retrieve memories from (required)
+- `cluster_ids` (array): Array of cluster IDs to retrieve memories from (required)
 - `limit` (number): Maximum number of memories to return
 - `offset` (number): Number of memories to skip
 
@@ -260,7 +293,7 @@ const memories = await client.getClusterMemories({
 ```
 
 **Parameters:**
-- `clusterId` (string): ID of the cluster (required)
+- `cluster_id` (string): ID of the cluster (required)
 - `limit` (number): Maximum number of memories to return
 - `offset` (number): Number of memories to skip
 
@@ -273,7 +306,7 @@ const memories = await client.getClusterMemories({
 ```javascript
 const results = await client.search({
   query: 'artificial intelligence',
-  clusterId: 'research_cluster',              // Required
+  cluster_ids: ['research_cluster'],         // Required
   limit: 10,                                 // Default: 10
   retrievalType: 'simple',                   // Default: 'simple'
   filters: { 'metadata.topic': 'ai' }        // Optional
@@ -282,7 +315,7 @@ const results = await client.search({
 
 **Parameters:**
 - `query` (string): Search query (required)
-- `clusterId` (string): Cluster to search within (required)
+- `cluster_ids` (array): Clusters to search within (required)
 - `limit` (number): Maximum number of results to return
 - `retrievalType` (string): Type of retrieval ('simple', 'reasoning', 'planning')
 - `filters` (object, optional): Search filters
@@ -420,7 +453,7 @@ const { NebulaSDK } = require('@nebula-ai/sdk');
   console.log('Cluster IDs:', retrievedMemory.clusterIds);
 
   // List memories from the cluster
-  const clusterMemories = await client.listMemories({ clusterId: cluster.id });
+  const clusterMemories = await client.listMemories({ cluster_ids: [cluster.id] });
   for (const memory of clusterMemories) {
     console.log('Memory:', memory.content.slice(0, 100) + '...');
   }
@@ -428,7 +461,7 @@ const { NebulaSDK } = require('@nebula-ai/sdk');
   // Search within the cluster
   const results = await client.search({
     query: 'communication preferences',
-    clusterId: cluster.id,
+    cluster_ids: [cluster.id],
     limit: 5
   });
 
@@ -499,7 +532,7 @@ for (const memory of memories) {
 // Search with filters
 const results = await client.search({
   query: 'machine learning',
-  clusterId: 'research_cluster_id',
+  cluster_ids: ['research_cluster_id'],
   limit: 5,
   filters: {
     'metadata.topic': 'ai',
@@ -517,7 +550,7 @@ for (const result of results) {
 // Search within a specific cluster
 const clusterResults = await client.search({
   query: 'login issues',
-  clusterId: 'support_cluster_id',
+  cluster_ids: ['support_cluster_id'],
   retrievalType: 'reasoning'
 });
 
@@ -542,7 +575,7 @@ for (let i = 0; i < 3; i++) {
 
 // List memories from specific cluster
 const clusterMemories = await client.listMemories({
-  clusterId: 'test_cluster_id',
+  cluster_ids: ['test_cluster_id'],
   limit: 50
 });
 console.log('Cluster memories:', clusterMemories.length);
@@ -605,5 +638,5 @@ For specific limits, check your Nebula plan details.
 
 - [Quick Start Guide](/quickstart) - Get up and running quickly
 - [API Reference](/api-reference/overview) - Explore all available endpoints
-- [Examples](/examples/basic-file-operations) - See practical usage examples
+- [Memory Operations](/guides/memory-operations) - See practical usage examples
 - [Error Handling](/guides/error-handling) - Learn about error handling patterns 

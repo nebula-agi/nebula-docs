@@ -8,8 +8,8 @@
     "dark": "#512da8"
   },
   "favicon": {
-    "dark": "/logo/light.png",
-    "light": "/logo/dark.png"
+    "dark": "/logo/dark.png",
+    "light": "/logo/light.png"
   },
   "navigation": {
     "tabs": [
@@ -20,7 +20,36 @@
             "group": "Get Started",
             "pages": [
               "introduction",
-              "quickstart"
+              "quickstart",
+              "authentication",
+              "error-handling",
+              "api-keys"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/memory-operations",
+              "guides/clusters",
+              "guides/conversations"
+            ]
+          },
+          {
+            "group": "MCP Integration",
+            "pages": [
+              "mcp-integration"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "SDKs",
+        "groups": [
+          {
+            "group": "Client Libraries",
+            "pages": [
+              "clients/nodejs",
+              "clients/python"
             ]
           }
         ]

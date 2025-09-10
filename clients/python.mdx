@@ -156,6 +156,7 @@ success = client.delete_cluster("cluster_id_here")
 
 ### Store Individual Memory
 
+#### Option 1: Using Memory Class (Structured)
 ```python
 from nebula_client import Memory
 
@@ -171,12 +172,29 @@ memory = Memory(
 memory_id = client.store_memory(memory)
 ```
 
-**Parameters:**
-- `content` (str): The memory content to store (required)
-- `cluster_id` (str): Cluster to store the memory in (required)
-- `metadata` (dict, optional): Additional metadata
+#### Option 2: Using Plain Dict (Simple)
+```python
+memory_data = {
+    "cluster_id": "user_preferences",
+    "content": "User prefers email communication over phone calls",
+    "metadata": {
+        "user_id": "user_123",
+        "preference_type": "communication",
+        "importance": "high"
+    }
+}
+memory_id = client.store_memory(memory_data)
+```
 
-**Returns:** `Memory` object
+**Parameters:**
+- `memory`: Either a `Memory` object or dict with the following keys:
+  - `cluster_id` (str): Cluster to store the memory in (required)
+  - `content` (str): The memory content to store (required)
+  - `role` (str, optional): For conversation messages ('user', 'assistant', etc.)
+  - `parent_id` (str, optional): Parent conversation ID
+  - `metadata` (dict, optional): Additional metadata
+
+**Returns:** Document ID as string
 
 ## Memory Retrieval
 
@@ -359,16 +377,15 @@ cluster = client.create_cluster(
 )
 
     # Store customer preferences
-    from nebula_client import Memory
-    memory = Memory(
-        cluster_id=cluster.id,
-        content="Customer prefers email communication over phone calls",
-        metadata={
+    memory_data = {
+        "cluster_id": cluster.id,
+        "content": "Customer prefers email communication over phone calls",
+        "metadata": {
             "user_id": "user_123",
             "preference_type": "communication"
         }
-    )
-    memory_id = client.store_memory(memory)
+    }
+    memory_id = client.store_memory(memory_data)
 
 # Retrieve the stored memory
 retrieved_memory = client.get_memory(memory_id)
@@ -412,20 +429,19 @@ support_cluster = client.create_cluster(
 )
 
 # Store memories in different clusters
-from nebula_client import Memory
-memory = Memory(
-    cluster_id=research_cluster.id,
-    content="Machine learning algorithms overview",
-    metadata={"topic": "ai", "type": "overview"}
-)
-client.store_memory(memory)
+memory_data = {
+    "cluster_id": research_cluster.id,
+    "content": "Machine learning algorithms overview",
+    "metadata": {"topic": "ai", "type": "overview"}
+}
+client.store_memory(memory_data)
 
-memory2 = Memory(
-    cluster_id=support_cluster.id,
-    content="Customer login issue resolved",
-    metadata={"issue_type": "login", "status": "resolved"}
-)
-client.store_memory(memory2)
+memory_data2 = {
+    "cluster_id": support_cluster.id,
+    "content": "Customer login issue resolved",
+    "metadata": {"issue_type": "login", "status": "resolved"}
+}
+client.store_memory(memory_data2)
 
 # List all clusters
 clusters = client.list_clusters()
@@ -482,16 +498,15 @@ for result in cluster_results:
 
 ```python
 # Store multiple memories
-from nebula_client import Memory
 memories = []
 for i in range(3):
-    memory = Memory(
-        cluster_id="test_cluster_id",
-        content=f"Test memory {i+1} about Python programming",
-        metadata={"test": True, "index": i}
-    )
-    memory_id = client.store_memory(memory)
-    memories.append({"id": memory_id, "content": memory.content})
+    memory_data = {
+        "cluster_id": "test_cluster_id",
+        "content": f"Test memory {i+1} about Python programming",
+        "metadata": {"test": True, "index": i}
+    }
+    memory_id = client.store_memory(memory_data)
+    memories.append({"id": memory_id, "content": memory_data["content"]})
 
 # List memories from specific cluster
 cluster_memories = client.list_memories(
@@ -556,5 +571,5 @@ For specific limits, check your Nebula plan details.
 
 - [Quick Start Guide](/quickstart) - Get up and running quickly
 - [API Reference](/api-reference/overview) - Explore all available endpoints
-- [Examples](/examples/basic-file-operations) - See practical usage examples
+- [Memory Operations](/guides/memory-operations) - See practical usage examples
 - [Error Handling](/guides/error-handling) - Learn about error handling patterns 

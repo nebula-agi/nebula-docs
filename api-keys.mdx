@@ -35,22 +35,12 @@ API keys in Nebula provide:
 You can create API keys programmatically using the API:
 
 ```bash
-curl -X POST https://api.nebulacloud.app/api-keys \
+curl -X POST https://api.nebulacloud.app/users/{USER_ID}/api-keys \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Production API Key",
-    "description": "For production application",
-    "clusters": [
-      {
-        "id": "cluster-uuid-1",
-        "permission": "write"
-      },
-      {
-        "id": "cluster-uuid-2", 
-        "permission": "read"
-      }
-    ]
+    "description": "For production application"
   }'
 ```
 
@@ -63,17 +53,8 @@ curl -X POST https://api.nebulacloud.app/api-keys \
   "description": "For production application",
   "key": "neb_abcdef123456789",
   "active": true,
-  "createdAt": "2024-01-15T10:30:00Z",
-  "clusters": [
-    {
-      "id": "cluster-uuid-1",
-      "permission": "write"
-    },
-    {
-      "id": "cluster-uuid-2",
-      "permission": "read"
-    }
-  ]
+  "created_at": "2024-01-15T10:30:00Z",
+  "user_id": "user-uuid-123"
 }
 ```
 
@@ -98,68 +79,17 @@ Each permission level includes all permissions from the levels below it.
 
 ## Managing API Keys
 
-### List All API Keys
+### List User API Keys
 
 ```bash
 curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-     https://api.nebulacloud.app/api-keys
-```
-
-### Get Specific API Key
-
-```bash
-curl -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-     https://api.nebulacloud.app/api-keys/KEY_ID
-```
-
-### Update API Key
-
-```bash
-curl -X PUT https://api.nebulacloud.app/api-keys/KEY_ID \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Updated Key Name",
-    "description": "Updated description",
-    "active": true
-  }'
-```
-
-### Update Permissions
-
-```bash
-curl -X PUT https://api.nebulacloud.app/api-keys/KEY_ID/permissions \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "clusters": [
-      {
-        "id": "cluster-uuid-1",
-        "permission": "admin"
-      },
-      {
-        "id": "cluster-uuid-2",
-        "permission": "read"
-      }
-    ]
-  }'
-```
-
-### Deactivate API Key
-
-```bash
-curl -X PUT https://api.nebulacloud.app/api-keys/KEY_ID \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "active": false
-  }'
+     https://api.nebulacloud.app/users/{USER_ID}/api-keys
 ```
 
 ### Delete API Key
 
 ```bash
-curl -X DELETE https://api.nebulacloud.app/api-keys/KEY_ID \
+curl -X DELETE https://api.nebulacloud.app/users/{USER_ID}/api-keys/{KEY_ID} \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
 ```
 
@@ -170,10 +100,10 @@ curl -X DELETE https://api.nebulacloud.app/api-keys/KEY_ID \
 <Tabs>
   <Tab title="Python">
     ```python
-    from nebula import NebulaSDK
-    
+    from nebula_client import NebulaClient
+
     # Initialize with API key
-    client = NebulaSDK(api_key="neb_abcdef123456789")
+    client = NebulaClient(api_key="neb_abcdef123456789")
     
     # Test the connection
     try:
@@ -303,18 +233,12 @@ curl -X POST https://api.nebulacloud.app/clusters/your-cluster-id/files/upload-u
 
 ```bash
 # Create a development key with read-only access
-curl -X POST https://api.nebulacloud.app/api-keys \
+curl -X POST https://api.nebulacloud.app/users/{USER_ID}/api-keys \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Development Environment",
-    "description": "For local development and testing",
-    "clusters": [
-      {
-        "id": "dev-cluster-uuid",
-        "permission": "read"
-      }
-    ]
+    "description": "For local development and testing"
   }'
 ```
 
@@ -322,18 +246,12 @@ curl -X POST https://api.nebulacloud.app/api-keys \
 
 ```bash
 # Create a production key with write access
-curl -X POST https://api.nebulacloud.app/api-keys \
+curl -X POST https://api.nebulacloud.app/users/{USER_ID}/api-keys \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Production Web App",
-    "description": "For production web application",
-    "clusters": [
-      {
-        "id": "prod-cluster-uuid",
-        "permission": "write"
-      }
-    ]
+    "description": "For production web application"
   }'
 ```
 
@@ -341,18 +259,12 @@ curl -X POST https://api.nebulacloud.app/api-keys \
 
 ```bash
 # Create an admin key for management tasks
-curl -X POST https://api.nebulacloud.app/api-keys \
+curl -X POST https://api.nebulacloud.app/users/{USER_ID}/api-keys \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Admin Management",
-    "description": "For administrative tasks and cluster management",
-    "clusters": [
-      {
-        "id": "prod-cluster-uuid",
-        "permission": "admin"
-      }
-    ]
+    "description": "For administrative tasks and cluster management"
   }'
 ```
 
@@ -411,6 +323,6 @@ curl -H "Authorization: ApiKey YOUR_API_KEY" \
 ## Next Steps
 
 - [Authentication](/authentication) - Learn about authentication methods
-- [File Operations](/guides/file-operations) - Start working with files
+- [Memory Operations](/guides/memory-operations) - Start working with memories
 - [Error Handling](/guides/error-handling) - Handle API errors properly
 - [API Reference](/api-reference/overview) - Explore all endpoints 

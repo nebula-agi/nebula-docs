@@ -9,7 +9,7 @@ Get up and running with Nebula API in just a few minutes. This guide will walk y
 
 ## Prerequisites
 
-- A Nebula account (sign up at [nebulacloud.app](https://nebulacloud.app))
+- A Nebula account (sign up at [trynebula.ai](https://trynebula.ai))
 - An API key (see [Authentication](/authentication) for details)
 - Basic knowledge of your chosen programming language
 
@@ -40,14 +40,14 @@ Choose your preferred programming language:
 <Tabs>
   <Tab title="Python">
     ```python
-    from nebula import NebulaSDK
-    
+    from nebula_client import NebulaClient
+
     # Initialize with your API key
-    client = NebulaSDK(api_key="your-api-key-here")
-    
+    client = NebulaClient(api_key="your-api-key-here")
+
     # Or use environment variable
     # export NEBULA_API_KEY=your-api-key-here
-    # client = NebulaSDK()
+    # client = NebulaClient()
     ```
   </Tab>
   <Tab title="Node.js">
@@ -462,14 +462,14 @@ Here's a complete example that demonstrates the full workflow:
 Now that you've completed the quick start, explore these resources:
 
 - [Authentication Guide](/authentication) - Learn about API keys and security
-- [File Operations Guide](/guides/file-operations) - Master file management
-- [Collections Guide](/guides/collections) - Organize your documents
+- [Memory Operations](/guides/memory-operations) - Master memory operations
+- [Clusters Guide](/guides/clusters) - Organize your documents
 - [Conversations Guide](/guides/conversations) - Build conversational AI
 - [API Reference](/api-reference/overview) - Explore all available endpoints
 
 ## Need Help?
 
 - **Documentation**: Browse our comprehensive guides
-- **Examples**: Check out [practical examples](/examples/basic-file-operations)
-- **Community**: Join our [Discord server](https://discord.gg/nebula)
+- **Examples**: Check out [practical examples](/guides/memory-operations)
+- **Community**: Join our [Discord server](https://discord.gg/JrqWU45Ccj)
 - **Support**: Email us at [support@trynebula.ai](mailto:support@trynebula.ai) 
