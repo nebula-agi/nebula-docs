@@ -180,7 +180,7 @@ const client = new NebulaClient({
 });
 
 async function searchClusters() {
-  // Assuming you have created work_cluster and personal_cluster
+  // Create work and personal clusters
   const workCluster = await client.createCluster({
     name: "Work",
     description: "Work-related memories"
@@ -193,18 +193,35 @@ async function searchClusters() {
   // Search only in work cluster
   const workResults = await client.search({
     query: "project deadlines",
-    clusterIds: [workCluster.id],
+    cluster_ids: [workCluster.id],  // Only search work memories
     limit: 10
   });
 
-  console.log(`Found ${workResults.length} work-related results`);
+  console.log(`Found ${workResults.length} work-related results:`);
+  workResults.forEach(result => {
+    console.log(`- ${result.content?.substring(0, 50)}...`);
+  });
 
-  // Search across multiple clusters
+  // Search only in personal cluster
+  const personalResults = await client.search({
+    query: "recipe",
+    cluster_ids: [personalCluster.id],  // Only search personal memories
+    limit: 5
+  });
+
+  console.log(`Found ${personalResults.length} personal results:`);
+  personalResults.forEach(result => {
+    console.log(`- ${result.content?.substring(0, 50)}...`);
+  });
+
+  // Search across multiple specific clusters
   const allResults = await client.search({
     query: "important notes",
-    clusterIds: [workCluster.id, personalCluster.id],
+    cluster_ids: [workCluster.id, personalCluster.id],  // Search both clusters
     limit: 15
   });
+
+  console.log(`Found ${allResults.length} results across clusters`);
 }
 
 searchClusters();
