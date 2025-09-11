@@ -24,18 +24,18 @@ export NEBULA_API_KEY="your_api_key_here"
 
 **Basic usage:**
 ```javascript
-import { NebulaSDK } from '@nebula-ai/sdk';
+import { NebulaClient } from '@nebula-ai/sdk';
 // or
-const { NebulaSDK } = require('@nebula-ai/sdk');
+const { NebulaClient } = require('@nebula-ai/sdk');
 
-const client = new NebulaSDK({
+const client = new NebulaClient({
   apiKey: 'your_api_key_here'
 });
 ```
 
 **Advanced configuration:**
 ```javascript
-const client = new NebulaSDK({
+const client = new NebulaClient({
   apiKey: 'your_api_key_here',
   baseUrl: 'https://api.nebulacloud.app', // Default
   timeout: 30000 // Default timeout in ms
@@ -219,7 +219,7 @@ interface MemoryResponse {
 
 **Exception types:**
 - `NebulaException` - Base exception
-- `NebulaSDKException` - Client-side errors
+- `NebulaClientException` - Client-side errors
 - `NebulaAuthenticationException` - Authentication errors
 - `NebulaRateLimitException` - Rate limiting errors
 - `NebulaValidationException` - Validation errors
@@ -249,10 +249,10 @@ try {
 ## Quick Example
 
 ```javascript
-const { NebulaSDK } = require('@nebula-ai/sdk');
+const { NebulaClient } = require('@nebula-ai/sdk');
 
 (async () => {
-  const client = new NebulaSDK({ apiKey: 'your_api_key' });
+  const client = new NebulaClient({ apiKey: 'your_api_key' });
 
   // Create cluster and store memory
   const cluster = await client.createCluster({
