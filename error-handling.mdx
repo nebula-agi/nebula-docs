@@ -52,78 +52,79 @@ The most common errors you'll encounter are related to authentication and author
 
 Nebula's SDKs provide consistent error handling patterns across all supported languages.
 
-<Tabs>
-  <Tab title="Python">
-    ```python
-    from nebula_client import NebulaClient, NebulaException, NebulaAuthenticationException
+<CodeGroup>
 
-    client = NebulaClient(api_key="your-api-key")
+```python error_handling.py
+from nebula_client import NebulaClient, NebulaException, NebulaAuthenticationException
 
-    try:
-        memories = client.list_memories(cluster_ids=["your-cluster-id"])
-        print(f"Found {len(memories)} memories")
-    except NebulaAuthenticationException as e:
-        print(f"Authentication failed: {e.message}")
-        # Handle authentication error (e.g., refresh token, prompt user)
-    except NebulaRateLimitException as e:
-        print(f"Rate limit exceeded. Retry after: {e.details.get('retry_after', 'unknown')}")
-        # Implement exponential backoff
-    except NebulaValidationException as e:
-        print(f"Validation error: {e.message}")
-        print(f"Details: {e.details}")
-        # Handle validation errors (e.g., fix input data)
-    except NebulaException as e:
-        print(f"Nebula API error ({e.status_code}): {e.message}")
-        # Handle general API errors
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        # Handle unexpected errors
-    ```
-  </Tab>
-  <Tab title="Node.js">
-    ```javascript
-    const { NebulaClient, NebulaException, NebulaAuthenticationException } = require('@nebula-ai/sdk');
+client = NebulaClient(api_key="your-api-key")
 
-    const client = new NebulaClient({
-      apiKey: 'your-api-key'
+try:
+    memories = client.list_memories(cluster_ids=["your-cluster-id"])
+    print(f"Found {len(memories)} memories")
+except NebulaAuthenticationException as e:
+    print(f"Authentication failed: {e.message}")
+    # Handle authentication error (e.g., refresh token, prompt user)
+except NebulaRateLimitException as e:
+    print(f"Rate limit exceeded. Retry after: {e.details.get('retry_after', 'unknown')}")
+    # Implement exponential backoff
+except NebulaValidationException as e:
+    print(f"Validation error: {e.message}")
+    print(f"Details: {e.details}")
+    # Handle validation errors (e.g., fix input data)
+except NebulaException as e:
+    print(f"Nebula API error ({e.status_code}): {e.message}")
+    # Handle general API errors
+except Exception as e:
+    print(f"Unexpected error: {e}")
+    # Handle unexpected errors
+```
+
+```javascript error_handling.js
+const { NebulaClient, NebulaException, NebulaAuthenticationException } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({
+  apiKey: 'your-api-key'
+});
+
+async function listMemories() {
+  try {
+    const memories = await client.listMemories({
+      clusterId: 'your-cluster-id'
     });
-
-    async function listMemories() {
-      try {
-        const memories = await client.listMemories({
-          clusterId: 'your-cluster-id'
-        });
-        console.log(`Found ${memories.length} memories`);
-      } catch (error) {
-        if (error instanceof NebulaAuthenticationException) {
-          console.error('Authentication failed:', error.message);
-          // Handle authentication error
-        } else if (error instanceof NebulaRateLimitException) {
-          console.error('Rate limit exceeded:', error.message);
-          // Implement retry with backoff
-        } else if (error instanceof NebulaValidationException) {
-          console.error('Validation error:', error.message);
-          console.error('Details:', error.details);
-          // Handle validation errors
-        } else if (error instanceof NebulaException) {
-          console.error(`Nebula API error (${error.statusCode}):`, error.message);
-          // Handle general API errors
-        } else {
-          console.error('Unexpected error:', error);
-          // Handle unexpected errors
-        }
-      }
+    console.log(`Found ${memories.length} memories`);
+  } catch (error) {
+    if (error instanceof NebulaAuthenticationException) {
+      console.error('Authentication failed:', error.message);
+      // Handle authentication error
+    } else if (error instanceof NebulaRateLimitException) {
+      console.error('Rate limit exceeded:', error.message);
+      // Implement retry with backoff
+    } else if (error instanceof NebulaValidationException) {
+      console.error('Validation error:', error.message);
+      console.error('Details:', error.details);
+      // Handle validation errors
+    } else if (error instanceof NebulaException) {
+      console.error(`Nebula API error (${error.statusCode}):`, error.message);
+      // Handle general API errors
+    } else {
+      console.error('Unexpected error:', error);
+      // Handle unexpected errors
     }
-    ```
-  </Tab>
-  <Tab title="Go">
-    ```go
-    import (
-        "fmt"
-        "strings"
-        nebulaclient "github.com/oronila/nebula-client-go/nebulaclient"
-    )
+  }
+}
 
+listMemories();
+```
+
+```go error_handling.go
+import (
+    "fmt"
+    "strings"
+    nebulaclient "github.com/oronila/nebula-client-go/nebulaclient"
+)
+
+func listMemories() {
     client := nebulaclient.NewClient("your-api-key")
 
     memories, err := client.ListMemories("your-cluster-id", "ROOT")
@@ -138,29 +139,31 @@ Nebula's SDKs provide consistent error handling patterns across all supported la
             fmt.Printf("Error: %v\n", err)
         }
     }
-    ```
-  </Tab>
-  <Tab title="cURL">
-    ```bash
-    # Authentication error example
-    curl -H "Authorization: ApiKey invalid_key" \
-         https://api.nebulacloud.app/clusters/your-cluster-id/files/list
+}
+```
 
-    # Response:
-    # {
-    #   "error": "NebulaAuthenticationException",
-    #   "message": "Invalid API key",
-    #   "statusCode": 401
-    # }
-    ```
-  </Tab>
-</Tabs>
+```bash curl_example.sh
+# Authentication error example
+curl -H "Authorization: ApiKey invalid_key" \
+     https://api.nebulacloud.app/clusters/your-cluster-id/files/list
+
+# Response:
+# {
+#   "error": "NebulaAuthenticationException",
+#   "message": "Invalid API key",
+#   "statusCode": 401
+# }
+```
+
+</CodeGroup>
 
 ## Best Practices (Essentials)
 
 - Catch specific exceptions first (`NebulaAuthenticationException`, `NebulaRateLimitException`), then fall back to `NebulaException`.
 - Use basic exponential backoff for 429s; do not retry authentication errors.
 - Log errors with operation context and status code.
+
+<Tip>Handle authentication (401) and rate limit (429) errors explicitly; never retry 401s, and use exponential backoff for 429s.</Tip>
 
 ### Minimal Retry Example (Python)
 ```python

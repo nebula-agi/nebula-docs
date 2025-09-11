@@ -7,17 +7,11 @@ description: 'Learn how to organize and manage document clusters in Nebula'
 
 Organize and manage memory clusters in Nebula for better organization and access control.
 
-## What are Clusters?
+Clusters in Nebula are organizational units for your memories. Think of them like projects or workspaces — a way to keep related sets of data grouped together. A cluster doesn't imply that the memories inside are similar or connected; it's simply a container you define.
 
-Clusters are organizational units that allow you to manually separate and organize your memories. Think of them as folders or containers where you can group related memories together, keeping different types of content isolated and manageable.
+For example, you might keep separate clusters for Research, Work Notes, and Personal Ideas. These clusters don't interact unless you explicitly search or manage across them.
 
-### Key Benefits
-
-- **Manual Separation**: Put memories in different clusters to keep them organized
-- **Targeted API Calls**: Use specific cluster IDs when storing or searching memories
-- **Better Organization**: Group memories by project, topic, department, or any other logical division
-- **Improved Search**: Search within specific clusters to get more relevant results
-- **Access Control**: Manage permissions at the cluster level
+<Note> Clusters here are not the same as graph clustering algorithms or automatic similarity-based grouping (We still run them under the hood). They're a manual, developer-controlled way to structure memory. </Note>
 
 ### How It Works
 
@@ -29,8 +23,9 @@ When you create memories, you assign them to specific clusters using the cluster
 
 ## Creating Clusters
 
-**Basic cluster creation:**
-```python
+<CodeGroup>
+
+```python create_single.py
 from nebula_client import NebulaClient
 
 client = NebulaClient(api_key="your-api-key")
@@ -47,8 +42,11 @@ cluster = client.create_cluster(
 print(f"Created cluster: {cluster.name} with ID: {cluster.id}")
 ```
 
-**Multiple clusters:**
-```python
+```python create_multiple.py
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
 # Create different types of clusters
 clusters = [
     client.create_cluster("Research", "Academic papers"),
@@ -56,6 +54,37 @@ clusters = [
     client.create_cluster("Projects", "Project documentation")
 ]
 ```
+
+```javascript create_clusters.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({
+  apiKey: 'your-api-key'
+});
+
+async function createClusters() {
+  // Create a cluster
+  const cluster = await client.createCluster({
+    name: "Research Papers",
+    description: "Academic research documents",
+    metadata: {
+      category: "academic",
+      domain: "computer_science"
+    }
+  });
+  console.log(`Created cluster: ${cluster.name} with ID: ${cluster.id}`);
+
+  // Create multiple clusters
+  const clusters = await Promise.all([
+    client.createCluster({ name: "Business", description: "Corporate documents" }),
+    client.createCluster({ name: "Projects", description: "Project documentation" })
+  ]);
+}
+
+createClusters();
+```
+
+</CodeGroup>
 
 ## Managing Memories in Clusters
 
@@ -102,8 +131,17 @@ memory_ids = client.store_memories(memories)
 
 ## Searching Clusters
 
-**Search within specific clusters using cluster IDs:**
-```python
+<CodeGroup>
+
+```python search_clusters.py
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
+# Assuming you have created work_cluster and personal_cluster
+work_cluster = client.create_cluster("Work", "Work-related memories")
+personal_cluster = client.create_cluster("Personal", "Personal memories")
+
 # Search only in work cluster
 work_results = client.search(
     query="project deadlines",
@@ -134,11 +172,57 @@ all_results = client.search(
 )
 ```
 
+```javascript search_clusters.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({
+  apiKey: 'your-api-key'
+});
+
+async function searchClusters() {
+  // Assuming you have created work_cluster and personal_cluster
+  const workCluster = await client.createCluster({
+    name: "Work",
+    description: "Work-related memories"
+  });
+  const personalCluster = await client.createCluster({
+    name: "Personal",
+    description: "Personal memories"
+  });
+
+  // Search only in work cluster
+  const workResults = await client.search({
+    query: "project deadlines",
+    clusterIds: [workCluster.id],
+    limit: 10
+  });
+
+  console.log(`Found ${workResults.length} work-related results`);
+
+  // Search across multiple clusters
+  const allResults = await client.search({
+    query: "important notes",
+    clusterIds: [workCluster.id, personalCluster.id],
+    limit: 15
+  });
+}
+
+searchClusters();
+```
+
+</CodeGroup>
+
 
 ## Cluster Management
 
 **List all clusters:**
-```python
+<CodeGroup>
+
+```python list_clusters.py
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
 # List clusters
 clusters = client.list_clusters(limit=50)
 
@@ -148,8 +232,34 @@ for cluster in clusters:
     print(f"  Created: {cluster.created_at}")
 ```
 
+```javascript list_clusters.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({ apiKey: 'your-api-key' });
+
+async function listClusters() {
+  const clusters = await client.listClusters({ limit: 50 });
+
+  clusters.forEach(cluster => {
+    console.log(`${cluster.name} (${cluster.memory_count || 0} memories)`);
+    console.log(`  Description: ${cluster.description}`);
+    console.log(`  Created: ${cluster.created_at}`);
+  });
+}
+
+listClusters();
+```
+
+</CodeGroup>
+
 **Update cluster:**
-```python
+<CodeGroup>
+
+```python update_cluster.py
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
 # Update cluster metadata
 updated_cluster = client.update_cluster(
     cluster_id=cluster.id,
@@ -161,6 +271,30 @@ updated_cluster = client.update_cluster(
     }
 )
 ```
+
+```javascript update_cluster.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({ apiKey: 'your-api-key' });
+
+async function updateCluster(clusterId) {
+  const updatedCluster = await client.updateCluster({
+    clusterId: clusterId,
+    name: "Updated Research Papers",
+    description: "Updated description",
+    metadata: {
+      category: "updated_category",
+      last_updated: "2024-01-01"
+    }
+  });
+
+  console.log(`Updated cluster: ${updatedCluster.name}`);
+}
+
+updateCluster("your-cluster-id");
+```
+
+</CodeGroup>
 
 ## Best Practices
 
@@ -174,7 +308,13 @@ updated_cluster = client.update_cluster(
 ## Advanced Examples
 
 **Multi-cluster search:**
-```python
+<CodeGroup>
+
+```python multi_search.py
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
 # Search across multiple clusters
 results = client.search(
     query="machine learning",
@@ -183,8 +323,34 @@ results = client.search(
 )
 ```
 
+```javascript multi_search.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({ apiKey: 'your-api-key' });
+
+async function multiClusterSearch() {
+  const results = await client.search({
+    query: "machine learning",
+    cluster_ids: ["research-cluster-1", "research-cluster-2"],
+    limit: 20
+  });
+
+  console.log(`Found ${results.length} results across clusters`);
+}
+
+multiClusterSearch();
+```
+
+</CodeGroup>
+
 **Cluster analytics:**
-```python
+<CodeGroup>
+
+```python analytics.py
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
 # Analyze cluster contents
 cluster_id = "your-cluster-id"  # Replace with actual cluster ID
 cluster = client.get_cluster(cluster_id)
@@ -193,6 +359,27 @@ memories = client.list_memories(cluster_ids=[cluster_id], limit=1000)
 print(f"Cluster: {cluster.name}")
 print(f"Total memories: {len(memories)}")
 ```
+
+```javascript analytics.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({ apiKey: 'your-api-key' });
+
+async function clusterAnalytics(clusterId) {
+  const cluster = await client.getCluster(clusterId);
+  const memories = await client.listMemories({
+    cluster_ids: [clusterId],
+    limit: 1000
+  });
+
+  console.log(`Cluster: ${cluster.name}`);
+  console.log(`Total memories: ${memories.length}`);
+}
+
+clusterAnalytics("your-cluster-id");
+```
+
+</CodeGroup>
 
 ## Next Steps
 

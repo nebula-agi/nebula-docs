@@ -7,6 +7,8 @@ description: 'Learn how to create and manage conversational AI interactions in N
 
 Create and manage conversational AI interactions using Nebula's conversation system for context-aware chat experiences.
 
+Conversations are not a separate storage type—they are regular memories differentiated by message role. You "toggle" conversation behavior by providing a `role` field when using `store_memory()` or `store_memories()` (and optionally linking turns with `parent_id`). Storage, indexing, and retrieval work the same way as normal memories; the primary differentiator is the speaker via the `role` parameter (e.g., `user`, `assistant`).
+
 ## Understanding Conversations
 
 Conversations in Nebula are persistent chat sessions that maintain context and history. They enable:
@@ -16,86 +18,276 @@ Conversations in Nebula are persistent chat sessions that maintain context and h
 - **Multi-turn Interactions**: Build complex conversations over multiple exchanges
 - **History Management**: Track and review conversation history
 
-**Purpose**: Conversations store conversational data for raw text retrieval, focusing on chronological flow and context, while memory operations are optimized for semantic search across stored information.
+**Purpose**: Conversations store conversational data for raw text retrieval, focusing on chronological flow and context, while memory operations are optimized for semantic search across stored information. Under the hood, both are stored the same; use conversations when you need roles and turn-by-turn context.
+
+<Info>
+Use conversations when you need to capture the speaker with a `role` and link turns via `parent_id`. See the examples under "Conversation messages" in the
+[Memory Operations](/guides/memory-operations) guide for how to store conversational memories with `store_memory()`/`store_memories()`.
+</Info>
+
 
 
 ## Creating Conversations
 
-**Basic conversation creation:**
-```python
+Conversations are created implicitly when you store the first message with a role. Use `store_memory()` or `store_memories()` to create and manage conversations.
+
+<CodeGroup>
+
+```python create.py
 from nebula_client import NebulaClient
 
 client = NebulaClient(api_key="your-api-key")
 
-# Create a new conversation
-conversation = client.conversations.create(
-    name="Research Discussion"
+# Create a cluster first
+cluster = client.create_cluster(
+    name="Research Discussions",
+    description="Cluster for research-related conversations"
 )
-print(f"Created conversation: {conversation.name} with ID: {conversation.id}")
+
+# Create a conversation by storing the first message
+conversation_id = client.store_memory({
+    "cluster_id": cluster.id,
+    "content": "Starting a research discussion about AI",
+    "role": "assistant",
+    "metadata": {
+        "conversation_name": "Research Discussion",
+        "topic": "artificial_intelligence"
+    }
+})
+print(f"Created conversation with ID: {conversation_id}")
 ```
 
-**Create conversation with context:**
-```python
-# Create conversation with specific context
-conversation = client.conversations.create(
-    name="ML Research Discussion"
-)
-print(f"Created contextual conversation: {conversation.name}")
+```javascript create.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({
+  apiKey: 'your-api-key'
+});
+
+async function createConversation() {
+  // Create a cluster first
+  const cluster = await client.createCluster({
+    name: "Research Discussions",
+    description: "Cluster for research-related conversations"
+  });
+
+  // Create a conversation by storing the first message
+  const conversationId = await client.storeMemory({
+    cluster_id: cluster.id,
+    content: "Starting a research discussion about AI",
+    role: "assistant",
+    metadata: {
+      conversation_name: "Research Discussion",
+      topic: "artificial_intelligence"
+    }
+  });
+  console.log(`Created conversation with ID: ${conversationId}`);
+}
+
+createConversation();
 ```
+
+</CodeGroup>
 
 ## Sending Messages
 
-**Send a message in a conversation:**
-```python
-# Send a message
-message = client.conversations.add_message(
-    conversation_id="conversation-uuid",
-    messages=[{
+Use `store_memory()` or `store_memories()` to add messages to existing conversations. Provide the conversation ID as the `parent_id` parameter.
+
+<CodeGroup>
+
+```python send_message.py
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
+# Add a message to an existing conversation
+conversation_id = client.store_memory({
+    "cluster_id": "your-cluster-id",
+    "content": "Hello, how can you help me?",
+    "role": "user",
+    "parent_id": "conversation-uuid"  # Existing conversation ID
+})
+print(f"Added message to conversation: {conversation_id}")
+
+# Add multiple messages at once
+message_ids = client.store_memories([
+    {
+        "cluster_id": "your-cluster-id",
         "content": "Hello, how can you help me?",
-        "role": "user"
-    }],
-    collection_id="collection-uuid"
-)
-print(f"Sent message: {message.content}")
+        "role": "user",
+        "parent_id": "conversation-uuid"
+    },
+    {
+        "cluster_id": "your-cluster-id",
+        "content": "I'd be happy to help! What do you need assistance with?",
+        "role": "assistant",
+        "parent_id": "conversation-uuid"
+    }
+])
+print(f"Added {len(message_ids)} messages to conversation")
 ```
+
+```javascript send_message.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({
+  apiKey: 'your-api-key'
+});
+
+async function sendMessage() {
+  // Add a message to an existing conversation
+  const conversationId = await client.storeMemory({
+    cluster_id: "your-cluster-id",
+    content: "Hello, how can you help me?",
+    role: "user",
+    parent_id: "conversation-uuid"  // Existing conversation ID
+  });
+  console.log(`Added message to conversation: ${conversationId}`);
+
+  // Add multiple messages at once
+  const messageIds = await client.storeMemories([
+    {
+      cluster_id: "your-cluster-id",
+      content: "Hello, how can you help me?",
+      role: "user",
+      parent_id: "conversation-uuid"
+    },
+    {
+      cluster_id: "your-cluster-id",
+      content: "I'd be happy to help! What do you need assistance with?",
+      role: "assistant",
+      parent_id: "conversation-uuid"
+    }
+  ]);
+  console.log(`Added ${messageIds.length} messages to conversation`);
+}
+
+sendMessage();
+```
+
+</CodeGroup>
 
 
 ## Managing Conversation History
 
 **Get conversation history:**
-```python
-# Get conversation history
-conversation = client.conversations.get("conversation-uuid")
+<CodeGroup>
 
-print(f"Conversation history ({len(conversation.messages)} messages):")
-for message in conversation.messages:
-    role = message.role.upper()
+```python get_history.py
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
+# Get conversation messages
+messages = client.get_conversation_messages("conversation-uuid")
+
+print(f"Conversation history ({len(messages)} messages):")
+for message in messages:
+    role = message.metadata.get("source_role", message.metadata.get("role", "unknown")).upper()
     content = message.content[:100] + "..." if len(message.content) > 100 else message.content
     print(f"  [{role}]: {content}")
+    print(f"    Created: {message.created_at}")
+    print(f"    ID: {message.id}")
 ```
+
+```javascript get_history.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({ apiKey: 'your-api-key' });
+
+async function getConversationHistory(conversationId) {
+  // Get conversation messages using the dedicated endpoint
+  const messages = await client.getConversationMessages(conversationId);
+
+  console.log(`Conversation history (${messages.length} messages):`);
+  messages.forEach(message => {
+    const role = message.metadata.source_role || message.metadata.role || "unknown";
+    const content = message.content.length > 100
+      ? message.content.substring(0, 100) + "..."
+      : message.content;
+    console.log(`  [${role.toUpperCase()}]: ${content}`);
+    console.log(`    Created: ${message.created_at}`);
+    console.log(`    ID: ${message.id}`);
+  });
+}
+
+getConversationHistory("conversation-uuid");
+```
+
+</CodeGroup>
 
 ## Conversation Management
 
 **List conversations:**
-```python
+<CodeGroup>
+
+```python list_conversations.py
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
 # List all conversations
-conversations = client.conversations.list_conversations(limit=50)
+conversations = client.list_conversations(limit=50, offset=0)
 
-for conv in conversations['conversations']:
-    print(f"{conv['title']} ({conv['message_count']} messages)")
-    print(f"  Created: {conv['created_at']}")
-    print(f"  ID: {conv['id']}")
-```
+print(f"Found {len(conversations)} conversations:")
+for conv in conversations:
+    conversation_name = conv.get("name", "Unnamed Conversation")
+    print(f"{conversation_name}")
+    print(f"  Created: {conv.get('created_at', 'Unknown')}")
+    print(f"  ID: {conv.get('id')}")
+    print()
 
-**Update conversation:**
-```python
-# Update conversation name
-result = client.conversations.update(
-    conversation_id="conversation-uuid",
-    name="Updated Research Discussion"
+# List conversations filtered by cluster
+filtered_conversations = client.list_conversations(
+    limit=20,
+    cluster_ids=["your-cluster-id"]
 )
-print(f"Updated conversation: {result.name}")
+print(f"Found {len(filtered_conversations)} conversations in specified clusters")
 ```
+
+```javascript list_conversations.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({ apiKey: 'your-api-key' });
+
+// List all conversations
+const conversations = await client.listConversations({
+  limit: 50,
+  offset: 0
+});
+
+console.log(`Found ${conversations.length} conversations:`);
+conversations.forEach(conv => {
+  const conversationName = conv.name || "Unnamed Conversation";
+  console.log(`${conversationName}`);
+  console.log(`  Created: ${conv.created_at || 'Unknown'}`);
+  console.log(`  ID: ${conv.id}`);
+  console.log();
+});
+
+// List conversations filtered by cluster
+const filteredConversations = await client.listConversations({
+  limit: 20,
+  cluster_ids: ["your-cluster-id"]
+});
+console.log(`Found ${filteredConversations.length} conversations in specified clusters`);
+```
+
+</CodeGroup>
+
+## Update Conversation Metadata
+
+<Warning>
+The Python SDK does not currently support updating existing conversation metadata or message content. This functionality is planned for future releases.
+</Warning>
+
+If you need to modify conversation metadata, you would need to:
+
+1. Create a new conversation with the updated metadata
+2. Copy existing messages to the new conversation (if supported by future API)
+3. Update your application to reference the new conversation ID
+
+For now, consider conversation metadata as immutable once created.
 
 ## Best Practices
 

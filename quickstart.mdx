@@ -12,6 +12,8 @@ Get up and running with Nebula API in minutes.
 - A Nebula account ([trynebula.ai](https://trynebula.ai))
 - An API key ([Authentication](/authentication) guide)
 
+<Warning>You must have a valid API key configured before running any examples below.</Warning>
+
 ## 1. Install
 
 ```bash
@@ -27,7 +29,9 @@ go get github.com/nebula-ai/nebula-client-go
 
 ## 2. Initialize Client
 
-```python
+<CodeGroup>
+
+```python client.py
 from nebula_client import NebulaClient
 
 # With API key
@@ -37,13 +41,21 @@ client = NebulaClient(api_key="your-api-key-here")
 # client = NebulaClient()
 ```
 
-```javascript
+```javascript client.js
 const { NebulaClient } = require('@nebula-ai/sdk');
 
 const client = new NebulaClient({
   apiKey: 'your-api-key-here'
 });
 ```
+
+```go client.go
+import nebulaclient "github.com/nebula-ai/nebula-client-go"
+
+client := nebulaclient.NewClient("your-api-key-here")
+```
+
+</CodeGroup>
 
 ## 3. Store & Search
 

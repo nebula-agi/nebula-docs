@@ -12,7 +12,9 @@ Practical examples for storing and searching memories with the Nebula API.
 ### Store Memories
 
 **Single memory:**
-```python
+<CodeGroup>
+
+```python store_single.py
 from nebula_client import NebulaClient
 
 client = NebulaClient(api_key="your-api-key")
@@ -25,8 +27,34 @@ memory_id = client.store_memory({
 })
 ```
 
+```javascript store_single.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({ apiKey: 'your-api-key' });
+
+async function storeMemory() {
+  const memoryId = await client.storeMemory({
+    cluster_id: "research-cluster",
+    content: "Machine learning automates analytical model building",
+    metadata: { topic: "AI", difficulty: "intermediate" }
+  });
+
+  console.log(`Stored memory with ID: ${memoryId}`);
+}
+
+storeMemory();
+```
+
+</CodeGroup>
+
 **Multiple memories:**
-```python
+<CodeGroup>
+
+```python store_multiple.py
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
 # Store multiple memories at once
 memories = [
     {
@@ -43,8 +71,42 @@ memories = [
 memory_ids = client.store_memories(memories)
 ```
 
+```javascript store_multiple.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({ apiKey: 'your-api-key' });
+
+async function storeMemories() {
+  const memories = [
+    {
+      cluster_id: "research-cluster",
+      content: "Supervised learning uses labeled training data",
+      metadata: { type: "definition", topic: "ML" }
+    },
+    {
+      cluster_id: "research-cluster",
+      content: "Neural networks are inspired by biological systems",
+      metadata: { type: "concept", topic: "AI" }
+    }
+  ];
+
+  const memoryIds = await client.storeMemories(memories);
+  console.log(`Stored memories with IDs: ${memoryIds}`);
+}
+
+storeMemories();
+```
+
+</CodeGroup>
+
 **Conversation messages:**
-```python
+<CodeGroup>
+
+```python store_conversation.py
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
 # Store conversation with roles
 conversation_id = client.store_memory({
     "cluster_id": "support-cluster",
@@ -62,10 +124,46 @@ client.store_memory({
 })
 ```
 
+```javascript store_conversation.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({ apiKey: 'your-api-key' });
+
+async function storeConversation() {
+  // Store conversation with roles
+  const conversationId = await client.storeMemory({
+    cluster_id: "support-cluster",
+    content: "Hello! How can I help you?",
+    role: "assistant",
+    metadata: { session_id: "session_123" }
+  });
+
+  // User response
+  await client.storeMemory({
+    cluster_id: "support-cluster",
+    content: "I need help with my account",
+    role: "user",
+    parent_id: conversationId
+  });
+
+  console.log(`Stored conversation with ID: ${conversationId}`);
+}
+
+storeConversation();
+```
+
+</CodeGroup>
+
 ### Search Memories
 
 **Basic search:**
-```python
+<CodeGroup>
+
+```python search_basic.py
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
 # Search for memories
 results = client.search(
     query="machine learning algorithms",
@@ -79,8 +177,38 @@ for result in results:
     print(f"Metadata: {result.metadata}")
 ```
 
+```javascript search_basic.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({ apiKey: 'your-api-key' });
+
+async function searchMemories() {
+  const results = await client.search({
+    query: "machine learning algorithms",
+    cluster_ids: ["research-cluster"],
+    limit: 10
+  });
+
+  results.forEach(result => {
+    console.log(`Score: ${result.score.toFixed(3)}`);
+    console.log(`Content: ${result.content.substring(0, 100)}...`);
+    console.log(`Metadata: ${JSON.stringify(result.metadata)}`);
+  });
+}
+
+searchMemories();
+```
+
+</CodeGroup>
+
 **Search with filters:**
-```python
+<CodeGroup>
+
+```python search_filters.py
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
 # Filter by metadata and score threshold
 results = client.search(
     query="artificial intelligence",
@@ -93,10 +221,40 @@ results = client.search(
 )
 ```
 
+```javascript search_filters.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({ apiKey: 'your-api-key' });
+
+async function searchWithFilters() {
+  const results = await client.search({
+    query: "artificial intelligence",
+    cluster_ids: ["research-cluster"],
+    limit: 5,
+    filters: {
+      "metadata.topic": "AI",
+      "score_threshold": 0.6
+    }
+  });
+
+  console.log(`Found ${results.length} results`);
+}
+
+searchWithFilters();
+```
+
+</CodeGroup>
+
 ### Retrieve & List Memories
 
 **Get specific memory:**
-```python
+<CodeGroup>
+
+```python get_memory.py
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
 # Retrieve a memory by ID
 memory = client.get_memory(memory_id)
 print(f"Content: {memory.content}")
@@ -104,8 +262,31 @@ print(f"Metadata: {memory.metadata}")
 print(f"Created: {memory.created_at}")
 ```
 
+```javascript get_memory.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({ apiKey: 'your-api-key' });
+
+async function getMemory(memoryId) {
+  const memory = await client.getMemory(memoryId);
+  console.log(`Content: ${memory.content}`);
+  console.log(`Metadata: ${JSON.stringify(memory.metadata)}`);
+  console.log(`Created: ${memory.created_at}`);
+}
+
+getMemory("memory_id_here");
+```
+
+</CodeGroup>
+
 **List memories in cluster:**
-```python
+<CodeGroup>
+
+```python list_memories.py
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
 # List memories in a cluster
 memories = client.list_memories(
     cluster_ids=["research-cluster"],
@@ -119,9 +300,35 @@ for memory in memories:
     print(f"Created: {memory.created_at}")
 ```
 
+```javascript list_memories.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({ apiKey: 'your-api-key' });
+
+async function listMemories() {
+  const memories = await client.listMemories({
+    cluster_ids: ["research-cluster"],
+    limit: 20,
+    offset: 0
+  });
+
+  memories.forEach(memory => {
+    console.log(`ID: ${memory.id}`);
+    console.log(`Content: ${memory.content.substring(0, 60)}...`);
+    console.log(`Created: ${memory.created_at}`);
+  });
+}
+
+listMemories();
+```
+
+</CodeGroup>
+
 ## Complete Workflow
 
-```python
+<CodeGroup>
+
+```python workflow.py
 from nebula_client import NebulaClient
 
 client = NebulaClient(api_key="your-api-key")
@@ -154,6 +361,52 @@ memory = client.get_memory(memory_ids[0])
 print(f"Retrieved: {memory.content}")
 ```
 
+```javascript workflow.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({
+  apiKey: 'your-api-key'
+});
+
+async function runWorkflow() {
+  // 1. Create cluster and store memories
+  const cluster = await client.createCluster({
+    name: "demo-cluster",
+    description: "Example cluster"
+  });
+
+  const memories = [
+    {
+      cluster_id: cluster.id,
+      content: "Python is a high-level programming language",
+      metadata: { language: "python", type: "fact" }
+    },
+    {
+      cluster_id: cluster.id,
+      content: "JavaScript is used for web development",
+      metadata: { language: "javascript", type: "fact" }
+    }
+  ];
+
+  const memoryIds = await client.storeMemories(memories);
+
+  // 2. Search memories
+  const results = await client.search({
+    query: "programming languages",
+    clusterIds: [cluster.id],
+    limit: 5
+  });
+
+  // 3. Retrieve specific memory
+  const memory = await client.getMemory(memoryIds[0]);
+  console.log(`Retrieved: ${memory.content}`);
+}
+
+runWorkflow();
+```
+
+</CodeGroup>
+
 ## Best Practices
 
 - **Use descriptive metadata** for better organization and filtering
@@ -161,6 +414,8 @@ print(f"Retrieved: {memory.content}")
 - **Set appropriate limits** in search to manage performance
 - **Use natural language queries** for best search results
 - **Validate required fields** before storing memories
+
+<Tip>Attach focused, query-relevant metadata (e.g., topic, type, priority) to improve search precision and filtering.</Tip>
 
 ## Next Steps
 
