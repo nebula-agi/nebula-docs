@@ -30,51 +30,88 @@ The Nebula MCP servers provide a bridge between AI assistants and your Nebula me
 
 ## Installation
 
-### Quick Setup (Recommended)
+### Quick Installation
 
-**One-command installation for your AI client:**
+#### Node.js Version
 
+##### One-Command Setup (Recommended)
 ```bash
-# Replace 'claude' with: claude, cursor, cline, roo, or windsurf
+# Install for Claude Desktop
 npx install-mcp "@nebula-ai/mcp-server --stdio" --client claude --env NEBULA_API_KEY=your_api_key
+
+# Install for Cursor
+npx install-mcp "@nebula-ai/mcp-server --stdio" --client cursor --env NEBULA_API_KEY=your_api_key
+
+# Install for VS Code/Cline
+npx install-mcp "@nebula-ai/mcp-server --stdio" --client cline --env NEBULA_API_KEY=your_api_key
 ```
 
-**Or use Python version:**
+##### Custom Installer
 ```bash
+npx @nebula-ai/mcp-server-install --client claude --api-key your_api_key
+```
+
+#### Python Version
+
+##### One-Command Setup
+```bash
+# Install for Claude Desktop
 npx install-mcp "python -m nebula_mcp" --client claude --env NEBULA_API_KEY=your_api_key
+
+# Install for Cursor
+npx install-mcp "python -m nebula_mcp" --client cursor --env NEBULA_API_KEY=your_api_key
+```
+
+##### Custom Installer
+```bash
+# Install package first
+pip install nebula-mcp
+
+# Then configure client
+nebula-mcp-install --client claude --api-key your_api_key
 ```
 
 ### Manual Installation
 
-**Node.js version:**
-```json
-{
-  "mcpServers": {
-    "nebula": {
-      "command": "npx",
-      "args": ["-y", "@nebula-ai/mcp-server", "--stdio"],
-      "env": {
-        "NEBULA_API_KEY": "your_api_key_here"
-      }
-    }
-  }
-}
-```
+#### Node.js Version
 
-**Python version (install first: `pip install nebula-mcp`):**
-```json
-{
-  "mcpServers": {
-    "nebula": {
-      "command": "python",
-      "args": ["-m", "nebula_mcp"],
-      "env": {
-        "NEBULA_API_KEY": "your_api_key_here"
-      }
-    }
-  }
-}
-```
+1. **Install package**: `npm install -g @nebula-ai/mcp-server` (optional, npx works without install)
+
+2. **Configure client**:
+   ```json
+   {
+     "mcpServers": {
+       "nebula": {
+         "command": "npx",
+         "args": ["-y", "@nebula-ai/mcp-server", "--stdio"],
+         "env": {
+           "NEBULA_API_KEY": "your_api_key_here",
+           "NEBULA_API_URL": "https://api.nebulacloud.app"
+         }
+       }
+     }
+   }
+   ```
+
+#### Python Version
+
+1. **Install package**: `pip install nebula-mcp`
+
+2. **Configure client**:
+   ```json
+   {
+     "mcpServers": {
+       "nebula": {
+         "command": "python",
+         "args": ["-m", "nebula_mcp"],
+         "env": {
+           "NEBULA_API_KEY": "your_api_key_here",
+           "NEBULA_API_URL": "https://api.nebulacloud.app"
+         }
+       }
+     }
+   }
+   ```
 
 ## Configuration
 
@@ -83,34 +120,53 @@ npx install-mcp "python -m nebula_mcp" --client claude --env NEBULA_API_KEY=your
 - **`NEBULA_API_KEY`** (required): Your Nebula API key
 - **`NEBULA_API_URL`** (optional): Custom API endpoint (defaults to `https://api.nebulacloud.app`)
 
-### Client-Specific Config Files
+### Client-Specific Instructions
 
-**Claude Desktop:**
+#### Claude Desktop
+
+**Config Location:**
 - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 - Linux: `~/.config/claude/claude_desktop_config.json`
 
-**Cursor:**
-- Global: `~/.cursor/mcp.json`
-- Project: `.cursor/mcp.json` in project root
+**Steps:**
+1. Add server configuration to `mcpServers` section
+2. Restart Claude Desktop
+3. Look for Nebula tools in the tools UI
 
-**VS Code Clients:**
+#### Cursor
+
+**Global Installation:**
+- Config: `~/.cursor/mcp.json`
+
+**Project-Specific Installation:**
+- Config: `.cursor/mcp.json` in project root
+
+**Steps:**
+1. Add server configuration
+2. Restart Cursor
+3. Access tools through MCP integration
+
+#### VS Code Clients (Cline, Roo, Windsurf)
+
+**Config Locations:**
 - Cline: `~/.cline/mcp.json`
 - Roo: `~/.roo-cline/mcp.json`
 - Windsurf: `~/.windsurf/mcp.json`
 
+**Steps:**
+1. Add server configuration to `mcpServers` section
+2. Restart VS Code
+3. Access tools through client's MCP integration
+
 ## Available Tools
 
-**add_memory** - Add content to a Nebula cluster
-- `cluster_id` (required): Target cluster ID
-- `content` (required): Content to store
-- `role` (optional): For conversation messages ("user", "assistant", etc.)
-- `parent_id` (optional): Parent conversation ID
+Both versions provide identical tool sets:
 
-**search_memories** - Search memories within a specific cluster
-- `query` (required): Search query
-- `cluster_id` (required): Target cluster ID
-- `limit` (optional): Maximum results (default: 10)
+### Memory Operations
+- `add_memory`: Add content to a cluster (supports both documents and conversation messages)
+- `search_memories`: Search memories within a cluster
+- `health_check`: Test connection and API key validity
 
 ## Usage Examples
 
@@ -144,48 +200,63 @@ Based on your stored preferences, you prefer email communication over phone call
 
 ## Troubleshooting
 
-**Tools Not Appearing:**
-- Check API key is correctly set
-- Verify package installation
-- Restart AI client after configuration changes
+### Common Issues
 
-**Connection Errors:**
-- Test API key with SDK directly
-- Ensure network connectivity to `api.nebulacloud.app`
-- Verify `NEBULA_API_URL` if using custom deployment
+1. **Tools not appearing**
+   - Ensure correct transport (stdio for local clients)
+   - Check API key configuration
+   - Restart MCP client after changes
+   - Verify package installation
 
-**Testing Installation:**
+2. **Connection errors**
+   - Verify API key validity
+   - Check network connectivity
+   - Use `health_check` tool to test
+
+3. **Command not found**
+   - **Node.js**: Ensure Node.js 18+ is installed
+   - **Python**: Ensure Python 3.9+ is in PATH
+
+### Testing Installation
+
+#### Test with MCP Inspector
 ```bash
-# Test with MCP Inspector
+# Node.js version
 npx @modelcontextprotocol/inspector npx @nebula-ai/mcp-server --stdio --api-key your_key
 
-# Direct server test
-npx @nebula-ai/mcp-server --stdio --api-key your_key
+# Python version
+npx @modelcontextprotocol/inspector python -m nebula_mcp
 ```
 
-**Getting Help:**
-- Check client logs for MCP server errors
-- Verify cluster IDs exist and are accessible
-- Test functionality with direct SDK
-- Report issues at [GitHub](https://github.com/nebula-ai/nebula/issues)
+#### Direct Server Test
+```bash
+# Node.js version
+npx @nebula-ai/mcp-server --stdio --api-key your_key
+
+# Python version
+python -m nebula_mcp
+```
 
 ## Multiple Environments
 
-For different API keys/environments, create project-specific configs:
+Use project-specific configurations for different API keys/environments.
 
+## Advanced Configuration
+
+### Custom API Endpoints
 ```json
-// .cursor/mcp.json (project-specific)
 {
-  "servers": {
-    "nebula-dev": {
-      "command": "npx",
-      "args": ["-y", "@nebula-ai/mcp-server", "--stdio"],
-      "env": {
-        "NEBULA_API_KEY": "dev_api_key"
-      }
-    }
+  "env": {
+    "NEBULA_API_KEY": "your_key",
+    "NEBULA_API_URL": "https://your-custom-endpoint.com"
   }
 }
+```
+
+### Hosted Mode (Node.js only)
+```bash
+npx @nebula-ai/mcp-server --api-key your_key
+# Connects to ws://localhost:3956
 ```
 
 ## Next Steps
