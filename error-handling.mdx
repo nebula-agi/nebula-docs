@@ -1,189 +1,172 @@
 ---
 title: 'Error Handling'
-description: 'Comprehensive guide to error handling in Nebula using NebulaException and best practices'
+description: 'Comprehensive guide to handling Nebula errors with clear retry rules and best practices'
 ---
 
 # Error Handling
 
-Nebula provides a robust error handling system built around the `NebulaException` class and its specialized variants. This page covers how to handle errors effectively when working with the Nebula API.
+Nebula errors follow standard HTTP semantics and map to typed SDK exceptions so applications can decide when to fail fast and when to retry safely.
 
-## NebulaException Overview
+## At a glance
 
-`NebulaException` is the base exception class in Nebula, designed to provide structured error information including status codes, detailed error messages, and additional context. It's used throughout the Nebula ecosystem to ensure consistent error handling.
+- Never retry 401/403 without changing credentials or permissions; treat 429/5xx as transient with jittered backoff and a cap.
+- Log the correlation/request ID from error responses for debugging while avoiding sensitive data in logs.
 
-### Exception Hierarchy
+## Common errors
 
-Nebula provides several specialized exception types that inherit from `NebulaException`:
+| Status | When it happens | Action |
+|---|---|---|
+| 400/422 | Invalid inputs or schema violations | Fix request and do not retry until corrected; log validation details safely. |
+| 401 | Missing/invalid Authorization header or key | Do not retry without changing credentials; re-authenticate and reissue. |
+| 403 | Authenticated but insufficient permissions/scope | Do not retry; adjust key scope/permissions and try again. |
+| 404 | Resource or cluster not found | Verify identifiers or scope; do not blind-retry. |
+| 409 | Conflict (state/version) | Resolve conflict or use idempotency/versioning before retry. |
+| 429 | Rate limited | Retry with capped exponential backoff and jitter; respect server hints if present. |
+| 5xx | Transient server error | Retry with capped exponential backoff and jitter; escalate if persistent. |
 
-| Exception Type | Status Code | Description |
-|----------------|-------------|-------------|
-| `NebulaException` | Variable | Base exception for all Nebula errors |
-| `NebulaClientException` | N/A | Client-side errors (network, configuration) |
-| `NebulaAuthenticationException` | 401 | Authentication failures |
-| `NebulaRateLimitException` | 429 | Rate limiting errors |
-| `NebulaValidationException` | 400 | Input validation errors |
-| `NebulaClusterNotFoundException` | 404 | Missing cluster references |
+## Exception hierarchy and HTTP mapping
 
-## Authentication Errors
+| Exception | Typical HTTP | Meaning |
+|---|---|---|
+| `NebulaException` | Varies | Base class with status code, message, details, and `request_id`. |
+| `NebulaClientException` | N/A | Client/network/configuration issues before a response. |
+| `NebulaAuthenticationException` | 401 | Invalid or missing authentication. |
+| `NebulaAuthorizationException` | 403 | Authenticated but insufficient permissions. |
+| `NebulaRateLimitException` | 429 | Rate limit exceeded; transient. |
+| `NebulaValidationException` | 400/422 | Invalid parameters or payload. |
+| `NebulaNotFoundException` | 404 | Resource or cluster not found. |
 
-The most common errors you'll encounter are related to authentication and authorization:
+## Error payloads
 
-| Status Code | Error Type | Description |
-|-------------|------------|-------------|
-| 401 | `NebulaAuthenticationException` | Invalid or missing authentication |
-| 403 | `Forbidden` | Valid authentication but insufficient permissions |
-| 404 | `Not Found` | API key or cluster not found |
-
-### Example Error Response
+Nebula error responses include a stable shape with non-sensitive context and a correlation ID for support and tracing.
 
 ```json
 {
-  "error": "NebulaAuthenticationException",
-  "message": "Invalid API key provided",
-  "statusCode": 401,
-  "details": {
-    "error_type": "authentication_error",
-    "timestamp": "2024-01-15T10:30:00Z"
+  "error": "NebulaRateLimitException",
+  "message": "Too Many Requests",
+  "statusCode": 429,
+  "details": { "hint": "reduce request rate" },
+  "request_id": "req_12345"
+}
+```
+
+## When to retry
+
+- Retry 429 and 5xx with capped exponential backoff and jitter to spread retries and reduce contention.
+- Do not retry 400/401/403/404 without changing the request, credentials, or permissions; these are not transient.
+
+## Backoff with jitter
+
+Use capped exponential backoff with full jitter; prefer idempotency for writes.
+
+<CodeGroup>
+
+```javascript retry.js
+async function retryWithJitter(fn, { retries = 4, base = 300, factor = 2, cap = 5000 } = {}) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      if (i === retries - 1) throw e;
+      const exp = Math.min(cap, base * Math.pow(factor, i));
+      const delay = Math.random() * exp; // full jitter
+      await new Promise(r => setTimeout(r, delay));
+    }
   }
 }
 ```
 
-## Handling Errors in Code
+```python retry.py
+import random, time
 
-Nebula's SDKs provide consistent error handling patterns across all supported languages.
+def retry_with_jitter(fn, retries=4, base=0.3, factor=2.0, cap=5.0):
+    for i in range(retries):
+        try:
+            return fn()
+        except Exception:
+            if i == retries - 1:
+                raise
+            exp = min(cap, base * (factor ** i))
+            time.sleep(random.random() * exp)  # full jitter
+```
+
+</CodeGroup>
+
+## Language examples
+
+- Catch specific exceptions first, then fall back to the base type for a single reporting/logging path.
+- Include the request context and status code in logs, and avoid logging secrets or full payloads containing sensitive data.
 
 <CodeGroup>
 
 ```python error_handling.py
-from nebula_client import NebulaClient, NebulaException, NebulaAuthenticationException
+from nebula_client import (
+    NebulaClient,
+    NebulaException,
+    NebulaAuthenticationException,
+    NebulaAuthorizationException,
+    NebulaRateLimitException,
+    NebulaValidationException,
+)
 
 client = NebulaClient(api_key="your-api-key")
 
 try:
     memories = client.list_memories(cluster_ids=["your-cluster-id"])
-    print(f"Found {len(memories)} memories")
 except NebulaAuthenticationException as e:
-    print(f"Authentication failed: {e.message}")
-    # Handle authentication error (e.g., refresh token, prompt user)
+    # fail fast: fix credentials/permissions
+    raise
+except NebulaAuthorizationException as e:
+    # fail fast: adjust permissions/scope
+    raise
 except NebulaRateLimitException as e:
-    print(f"Rate limit exceeded. Retry after: {e.details.get('retry_after', 'unknown')}")
-    # Implement exponential backoff
+    # retry with jittered backoff (see snippet above)
+    pass
 except NebulaValidationException as e:
-    print(f"Validation error: {e.message}")
-    print(f"Details: {e.details}")
-    # Handle validation errors (e.g., fix input data)
+    # correct input and reissue
+    pass
 except NebulaException as e:
-    print(f"Nebula API error ({e.status_code}): {e.message}")
-    # Handle general API errors
-except Exception as e:
-    print(f"Unexpected error: {e}")
-    # Handle unexpected errors
+    # generic handling (e.status_code, e.message, e.details, e.request_id)
+    pass
 ```
 
 ```javascript error_handling.js
-const { NebulaClient, NebulaException, NebulaAuthenticationException } = require('@nebula-ai/sdk');
+const {
+  NebulaClient,
+  NebulaException,
+  NebulaAuthenticationException,
+  NebulaAuthorizationException,
+  NebulaRateLimitException,
+  NebulaValidationException,
+} = require('@nebula-ai/sdk');
 
-const client = new NebulaClient({
-  apiKey: 'your-api-key'
-});
+const client = new NebulaClient({ apiKey: process.env.NEBULA_API_KEY });
 
-async function listMemories() {
+async function main() {
   try {
-    const memories = await client.listMemories({
-      clusterId: 'your-cluster-id'
-    });
-    console.log(`Found ${memories.length} memories`);
-  } catch (error) {
-    if (error instanceof NebulaAuthenticationException) {
-      console.error('Authentication failed:', error.message);
-      // Handle authentication error
-    } else if (error instanceof NebulaRateLimitException) {
-      console.error('Rate limit exceeded:', error.message);
-      // Implement retry with backoff
-    } else if (error instanceof NebulaValidationException) {
-      console.error('Validation error:', error.message);
-      console.error('Details:', error.details);
-      // Handle validation errors
-    } else if (error instanceof NebulaException) {
-      console.error(`Nebula API error (${error.statusCode}):`, error.message);
-      // Handle general API errors
+    const res = await client.listMemories({ clusterId: 'your-cluster-id' });
+    console.log(res.length);
+  } catch (e) {
+    if (e instanceof NebulaAuthenticationException) {
+      // do not retry
+    } else if (e instanceof NebulaAuthorizationException) {
+      // do not retry
+    } else if (e instanceof NebulaRateLimitException) {
+      // retry with jitter
+    } else if (e instanceof NebulaValidationException) {
+      // fix request
+    } else if (e instanceof NebulaException) {
+      // generic handling
     } else {
-      console.error('Unexpected error:', error);
-      // Handle unexpected errors
+      // unexpected
     }
   }
 }
 
-listMemories();
-```
-
-```go error_handling.go
-import (
-    "fmt"
-    "strings"
-    nebulaclient "github.com/oronila/nebula-client-go/nebulaclient"
-)
-
-func listMemories() {
-    client := nebulaclient.NewClient("your-api-key")
-
-    memories, err := client.ListMemories("your-cluster-id", "ROOT")
-    if err != nil {
-        if strings.Contains(err.Error(), "401") {
-            fmt.Println("Authentication failed. Check your API key.")
-        } else if strings.Contains(err.Error(), "403") {
-            fmt.Println("Insufficient permissions for this operation.")
-        } else if strings.Contains(err.Error(), "429") {
-            fmt.Println("Rate limit exceeded. Please wait before retrying.")
-        } else {
-            fmt.Printf("Error: %v\n", err)
-        }
-    }
-}
+main();
 ```
 
 ```bash curl_example.sh
-# Authentication error example
-curl -H "Authorization: ApiKey invalid_key" \
-     https://api.nebulacloud.app/clusters/your-cluster-id/files/list
-
-# Response:
-# {
-#   "error": "NebulaAuthenticationException",
-#   "message": "Invalid API key",
-#   "statusCode": 401
-# }
-```
-
-</CodeGroup>
-
-## Best Practices (Essentials)
-
-- Catch specific exceptions first (`NebulaAuthenticationException`, `NebulaRateLimitException`), then fall back to `NebulaException`.
-- Use basic exponential backoff for 429s; do not retry authentication errors.
-- Log errors with operation context and status code.
-
-<Tip>Handle authentication (401) and rate limit (429) errors explicitly; never retry 401s, and use exponential backoff for 429s.</Tip>
-
-### Minimal Retry Example (Python)
-```python
-import time
-
-def with_backoff(fn, retries=3):
-    delay = 1
-    for attempt in range(retries):
-        try:
-            return fn()
-        except NebulaRateLimitException:
-            if attempt == retries - 1:
-                raise
-            time.sleep(delay)
-            delay *= 2
-```
-
-## Quick Testing
-
-```bash
 # Validate API key
 curl -s -H "Authorization: ApiKey YOUR_API_KEY" \
   https://api.nebulacloud.app/v1/health
@@ -193,7 +176,14 @@ curl -s -H "Authorization: ApiKey YOUR_API_KEY" \
   https://api.nebulacloud.app/clusters/YOUR_CLUSTER_ID/files/list
 ```
 
-## Next Steps
+</CodeGroup>
+
+## Notes on idempotency and conflicts
+
+- Use idempotency keys for non-idempotent writes to avoid duplicate effects when retrying.
+- Resolve 409 conflicts via versioning or by reconciling state before retrying.
+
+## Next steps
 
 - [Authentication](/authentication)
 - [API Reference](/api-reference/overview)

@@ -66,13 +66,13 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:noor@nebulacloud.app"
+        "href": "mailto:support@trynebula.ai"
       }
     ],
     "primary": {
       "type": "button",
       "label": "Dashboard",
-      "href": "https://nebulacloud.app/dashboard"
+      "href": "https://trynebula.ai/dashboard"
     }
   },
   "footer": {}

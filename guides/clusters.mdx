@@ -25,7 +25,7 @@ When you create memories, you assign them to specific clusters using the cluster
 
 <CodeGroup>
 
-```python create_single.py
+```python create_clusters.py
 from nebula_client import NebulaClient
 
 client = NebulaClient(api_key="your-api-key")
@@ -40,18 +40,11 @@ cluster = client.create_cluster(
     }
 )
 print(f"Created cluster: {cluster.name} with ID: {cluster.id}")
-```
 
-```python create_multiple.py
-from nebula_client import NebulaClient
-
-client = NebulaClient(api_key="your-api-key")
-
-# Create different types of clusters
+# Create multiple clusters
 clusters = [
-    client.create_cluster("Research", "Academic papers"),
     client.create_cluster("Business", "Corporate documents"),
-    client.create_cluster("Projects", "Project documentation")
+    client.create_cluster("Projects", "Project documentation"),
 ]
 ```
 
@@ -89,7 +82,13 @@ createClusters();
 ## Managing Memories in Clusters
 
 **Store memories in specific clusters using cluster IDs:**
-```python
+<CodeGroup>
+
+```python store_memories.py
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
 # Create different clusters for manual separation
 work_cluster = client.create_cluster("Work", "Work-related memories")
 personal_cluster = client.create_cluster("Personal", "Personal memories")
@@ -128,6 +127,66 @@ memories = [
 ]
 memory_ids = client.store_memories(memories)
 ```
+
+```javascript store_memories.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({
+  apiKey: 'your-api-key'
+});
+
+async function storeMemoriesInClusters() {
+  // Create different clusters for manual separation
+  const workCluster = await client.createCluster({
+    name: 'Work',
+    description: 'Work-related memories'
+  });
+  const personalCluster = await client.createCluster({
+    name: 'Personal',
+    description: 'Personal memories'
+  });
+
+  // Store memories in different clusters using cluster IDs
+  const workMemory = await client.storeMemory({
+    cluster_id: workCluster.id, // Send to work cluster
+    content: 'Meeting notes about Q4 planning',
+    metadata: {
+      type: 'meeting_notes',
+      date: '2024-01-15'
+    }
+  });
+
+  const personalMemory = await client.storeMemory({
+    cluster_id: personalCluster.id, // Send to personal cluster
+    content: 'Recipe for chocolate chip cookies',
+    metadata: {
+      type: 'recipe',
+      cuisine: 'dessert'
+    }
+  });
+
+  // Store multiple memories to different clusters
+  const memories = [
+    {
+      cluster_id: workCluster.id, // Work cluster
+      content: 'Project deadline is next Friday',
+      metadata: { priority: 'high', project: 'Q4' }
+    },
+    {
+      cluster_id: personalCluster.id, // Personal cluster
+      content: "Book recommendation: 'The Pragmatic Programmer'",
+      metadata: { category: 'books', genre: 'technical' }
+    }
+  ];
+  const memoryIds = await client.storeMemories(memories);
+
+  console.log('Created memory IDs:', memoryIds);
+}
+
+storeMemoriesInClusters();
+```
+
+</CodeGroup>
 
 ## Searching Clusters
 

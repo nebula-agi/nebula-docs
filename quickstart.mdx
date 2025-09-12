@@ -49,17 +49,19 @@ const client = new NebulaClient({
 });
 ```
 
-```go client.go
-import nebulaclient "github.com/nebula-ai/nebula-client-go"
-
-client := nebulaclient.NewClient("your-api-key-here")
-```
+ 
 
 </CodeGroup>
 
 ## 3. Store & Search
 
-```python
+<CodeGroup>
+
+```python store_and_search.py
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key-here")
+
 # Create a cluster
 cluster = client.create_cluster("my_notes", "Personal notes")
 
@@ -82,13 +84,86 @@ for result in results:
     print(f"Content: {result.content}")
 ```
 
+```javascript store_and_search.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({
+  apiKey: 'your-api-key-here'
+});
+
+async function storeAndSearch() {
+  // Create a cluster
+  const cluster = await client.createCluster({
+    name: 'my_notes',
+    description: 'Personal notes'
+  });
+
+  // Store a memory
+  const memoryId = await client.storeMemory({
+    cluster_id: cluster.id,
+    content: 'Machine learning is transforming healthcare',
+    metadata: { topic: 'AI', importance: 'high' }
+  });
+
+  // Search memories
+  const results = await client.search({
+    query: 'machine learning healthcare',
+    cluster_ids: [cluster.id],
+    limit: 5
+  });
+
+  results.forEach(result => {
+    console.log(`Score: ${result.score?.toFixed?.(2)}`);
+    console.log(`Content: ${result.content}`);
+  });
+}
+
+storeAndSearch();
+```
+
+</CodeGroup>
+
 ## 4. Test Connection
 
-```bash
+<CodeGroup>
+
+```bash health_check.sh
 # Verify your setup
 curl -s -H "Authorization: ApiKey YOUR_API_KEY" \
   https://api.nebulacloud.app/v1/health
 ```
+
+```python health_check.py
+import os
+import requests
+
+api_key = os.getenv("NEBULA_API_KEY") or "YOUR_API_KEY"
+
+resp = requests.get(
+    "https://api.nebulacloud.app/v1/health",
+    headers={"Authorization": f"ApiKey {api_key}"},
+    timeout=10,
+)
+
+print(resp.status_code)
+print(resp.json())
+```
+
+```javascript health_check.js
+// Node 18+ provides global fetch
+const apiKey = process.env.NEBULA_API_KEY || 'YOUR_API_KEY';
+
+(async () => {
+  const res = await fetch('https://api.nebulacloud.app/v1/health', {
+    headers: { Authorization: `ApiKey ${apiKey}` }
+  });
+  console.log(res.status);
+  const json = await res.json();
+  console.log(json);
+})();
+```
+
+</CodeGroup>
 
 ## Next Steps
 
