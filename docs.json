@@ -3,9 +3,9 @@
   "theme": "mint",
   "name": "Nebula",
   "colors": {
-    "primary": "#7c4dff",
-    "light": "#b39ddb",
-    "dark": "#512da8"
+    "primary": "#5040ff",
+    "light": "#9373ff",
+    "dark": "#2e20cc"
   },
   "favicon": {
     "dark": "/logo/dark.png",
