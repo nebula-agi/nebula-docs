@@ -214,6 +214,35 @@ async function getConversationHistory(conversationId) {
 getConversationHistory("conversation-uuid");
 ```
 
+**Batch retrieval (JavaScript only):**
+```javascript batch_history.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({ apiKey: 'your-api-key' });
+
+async function getBatchConversationHistory() {
+  // Get multiple conversations at once for better performance
+  const conversationIds = [
+    "conv-uuid-1",
+    "conv-uuid-2",
+    "conv-uuid-3"
+  ];
+
+  // Returns a dictionary mapping conversation IDs to their messages
+  const batchResults = await client.getConversationMessages(conversationIds);
+
+  for (const [convId, messages] of Object.entries(batchResults)) {
+    console.log(`\nConversation ${convId} (${messages.length} messages):`);
+    messages.forEach(message => {
+      const role = message.metadata.source_role || message.metadata.role || "unknown";
+      console.log(`  [${role.toUpperCase()}]: ${message.content.substring(0, 60)}...`);
+    });
+  }
+}
+
+getBatchConversationHistory();
+```
+
 </CodeGroup>
 
 ## Conversation Management

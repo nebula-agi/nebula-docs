@@ -148,45 +148,106 @@ const memory = await client.getMemory('memory_id_here');
 
 **List memories:**
 ```javascript
-const memories = await client.listMemories(
-  ['cluster_123', 'cluster_456'], // Required array of cluster IDs
-  100, // limit (optional, default: 100)
-  0    // offset (optional, default: 0)
-);
-```
-
-**Get cluster memories:**
-```javascript
-const memories = await client.getClusterMemories({
-  clusterId: 'cluster_id_here',
-  limit: 100,    // Default: 100
-  offset: 0      // Default: 0
+const memories = await client.listMemories({
+  cluster_ids: ['cluster_123', 'cluster_456'], // Required array of cluster IDs
+  limit: 100,    // Optional, default: 100
+  offset: 0      // Optional, default: 0
 });
 ```
 
 ## Search Operations
 
-**Search memories:**
+**Basic search:**
 ```javascript
 const results = await client.search({
   query: 'artificial intelligence',
-  cluster_ids: ['research_cluster'],         // Required
-  limit: 10,                                 // Default: 10
-  retrievalType: 'simple',                   // Default: 'simple'
-  filters: { 'metadata.topic': 'ai' }        // Optional
+  cluster_ids: ['research_cluster'],      // Required
+  limit: 10                               // Optional - default: 10
 });
 ```
 
-**Search types:**
-- `simple`: Basic semantic search
-- `reasoning`: Enhanced reasoning-based search
-- `planning`: Planning-oriented search
+**Advanced search with filters:**
+```javascript
+const results = await client.search({
+  query: 'machine learning research',
+  cluster_ids: ['research_cluster'],
+  limit: 15,
+  searchSettings: {
+    filters: { 'metadata.topic': 'ai' },
+    semantic_weight: 7.0,                 // Emphasize conceptual matching
+    fulltext_weight: 3.0,                 // Some keyword matching
+    type_limits: {
+      entity_limit: 5,
+      chunk_limit: 10
+    }
+  }
+});
+```
+
+**Search with source role filtering:**
+```javascript
+// Filter by conversation roles using canonical filter keys
+const results = await client.search({
+  query: 'user feedback',
+  cluster_ids: ['support_cluster'],
+  searchSettings: {
+    filters: {
+      source_role: 'user',               // Special filter key for graph search
+      'metadata.category': 'feedback'
+    }
+  }
+});
+```
 
 ## Memory Management
 
-**Delete memory:**
+**Delete single memory:**
 ```javascript
 const success = await client.delete('memory_id_here');
+console.log('Deleted:', success); // true
+```
+
+**Delete multiple memories (batch):**
+```javascript
+// Delete multiple memories in a single operation
+const memoryIds = ['mem_id_1', 'mem_id_2', 'mem_id_3'];
+const result = await client.delete(memoryIds);
+
+// Access detailed results
+console.log('Message:', result.message);
+console.log('Deleted:', result.results.successful);
+console.log('Failed:', result.results.failed);
+console.log('Summary:', result.results.summary);
+
+// Example response:
+// {
+//   message: "Deleted 2 of 3 documents",
+//   results: {
+//     successful: ["mem_id_1", "mem_id_2"],
+//     failed: [{id: "mem_id_3", error: "Not found or no permission"}],
+//     summary: {total: 3, succeeded: 2, failed: 1}
+//   }
+// }
+```
+
+**TypeScript types:**
+```typescript
+// Single deletion returns boolean
+const deleted: boolean = await client.delete('memory_id');
+
+// Batch deletion returns detailed results
+const result: {
+  message: string;
+  results: {
+    successful: string[];
+    failed: Array<{id: string; error: string}>;
+    summary: {
+      total: number;
+      succeeded: number;
+      failed: number;
+    };
+  };
+} = await client.delete(['id1', 'id2']);
 ```
 
 ## TypeScript Interfaces
@@ -243,6 +304,26 @@ try {
   } else {
     console.error('Unexpected error:', error);
   }
+}
+```
+
+## Conversation Management
+
+**Get single conversation messages:**
+```javascript
+const messages = await client.getConversationMessages('conversation-uuid');
+console.log(`Found ${messages.length} messages`);
+```
+
+**Get multiple conversations (batch):**
+```javascript
+// Efficiently retrieve multiple conversations in one call
+const conversationIds = ['conv-1', 'conv-2', 'conv-3'];
+const batchResults = await client.getConversationMessages(conversationIds);
+
+// Returns: { 'conv-1': [...messages], 'conv-2': [...messages], 'conv-3': [...messages] }
+for (const [convId, messages] of Object.entries(batchResults)) {
+  console.log(`${convId}: ${messages.length} messages`);
 }
 ```
 

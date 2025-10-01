@@ -156,6 +156,8 @@ storeConversation();
 
 ### Search Memories
 
+Nebula provides intelligent hybrid search that automatically combines semantic (vector) and full-text search for optimal results.
+
 **Basic search:**
 <CodeGroup>
 
@@ -164,11 +166,13 @@ from nebula_client import NebulaClient
 
 client = NebulaClient(api_key="your-api-key")
 
-# Search for memories
+# Simple search with default hybrid settings
 results = client.search(
     query="machine learning algorithms",
     cluster_ids=["research-cluster"],
-    limit=10
+    search_settings={
+        "limit": 10
+    }
 )
 
 for result in results:
@@ -186,7 +190,9 @@ async function searchMemories() {
   const results = await client.search({
     query: "machine learning algorithms",
     cluster_ids: ["research-cluster"],
-    limit: 10
+    searchSettings: {
+      limit: 10
+    }
   });
 
   results.forEach(result => {
@@ -201,49 +207,277 @@ searchMemories();
 
 </CodeGroup>
 
-**Search with filters:**
+**Search with custom weights:**
 <CodeGroup>
 
-```python search_filters.py
+```python search_weights.py
 from nebula_client import NebulaClient
 
 client = NebulaClient(api_key="your-api-key")
 
-# Filter by metadata and score threshold
+# Control semantic vs full-text search balance
 results = client.search(
     query="artificial intelligence",
     cluster_ids=["research-cluster"],
-    limit=5,
-    filters={
-        "metadata.topic": "AI",
-        "score_threshold": 0.6
+    search_settings={
+        "limit": 10,
+        "semantic_weight": 8.0,    # Emphasize conceptual matching
+        "fulltext_weight": 2.0,    # Some keyword matching
+        "include_scores": True,
+        "include_metadatas": True
     }
 )
+
+print(f"Found {len(results)} results with hybrid search")
 ```
 
-```javascript search_filters.js
+```javascript search_weights.js
 const { NebulaClient } = require('@nebula-ai/sdk');
 
 const client = new NebulaClient({ apiKey: 'your-api-key' });
 
-async function searchWithFilters() {
+async function searchWithWeights() {
   const results = await client.search({
     query: "artificial intelligence",
     cluster_ids: ["research-cluster"],
-    limit: 5,
-    filters: {
-      "metadata.topic": "AI",
-      "score_threshold": 0.6
+    searchSettings: {
+      limit: 10,
+      semantic_weight: 8.0,    // Emphasize conceptual matching
+      fulltext_weight: 2.0,    // Some keyword matching
+      include_scores: true,
+      include_metadatas: true
     }
   });
 
-  console.log(`Found ${results.length} results`);
+  console.log(`Found ${results.length} results with hybrid search`);
 }
 
-searchWithFilters();
+searchWithWeights();
 ```
 
 </CodeGroup>
+
+**Search with type-specific limits:**
+<CodeGroup>
+
+```python search_types.py
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
+# Control different result types separately
+results = client.search(
+    query="neural networks and machine learning",
+    cluster_ids=["research-cluster"],
+    search_settings={
+        "limit": 25,
+        "type_limits": {
+            "entity_limit": 10,        # Key concepts and entities
+            "relationship_limit": 8,   # Connections between concepts
+            "community_limit": 3,      # Topic clusters
+            "chunk_limit": 15          # Text passages
+        }
+    }
+)
+
+# Results will contain mixed types with specific limits
+for result in results:
+    print(f"Type: {result.result_type}, Content: {result.content[:80]}...")
+```
+
+```javascript search_types.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({ apiKey: 'your-api-key' });
+
+async function searchWithTypeLimits() {
+  const results = await client.search({
+    query: "neural networks and machine learning",
+    cluster_ids: ["research-cluster"],
+    searchSettings: {
+      limit: 25,
+      type_limits: {
+        entity_limit: 10,        // Key concepts and entities
+        relationship_limit: 8,   // Connections between concepts
+        community_limit: 3,      // Topic clusters
+        chunk_limit: 15          // Text passages
+      }
+    }
+  });
+
+  // Results contain mixed types with specific limits
+  results.forEach(result => {
+    console.log(`Type: ${result.result_type}, Content: ${result.content.substring(0, 80)}...`);
+  });
+}
+
+searchWithTypeLimits();
+```
+
+</CodeGroup>
+
+**Advanced filtering:**
+<CodeGroup>
+
+```python search_advanced.py
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
+# Advanced search with metadata filtering and graph traversal
+results = client.search(
+    query="research methodology",
+    cluster_ids=["research-cluster"],
+    search_settings={
+        "limit": 15,
+        "semantic_weight": 6.0,
+        "fulltext_weight": 3.0,
+        "filters": {
+            "metadata.topic": {"$eq": "methodology"},
+            "source_role": "researcher",      # Graph filtering by speaker role
+            "owner_scope": ["team_lead"]      # Limit to specific contributors
+        },
+        "type_limits": {
+            "entity_limit": 8,
+            "chunk_limit": 12
+        }
+    }
+)
+
+print(f"Found {len(results)} specialized research results")
+```
+
+```javascript search_advanced.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({ apiKey: 'your-api-key' });
+
+async function advancedSearch() {
+  const results = await client.search({
+    query: "research methodology",
+    cluster_ids: ["research-cluster"],
+    searchSettings: {
+      limit: 15,
+      semantic_weight: 6.0,
+      fulltext_weight: 3.0,
+      filters: {
+        "metadata.topic": { $eq: "methodology" },
+        source_role: "researcher",      // Graph filtering by speaker role
+        owner_scope: ["team_lead"]      // Limit to specific contributors
+      },
+      type_limits: {
+        entity_limit: 8,
+        chunk_limit: 12
+      }
+    }
+  });
+
+  console.log(`Found ${results.length} specialized research results`);
+}
+
+advancedSearch();
+```
+
+</CodeGroup>
+
+### Delete Memories
+
+**Delete single memory:**
+<CodeGroup>
+
+```python delete_single.py
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
+# Delete a single memory
+success = client.delete("memory_id_here")
+print(f"Deleted: {success}")  # True
+```
+
+```javascript delete_single.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({ apiKey: 'your-api-key' });
+
+async function deleteMemory() {
+  const success = await client.delete('memory_id_here');
+  console.log(`Deleted: ${success}`);  // true
+}
+
+deleteMemory();
+```
+
+</CodeGroup>
+
+**Delete multiple memories (batch):**
+<CodeGroup>
+
+```python delete_batch.py
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
+# Delete multiple memories in a single efficient operation
+memory_ids = ["mem_id_1", "mem_id_2", "mem_id_3", "mem_id_4"]
+result = client.delete(memory_ids)
+
+# Access detailed results
+print(f"Message: {result['message']}")
+print(f"Successfully deleted: {result['results']['successful']}")
+print(f"Failed deletions: {result['results']['failed']}")
+print(f"Total: {result['results']['summary']['total']}")
+print(f"Succeeded: {result['results']['summary']['succeeded']}")
+print(f"Failed: {result['results']['summary']['failed']}")
+
+# Example response:
+# {
+#   "message": "Deleted 3 of 4 documents",
+#   "results": {
+#     "successful": ["mem_id_1", "mem_id_2", "mem_id_3"],
+#     "failed": [{"id": "mem_id_4", "error": "Not found or no permission"}],
+#     "summary": {"total": 4, "succeeded": 3, "failed": 1}
+#   }
+# }
+```
+
+```javascript delete_batch.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({ apiKey: 'your-api-key' });
+
+async function deleteBatch() {
+  // Delete multiple memories in a single efficient operation
+  const memoryIds = ['mem_id_1', 'mem_id_2', 'mem_id_3', 'mem_id_4'];
+  const result = await client.delete(memoryIds);
+
+  // Access detailed results
+  console.log(`Message: ${result.message}`);
+  console.log(`Successfully deleted: ${result.results.successful}`);
+  console.log(`Failed deletions:`, result.results.failed);
+  console.log(`Total: ${result.results.summary.total}`);
+  console.log(`Succeeded: ${result.results.summary.succeeded}`);
+  console.log(`Failed: ${result.results.summary.failed}`);
+
+  // Example response:
+  // {
+  //   message: "Deleted 3 of 4 documents",
+  //   results: {
+  //     successful: ["mem_id_1", "mem_id_2", "mem_id_3"],
+  //     failed: [{id: "mem_id_4", error: "Not found or no permission"}],
+  //     summary: {total: 4, succeeded: 3, failed: 1}
+  //   }
+  // }
+}
+
+deleteBatch();
+```
+
+</CodeGroup>
+
+<Tip>
+Use batch deletion when removing multiple memories to significantly improve performance. The batch operation uses efficient database-level filtering instead of iterating through individual deletions.
+</Tip>
 
 ### Retrieve & List Memories
 
@@ -359,6 +593,15 @@ results = client.search(
 # 3. Retrieve specific memory
 memory = client.get_memory(memory_ids[0])
 print(f"Retrieved: {memory.content}")
+
+# 4. Delete memories (single and batch)
+# Delete single memory
+deleted = client.delete(memory_ids[0])
+print(f"Single deletion: {deleted}")
+
+# Delete remaining memories in batch
+batch_result = client.delete(memory_ids[1:])
+print(f"Batch deletion: {batch_result['message']}")
 ```
 
 ```javascript workflow.js
@@ -393,19 +636,256 @@ async function runWorkflow() {
   // 2. Search memories
   const results = await client.search({
     query: "programming languages",
-    clusterIds: [cluster.id],
+    cluster_ids: [cluster.id],
     limit: 5
   });
 
   // 3. Retrieve specific memory
   const memory = await client.getMemory(memoryIds[0]);
   console.log(`Retrieved: ${memory.content}`);
+
+  // 4. Delete memories (single and batch)
+  // Delete single memory
+  const deleted = await client.delete(memoryIds[0]);
+  console.log(`Single deletion: ${deleted}`);
+
+  // Delete remaining memories in batch
+  const batchResult = await client.delete(memoryIds.slice(1));
+  console.log(`Batch deletion: ${batchResult.message}`);
 }
 
 runWorkflow();
 ```
 
 </CodeGroup>
+
+## Advanced Search Settings
+
+For power users who need fine-grained control over search behavior, Nebula provides advanced search settings through the optional `search_settings` parameter.
+
+### Hybrid Search Weights
+
+Control the balance between semantic (conceptual) and full-text (keyword) search:
+
+<CodeGroup>
+
+```python weights.py
+# Pure semantic search (conceptual matching only)
+results = client.search(
+    query="artificial intelligence concepts",
+    cluster_ids=["research-cluster"],
+    search_settings={
+        "semantic_weight": 10.0,
+        "fulltext_weight": 0.0
+    }
+)
+
+# Pure full-text search (keyword matching only)
+results = client.search(
+    query="machine learning API documentation",
+    cluster_ids=["docs-cluster"],
+    search_settings={
+        "semantic_weight": 0.0,
+        "fulltext_weight": 10.0
+    }
+)
+
+# Balanced hybrid search (default behavior)
+results = client.search(
+    query="neural network implementation",
+    cluster_ids=["research-cluster"],
+    search_settings={
+        "semantic_weight": 5.0,    # Default
+        "fulltext_weight": 1.0     # Default
+    }
+)
+```
+
+```javascript weights.js
+// Pure semantic search (conceptual matching only)
+const results = await client.search({
+  query: "artificial intelligence concepts",
+  cluster_ids: ["research-cluster"],
+  searchSettings: {
+    semantic_weight: 10.0,
+    fulltext_weight: 0.0
+  }
+});
+
+// Pure full-text search (keyword matching only)
+const results = await client.search({
+  query: "machine learning API documentation",
+  cluster_ids: ["docs-cluster"],
+  searchSettings: {
+    semantic_weight: 0.0,
+    fulltext_weight: 10.0
+  }
+});
+
+// Balanced hybrid search (default behavior)
+const results = await client.search({
+  query: "neural network implementation",
+  cluster_ids: ["research-cluster"],
+  searchSettings: {
+    semantic_weight: 5.0,    // Default
+    fulltext_weight: 1.0     // Default
+  }
+});
+```
+
+</CodeGroup>
+
+### Type-Specific Limits
+
+Control how many results to return for each type of search result:
+
+<CodeGroup>
+
+```python type_limits.py
+results = client.search(
+    query="machine learning research methodology",
+    cluster_ids=["research-cluster"],
+    search_settings={
+        "limit": 25,               # Total result limit
+        "type_limits": {
+            "entity_limit": 8,      # Key concepts and entities
+            "relationship_limit": 5, # Connections between concepts
+            "community_limit": 2,    # Topic clusters
+            "chunk_limit": 15        # Text passages
+        }
+    }
+)
+```
+
+```javascript type_limits.js
+const results = await client.search({
+  query: "machine learning research methodology",
+  cluster_ids: ["research-cluster"],
+  searchSettings: {
+    limit: 25,               // Total result limit
+    type_limits: {
+      entity_limit: 8,       // Key concepts and entities
+      relationship_limit: 5, // Connections between concepts
+      community_limit: 2,    // Topic clusters
+      chunk_limit: 15        // Text passages
+    }
+  }
+});
+```
+
+</CodeGroup>
+
+### Canonical Filter Keys
+
+Use special filter keys that Nebula interprets internally for graph-based operations:
+
+<CodeGroup>
+
+```python canonical_filters.py
+# Filter by conversation roles and ownership
+results = client.search(
+    query="user requirements and feedback",
+    cluster_ids=["support-cluster"],
+    search_settings={
+        "filters": {
+            "source_role": "user",           # Graph traversal by speaker role
+            "owner_scope": ["team_lead"],    # Limit to specific contributors
+            "metadata.priority": "high"      # Regular metadata filtering
+        }
+    }
+)
+```
+
+```javascript canonical_filters.js
+// Filter by conversation roles and ownership
+const results = await client.search({
+  query: "user requirements and feedback",
+  cluster_ids: ["support-cluster"],
+  searchSettings: {
+    filters: {
+      source_role: "user",           // Graph traversal by speaker role
+      owner_scope: ["team_lead"],    // Limit to specific contributors
+      "metadata.priority": "high"    // Regular metadata filtering
+    }
+  }
+});
+```
+
+</CodeGroup>
+
+**Special filter keys:**
+- `source_role`: Filter by conversation role (user, assistant, system)
+- `owner_scope`: Filter by content contributor/owner
+- `metadata.*`: Standard metadata filtering
+
+## Chunk-Level Authority (Advanced Feature)
+
+Nebula supports **chunk-level authority** to control the influence of specific messages or content in retrieval and ranking. This is particularly useful for conversation data where different speakers may have varying levels of expertise or credibility.
+
+### How It Works
+
+When you add messages to a conversation, you can specify an `authority` value (0.0 to 1.0) that affects how that content is weighted during search and retrieval:
+
+- **0.0**: No authority (content has minimal influence)
+- **0.5**: Neutral authority (default)
+- **1.0**: Maximum authority (content has strong influence)
+
+### Usage Examples
+
+**High-authority expert content:**
+```python
+# Expert opinion with high authority
+client.conversations.add_message(
+    conversation_id="conv-123",
+    messages=[{
+        "content": "Based on my 20 years of experience in machine learning, this approach is optimal.",
+        "role": "user",
+        "authority": 0.9  # High authority for expert content
+    }],
+    collection_id="research-cluster"
+)
+```
+
+**Low-authority system messages:**
+```python
+# System notification with low authority
+client.conversations.add_message(
+    conversation_id="conv-123", 
+    messages=[{
+        "content": "System maintenance scheduled for tonight.",
+        "role": "system",
+        "authority": 0.2  # Low authority for system messages
+    }],
+    collection_id="research-cluster"
+)
+```
+
+**Default authority (when not specified):**
+```python
+# No authority specified - uses default 0.5
+client.conversations.add_message(
+    conversation_id="conv-123",
+    messages=[{
+        "content": "Regular user message",
+        "role": "user"
+        # authority defaults to 0.5
+    }],
+    collection_id="research-cluster"
+)
+```
+
+### Authority in Retrieval
+
+During search and retrieval, Nebula uses the authority values to:
+
+1. **Weight speaker embeddings** - Higher authority speakers have more influence
+2. **Boost relevant content** - High-authority content gets ranking boosts
+
+The authority system works seamlessly with Nebula's existing retrieval strategies, including BFS traversal and set transformer components.
+
+<Warning>
+Authority values are stored in chunk metadata and persist across searches. Use this feature thoughtfully to maintain search quality and avoid bias.
+</Warning>
 
 ## Best Practices
 
@@ -414,6 +894,7 @@ runWorkflow();
 - **Set appropriate limits** in search to manage performance
 - **Use natural language queries** for best search results
 - **Validate required fields** before storing memories
+- **Start with basic search** and only use advanced settings when needed
 
 <Tip>Attach focused, query-relevant metadata (e.g., topic, type, priority) to improve search precision and filtering.</Tip>
 

@@ -122,27 +122,77 @@ memories = client.list_memories(
 
 ## Search Operations
 
-**Search memories:**
+**Basic search:**
 ```python
 results = client.search(
     query="artificial intelligence",
-    cluster_ids=["research_cluster"],            # Required - list of cluster IDs
-    limit=10,                                    # Default: 10
-    retrieval_type="simple",                     # Default: "simple"
-    filters={"metadata.topic": "ai"}             # Optional
+    cluster_ids=["research_cluster"],     # Required - list of cluster IDs
+    limit=10                              # Optional - default: 10
 )
 ```
 
-**Search types:**
-- `simple`: Basic semantic search
-- `reasoning`: Enhanced reasoning-based search
-- `planning`: Planning-oriented search
+**Advanced search with filters:**
+```python
+results = client.search(
+    query="machine learning research",
+    cluster_ids=["research_cluster"],
+    limit=15,
+    search_settings={
+        "filters": {"metadata.topic": "ai"},
+        "semantic_weight": 7.0,           # Emphasize conceptual matching
+        "fulltext_weight": 3.0,           # Some keyword matching
+        "type_limits": {
+            "entity_limit": 5,
+            "chunk_limit": 10
+        }
+    }
+)
+```
+
+**Search with source role filtering:**
+```python
+# Filter by conversation roles using canonical filter keys
+results = client.search(
+    query="user feedback",
+    cluster_ids=["support_cluster"],
+    search_settings={
+        "filters": {
+            "source_role": "user",        # Special filter key for graph search
+            "metadata.category": "feedback"
+        }
+    }
+)
+```
 
 ## Memory Management
 
-**Delete memory:**
+**Delete single memory:**
 ```python
 success = client.delete("memory_id_here")
+print(f"Deleted: {success}")  # True
+```
+
+**Delete multiple memories (batch):**
+```python
+# Delete multiple memories in a single operation
+memory_ids = ["mem_id_1", "mem_id_2", "mem_id_3"]
+result = client.delete(memory_ids)
+
+# Access detailed results
+print(f"Message: {result['message']}")
+print(f"Deleted: {result['results']['successful']}")
+print(f"Failed: {result['results']['failed']}")
+print(f"Summary: {result['results']['summary']}")
+
+# Example response:
+# {
+#   "message": "Deleted 2 of 3 documents",
+#   "results": {
+#     "successful": ["mem_id_1", "mem_id_2"],
+#     "failed": [{"id": "mem_id_3", "error": "Not found or no permission"}],
+#     "summary": {"total": 3, "succeeded": 2, "failed": 1}
+#   }
+# }
 ```
 
 ## Data Models

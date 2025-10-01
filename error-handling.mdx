@@ -31,10 +31,8 @@ Nebula errors follow standard HTTP semantics and map to typed SDK exceptions so 
 | `NebulaException` | Varies | Base class with status code, message, details, and `request_id`. |
 | `NebulaClientException` | N/A | Client/network/configuration issues before a response. |
 | `NebulaAuthenticationException` | 401 | Invalid or missing authentication. |
-| `NebulaAuthorizationException` | 403 | Authenticated but insufficient permissions. |
 | `NebulaRateLimitException` | 429 | Rate limit exceeded; transient. |
 | `NebulaValidationException` | 400/422 | Invalid parameters or payload. |
-| `NebulaNotFoundException` | 404 | Resource or cluster not found. |
 
 ## Error payloads
 
@@ -104,7 +102,6 @@ from nebula_client import (
     NebulaClient,
     NebulaException,
     NebulaAuthenticationException,
-    NebulaAuthorizationException,
     NebulaRateLimitException,
     NebulaValidationException,
 )
@@ -116,9 +113,6 @@ try:
 except NebulaAuthenticationException as e:
     # fail fast: fix credentials/permissions
     raise
-except NebulaAuthorizationException as e:
-    # fail fast: adjust permissions/scope
-    raise
 except NebulaRateLimitException as e:
     # retry with jittered backoff (see snippet above)
     pass
@@ -127,6 +121,7 @@ except NebulaValidationException as e:
     pass
 except NebulaException as e:
     # generic handling (e.status_code, e.message, e.details, e.request_id)
+    # For 403 errors, check e.status_code == 403 and adjust permissions
     pass
 ```
 
@@ -135,7 +130,6 @@ const {
   NebulaClient,
   NebulaException,
   NebulaAuthenticationException,
-  NebulaAuthorizationException,
   NebulaRateLimitException,
   NebulaValidationException,
 } = require('@nebula-ai/sdk');
@@ -144,12 +138,10 @@ const client = new NebulaClient({ apiKey: process.env.NEBULA_API_KEY });
 
 async function main() {
   try {
-    const res = await client.listMemories({ clusterId: 'your-cluster-id' });
+    const res = await client.listMemories({ cluster_ids: ['your-cluster-id'] });
     console.log(res.length);
   } catch (e) {
     if (e instanceof NebulaAuthenticationException) {
-      // do not retry
-    } else if (e instanceof NebulaAuthorizationException) {
       // do not retry
     } else if (e instanceof NebulaRateLimitException) {
       // retry with jitter
@@ -157,6 +149,7 @@ async function main() {
       // fix request
     } else if (e instanceof NebulaException) {
       // generic handling
+      // For 403 errors, check e.statusCode === 403 and adjust permissions
     } else {
       // unexpected
     }
