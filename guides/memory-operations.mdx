@@ -316,7 +316,140 @@ searchWithTypeLimits();
 
 </CodeGroup>
 
-**Advanced filtering:**
+**Metadata filtering:**
+
+Filter search results by metadata attributes using MongoDB-like operators. Supports comprehensive filtering for both vector/chunk search and graph search (entities, relationships, communities).
+
+<CodeGroup>
+
+```python search_filtered.py
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
+# Basic metadata filtering
+results = client.search(
+    query="machine learning",
+    cluster_ids=["research-cluster"],
+    filters={
+        "metadata.category": {"$eq": "research"},
+        "metadata.verified": True
+    },
+    limit=10
+)
+
+# Numeric comparison
+results = client.search(
+    query="high priority tasks",
+    cluster_ids=["tasks-cluster"],
+    filters={"metadata.priority": {"$gte": 8}},
+    limit=10
+)
+
+# Array operations
+results = client.search(
+    query="AI engineers",
+    cluster_ids=["team-cluster"],
+    filters={
+        "metadata.skills": {"$overlap": ["python", "tensorflow", "pytorch"]}
+    },
+    limit=10
+)
+
+# Complex combinations
+results = client.search(
+    query="senior developers",
+    cluster_ids=["hiring-cluster"],
+    filters={
+        "$and": [
+            {"metadata.verified": True},
+            {"metadata.level": {"$gte": 5}},
+            {
+                "$or": [
+                    {"metadata.skills": {"$overlap": ["python", "go"]}},
+                    {"metadata.years_experience": {"$gte": 8}}
+                ]
+            }
+        ]
+    },
+    limit=10
+)
+
+print(f"Found {len(results)} filtered results")
+```
+
+```javascript search_filtered.js
+const { NebulaClient } = require('@nebula-ai/sdk');
+
+const client = new NebulaClient({ apiKey: 'your-api-key' });
+
+async function searchWithFilters() {
+  // Basic metadata filtering
+  let results = await client.search({
+    query: "machine learning",
+    cluster_ids: ["research-cluster"],
+    filters: {
+      "metadata.category": {"$eq": "research"},
+      "metadata.verified": true
+    },
+    limit: 10
+  });
+
+  // Numeric comparison
+  results = await client.search({
+    query: "high priority tasks",
+    cluster_ids: ["tasks-cluster"],
+    filters: {"metadata.priority": {"$gte": 8}},
+    limit: 10
+  });
+
+  // Array operations
+  results = await client.search({
+    query: "AI engineers",
+    cluster_ids: ["team-cluster"],
+    filters: {
+      "metadata.skills": {"$overlap": ["python", "tensorflow", "pytorch"]}
+    },
+    limit: 10
+  });
+
+  // Complex combinations
+  results = await client.search({
+    query: "senior developers",
+    cluster_ids: ["hiring-cluster"],
+    filters: {
+      "$and": [
+        {"metadata.verified": true},
+        {"metadata.level": {"$gte": 5}},
+        {
+          "$or": [
+            {"metadata.skills": {"$overlap": ["python", "go"]}},
+            {"metadata.years_experience": {"$gte": 8}}
+          ]
+        }
+      ]
+    },
+    limit: 10
+  });
+
+  console.log(`Found ${results.length} filtered results`);
+}
+
+searchWithFilters();
+```
+
+</CodeGroup>
+
+<Note>
+For comprehensive metadata filtering documentation including all supported operators, nested paths, and real-world examples, see the [Metadata Filtering Guide](/guides/metadata-filtering).
+
+**Supported operators:** `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, `$lte`, `$like`, `$ilike`, `$in`, `$nin`, `$overlap`, `$contains`, `$and`, `$or`
+</Note>
+
+**Advanced search settings:**
+
+Customize search behavior with semantic/fulltext weights and graph-specific filters:
+
 <CodeGroup>
 
 ```python search_advanced.py
@@ -324,14 +457,14 @@ from nebula_client import NebulaClient
 
 client = NebulaClient(api_key="your-api-key")
 
-# Advanced search with metadata filtering and graph traversal
+# Control semantic vs full-text balance with graph filtering
 results = client.search(
     query="research methodology",
     cluster_ids=["research-cluster"],
     search_settings={
         "limit": 15,
-        "semantic_weight": 6.0,
-        "fulltext_weight": 3.0,
+        "semantic_weight": 6.0,      # Emphasize conceptual matching
+        "fulltext_weight": 3.0,      # Some keyword matching
         "filters": {
             "metadata.topic": {"$eq": "methodology"},
             "source_role": "researcher",      # Graph filtering by speaker role
@@ -358,8 +491,8 @@ async function advancedSearch() {
     cluster_ids: ["research-cluster"],
     searchSettings: {
       limit: 15,
-      semantic_weight: 6.0,
-      fulltext_weight: 3.0,
+      semantic_weight: 6.0,      // Emphasize conceptual matching
+      fulltext_weight: 3.0,      // Some keyword matching
       filters: {
         "metadata.topic": { $eq: "methodology" },
         source_role: "researcher",      // Graph filtering by speaker role

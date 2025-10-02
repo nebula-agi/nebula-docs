@@ -173,14 +173,28 @@ const results = await client.search({
   cluster_ids: ['research_cluster'],
   limit: 15,
   searchSettings: {
+    search_mode: 'super',                 // 'fast' or 'super' (default: 'super')
     filters: { 'metadata.topic': 'ai' },
     semantic_weight: 7.0,                 // Emphasize conceptual matching
     fulltext_weight: 3.0,                 // Some keyword matching
-    type_limits: {
-      entity_limit: 5,
-      chunk_limit: 10
-    }
   }
+});
+```
+
+**Search modes:**
+```javascript
+// Fast mode: Fast BFS graph traversal (max_depth=3, simple scoring)
+const results = await client.search({
+  query: 'quick search',
+  cluster_ids: ['cluster_id'],
+  searchSettings: { search_mode: 'fast' }
+});
+
+// Super mode: SuperBFS with set transformers (max_depth=50, contextualized scoring)
+const results = await client.search({
+  query: 'complex query',
+  cluster_ids: ['cluster_id'],
+  searchSettings: { search_mode: 'super' }  // Default
 });
 ```
 

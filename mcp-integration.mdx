@@ -12,30 +12,60 @@ Connect Claude Desktop, Cursor, and VS Code–based clients to Nebula via MCP to
 ## Quick start
 
 <Tabs>
+  <Tab title="Smithery (Easiest)">
+
+  **One-click installation from the [Smithery registry](https://smithery.ai)**
+
+  Simply submit your MCP server to Smithery using:
+  - **URL**: `https://mcp.nebulacloud.app/mcp`
+  - **Auth** (optional): Configure in your Smithery profile with `Authorization: Bearer YOUR_API_KEY` and `X-Cluster-ID: your_cluster_id`
+
+  Without auth, it uses the public demo cluster. With auth, it scopes to your cluster.
+
+  **Benefits:** Discoverable catalog, one-click install, zero configuration.
+
+  </Tab>
   <Tab title="Web-Hosted (Recommended)">
 
   **No local installation required!** Connect directly to your cluster:
 
   ```bash
   # Claude Desktop
-  npx install-mcp "https://mcp.nebulacloud.app/{cluster_id}" \
+  npx install-mcp "https://mcp.nebulacloud.app/mcp" \
     --client claude \
-    --header "Authorization: Bearer YOUR_NEBULA_API_KEY"
+    --header "Authorization: Bearer YOUR_NEBULA_API_KEY" \
+    --header "X-Cluster-ID: YOUR_CLUSTER_ID"
 
   # Cursor
-  npx install-mcp "https://mcp.nebulacloud.app/{cluster_id}" \
+  npx install-mcp "https://mcp.nebulacloud.app/mcp" \
     --client cursor \
-    --header "Authorization: Bearer YOUR_NEBULA_API_KEY"
+    --header "Authorization: Bearer YOUR_NEBULA_API_KEY" \
+    --header "X-Cluster-ID: YOUR_CLUSTER_ID"
 
   # VS Code/Cline
-  npx install-mcp "https://mcp.nebulacloud.app/{cluster_id}" \
+  npx install-mcp "https://mcp.nebulacloud.app/mcp" \
     --client cline \
-    --header "Authorization: Bearer YOUR_NEBULA_API_KEY"
+    --header "Authorization: Bearer YOUR_NEBULA_API_KEY" \
+    --header "X-Cluster-ID: YOUR_CLUSTER_ID"
   ```
 
-  **Replace:** `{cluster_id}` with your cluster ID, `YOUR_NEBULA_API_KEY` with your API key.
+  **Replace:** `YOUR_CLUSTER_ID` with your cluster ID, `YOUR_NEBULA_API_KEY` with your API key.
 
-  **Benefits:** Zero setup, automatic cluster scoping, always up-to-date.
+  **Benefits:** Zero setup, clean URLs, automatic cluster scoping, always up-to-date.
+
+  <Details>
+    <Summary>Alternative: Path-based cluster ID (backwards compatible)</Summary>
+
+    You can also embed the cluster ID in the URL path:
+
+    ```bash
+    npx install-mcp "https://mcp.nebulacloud.app/{cluster_id}" \
+      --client claude \
+      --header "Authorization: Bearer YOUR_NEBULA_API_KEY"
+    ```
+
+    This works but headers are cleaner for multi-cluster setups.
+  </Details>
 
   </Tab>
   <Tab title="Local Node.js">
@@ -85,10 +115,28 @@ If the browser UI loads and the tools are visible/invokable, the server is corre
 - NEBULA_API_URL (optional): Custom API endpoint, defaults to `https://api.nebulacloud.app`.
 
 ## Web-Hosted MCP Servers
-**Preferred method:** Use cluster-scoped URLs for direct connection:
-- **URL Pattern**: `https://mcp.nebulacloud.app/{cluster_id}`
-- **Authentication**: Bearer token via `Authorization` header
-- **Benefits**: No local processes, automatic updates, cluster isolation
+**Recommended approach:** Connect directly to Nebula's hosted MCP endpoint:
+- **Single URL**: `https://mcp.nebulacloud.app/mcp`
+- **No local installation**: Works instantly, no Node.js or Python required
+- **Always up-to-date**: Automatically gets new features and improvements
+- **Easy multi-cluster**: Switch between work/personal clusters by changing one header
+
+### Smithery Integration
+Install from [Smithery](https://smithery.ai) for one-click setup:
+
+**MCP Server URL**: `https://mcp.nebulacloud.app/mcp`
+
+**Setup Options**:
+1. **Try it out** (no auth required): Uses a public demo cluster with sample data - perfect for testing
+2. **Connect your cluster**: Add your API key and cluster ID in Smithery's auth profile:
+   - `Authorization: Bearer YOUR_API_KEY`
+   - `X-Cluster-ID: YOUR_CLUSTER_ID`
+
+**How cluster selection works** (advanced):
+1. `X-Cluster-ID` header (recommended for easy multi-cluster setup)
+2. `?cluster_id=` query parameter
+3. Path-based `/{cluster_id}` (works but less flexible)
+4. No cluster specified = uses public demo cluster
 
 ## Tools provided
 - **add_memory**: Store documents or conversation messages
@@ -191,6 +239,30 @@ If the browser UI loads and the tools are visible/invokable, the server is corre
   Visual Studio supports a deep‑link installer (`vsweb+mcp:/install?<encoded_json>`) for stdio/http servers; add an “Install in Visual Studio” badge.
   
 </Details>
+
+## Setting up the Demo Cluster
+
+For Smithery catalog scanning and public testing, you should create a dedicated demo cluster:
+
+1. **Create a cluster** named `demo` via the Nebula dashboard or API
+2. **Populate with sample data** (optional but recommended):
+   ```bash
+   # Using the API or SDK, add sample memories to the demo cluster
+   curl -X POST https://api.nebulacloud.app/v1/documents \
+     -H "Authorization: Bearer YOUR_ADMIN_API_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "raw_text": "Sample memory for demo purposes",
+       "metadata": {"type": "demo"},
+       "collection_ids": ["demo"]
+     }'
+   ```
+3. **Configure access**: The demo cluster should allow read-only or limited operations for unauthenticated requests
+4. **Monitor usage**: Set up monitoring for the demo cluster to prevent abuse
+
+<Warning>
+The demo cluster is public and accessible without authentication. Do not store sensitive data in the demo cluster.
+</Warning>
 
 ## Next Steps
 
