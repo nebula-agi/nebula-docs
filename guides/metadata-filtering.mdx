@@ -5,7 +5,7 @@ description: 'Advanced filtering for search and retrieval'
 
 # Metadata Filtering
 
-Use metadata filters to refine your search results based on custom attributes. Nebula supports comprehensive filtering for both vector/chunk search and graph search (entities, relationships, communities).
+Use metadata filters to refine your search results based on custom attributes. Nebula doesn't need metadata filtering to perform, but it can be used to refine the results.
 
 ## Overview
 
@@ -590,6 +590,88 @@ const results = await client.search({
       {"metadata.created_date": {"$gte": recentDate.toISOString()}},
       {"metadata.author.email": {"$ilike": "%@company.com"}},
       {"metadata.tags": {"$contains": ["important", "reviewed"]}}
+    ]
+  }
+});
+```
+
+</CodeGroup>
+
+## Special First-Level Filters
+
+Use `source_role` and `timestamp` at the top level (not under `metadata.*`) for graph search and conversations.
+
+<Info>
+**Performance tip:** Include `source_role` and `timestamp` in your tool calls when storing memories. If not provided, they will be automatically determined at query time, adding ~200ms latency. Note: `category` is an internal field and should not be set manually.
+</Info>
+
+<CodeGroup>
+
+```python Special Filters
+from datetime import datetime, timedelta
+
+# Filter by speaker/source role
+results = client.search(
+    query="budget discussion",
+    cluster_ids=["conversations-cluster"],
+    filters={"source_role": "Alice"}
+)
+
+# Filter by date range (ISO format: YYYY-MM-DD)
+results = client.search(
+    query="Q4 planning",
+    cluster_ids=["meetings-cluster"],
+    filters={
+        "timestamp": {
+            "$gte": "2024-10-01",
+            "$lte": "2024-12-31"
+        }
+    }
+)
+
+# Combine both
+results = client.search(
+    query="product roadmap",
+    cluster_ids=["planning-cluster"],
+    filters={
+        "$and": [
+            {"source_role": "CEO"},
+            {"timestamp": {"$gte": "2024-01-01"}},
+            {"metadata.verified": True}
+        ]
+    }
+)
+```
+
+```javascript Special Filters
+// Filter by speaker/source role
+const results = await client.search({
+  query: "budget discussion",
+  cluster_ids: ["conversations-cluster"],
+  filters: {"source_role": "Alice"}
+});
+
+// Filter by date range (ISO format: YYYY-MM-DD)
+const results2 = await client.search({
+  query: "Q4 planning",
+  cluster_ids: ["meetings-cluster"],
+  filters: {
+    "timestamp": {
+      "$gte": "2024-10-01",
+      "$lte": "2024-12-31"
+    }
+  }
+});
+
+// Combine both
+const results3 = await client.search({
+  query: "product roadmap",
+  cluster_ids: ["planning-cluster"],
+  filters: {
+    "$and": [
+      {"source_role": "CEO"},
+      {"timestamp": {"$gte": "2024-01-01"}},
+      {"metadata.verified": true}
     ]
   }
 });
