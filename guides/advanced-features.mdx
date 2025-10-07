@@ -1,0 +1,269 @@
+---
+title: 'Advanced Features'
+description: 'Chunk-level authority, optimization techniques, and power user features'
+---
+
+# Advanced Features
+
+Advanced capabilities for power users: chunk-level authority, search optimization, and performance tuning.
+
+## Chunk-Level Authority
+
+Control which parts of documents or conversations should be prioritized in search results.
+
+### What is Authority?
+
+Authority is a confidence score (0-1) that you can assign to individual messages or document chunks. Higher authority content appears higher in search results, even if semantically similar to lower-authority content.
+
+**Use cases:**
+- **Verified information** - Mark fact-checked content with high authority
+- **Official documentation** - Prioritize canonical docs over user comments
+- **Expert responses** - Weight expert answers higher than general discussion
+- **Conversation quality** - Boost helpful responses, demote off-topic messages
+
+### Setting Authority
+
+<CodeGroup>
+
+```python Python
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
+# Store memory with authority score
+memory_id = client.store_memory({
+    "collection_id": "support-collection",
+    "content": "To reset password, go to Settings > Security > Reset Password",
+    "metadata": {
+        "type": "official_guide",
+        "verified": True
+    },
+    "authority": 0.95  # High authority - this is the canonical answer
+})
+
+# Lower authority for user-contributed content
+user_memory = client.store_memory({
+    "collection_id": "support-collection",
+    "content": "I think you can reset it in settings somewhere",
+    "metadata": {
+        "type": "user_comment",
+        "verified": False
+    },
+    "authority": 0.4  # Lower authority - less reliable
+})
+```
+
+```javascript JavaScript
+const { NebulaClient } = require('@nebula-ai/sdk');
+const client = new NebulaClient({ apiKey: 'your-api-key' });
+
+// Store memory with authority score
+const memoryId = await client.storeMemory({
+  collection_id: "support-collection",
+  content: "To reset password, go to Settings > Security > Reset Password",
+  metadata: {
+    type: "official_guide",
+    verified: true
+  },
+  authority: 0.95  // High authority - this is the canonical answer
+});
+
+// Lower authority for user-contributed content
+const userMemory = await client.storeMemory({
+  collection_id: "support-collection",
+  content: "I think you can reset it in settings somewhere",
+  metadata: {
+    type: "user_comment",
+    verified: false
+  },
+  authority: 0.4  // Lower authority - less reliable
+});
+```
+
+</CodeGroup>
+
+### Authority Guidelines
+
+| Score | When to Use |
+|-------|-------------|
+| `0.9-1.0` | Verified facts, official documentation, expert-reviewed content |
+| `0.7-0.9` | Reliable sources, trusted contributors, quality content |
+| `0.5-0.7` | General content, community contributions, unverified info |
+| `0.3-0.5` | Uncertain information, speculation, off-topic content |
+| `0.0-0.3` | Low-quality, potentially incorrect, or spam content |
+
+<Tip>Default authority is 0.5 if not specified. Start there and adjust based on content quality.</Tip>
+
+### Authority in Conversations
+
+```python
+# High authority for assistant responses
+client.store_memory({
+    "memory_id": conversation_id,
+    "collection_id": "support-collection",
+    "content": "Based on your account, you're on the Pro plan.",
+    "role": "assistant",
+    "authority": 0.85,  # Verified system data
+    "metadata": {"verified": True}
+})
+
+# Lower authority for user messages
+client.store_memory({
+    "memory_id": conversation_id,
+    "collection_id": "support-collection",
+    "content": "I think I'm on the Pro plan",
+    "role": "user",
+    "authority": 0.5,  # User belief, not verified
+    "metadata": {"verified": False}
+})
+```
+
+### Updating Authority
+
+Update authority scores as content is verified or becomes outdated:
+
+```python
+# Update existing memory's authority
+client.update_memory(
+    memory_id=memory_id,
+    authority=0.3  # Downgrade outdated information
+)
+```
+
+## Search Optimization Techniques
+
+### 1. Metadata Design
+
+```python
+# Bad - unstructured metadata
+metadata = {
+    "info": "high priority user_123 bug",
+    "notes": "reported on 2024-01-15"
+}
+
+# Good - structured, filterable metadata
+metadata = {
+    "priority": "high",
+    "user_id": "user_123",
+    "type": "bug",
+    "status": "open",
+    "created_date": "2024-01-15",
+    "tags": ["login", "authentication"]
+}
+```
+
+### 2. Batch Operations
+
+```python
+# Bad - individual stores
+for item in items:
+    client.store_memory(item)  # Slow!
+
+# Good - batch store
+client.store_memories(items)  # Fast!
+```
+
+### 3. Smart Limits
+
+```python
+# User-facing search - need quick results
+results = client.search(query="test", collection_ids=[collection_id], limit=10)
+
+# Background processing - need comprehensive results
+results = client.search(query="test", collection_ids=[collection_id], limit=100)
+```
+
+## Bulk Operations
+
+### Bulk Delete with Filters
+
+```python
+# Delete all memories matching criteria
+memories = client.list_memories(
+    collection_ids=["temp-collection"],
+    filters={"status": "archived"},
+    limit=1000
+)
+
+memory_ids = [m.memory_id for m in memories]
+client.delete(memory_ids)
+```
+
+### Bulk Update
+
+```python
+# Get memories to update
+memories = client.list_memories(
+    collection_ids=["docs-collection"],
+    filters={"version": "1.0"},
+    limit=500
+)
+
+# Update each with new metadata
+for memory in memories:
+    client.update_memory(
+        memory_id=memory.memory_id,
+        metadata={**memory.metadata, "deprecated": True}
+    )
+```
+
+## Best Practices Summary
+
+1. **Use authority scores** for content quality differentiation
+2. **Design structured metadata** for efficient filtering
+3. **Batch operations** whenever possible
+4. **Regular cleanup** - archive or delete old/unused memories
+
+## Common Patterns
+
+### Quality-Based Ranking
+
+```python
+# Store high-quality content
+official_doc = client.store_memory({
+    "collection_id": "docs",
+    "content": "Official API documentation...",
+    "authority": 0.95,
+    "metadata": {"source": "official", "verified": True}
+})
+
+# Store community content
+community_doc = client.store_memory({
+    "collection_id": "docs",
+    "content": "Community guide...",
+    "authority": 0.6,
+    "metadata": {"source": "community", "verified": False}
+})
+
+# Search automatically ranks by authority + relevance
+```
+
+### Time-Based Authority Decay
+
+```python
+from datetime import datetime, timedelta
+
+def calculate_authority(base_authority: float, created_date: str) -> float:
+    """Reduce authority of old content"""
+    created = datetime.fromisoformat(created_date)
+    age_days = (datetime.now() - created).days
+
+    # Reduce authority by 0.1 per year
+    decay = min(0.3, (age_days / 365) * 0.1)
+    return max(0.3, base_authority - decay)
+
+# Apply when storing
+client.store_memory({
+    "collection_id": "docs",
+    "content": "Documentation content...",
+    "authority": calculate_authority(0.9, "2023-01-15"),
+    "metadata": {"created_date": "2023-01-15"}
+})
+```
+
+## Next Steps
+
+- [Search Guide](/guides/search) - Master semantic search
+- [Metadata Filtering](/guides/metadata-filtering) - Advanced filter techniques
+- [Memory Operations](/guides/memory-operations) - Core CRUD operations
+- [Collections](/guides/collections) - Organize your data

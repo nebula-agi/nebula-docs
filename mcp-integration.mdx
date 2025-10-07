@@ -1,190 +1,127 @@
 ---
 title: 'MCP Integration'
-description: 'Model Context Protocol integration for AI assistants and applications'
+description: 'Connect AI assistants to Nebula via Model Context Protocol'
 ---
 
 # MCP Integration
- 
-Connect Claude Desktop, Cursor, and VS Code–based clients to Nebula via MCP to store and search memories directly from the assistant.
 
-<Info>Prefer <b>web-hosted</b> servers for the simplest setup—no local installation required. Use local servers only if needed for specific environments.</Info>
+Connect Claude Desktop, Cursor, VS Code, and other MCP-compatible clients to Nebula. Your AI assistant can store and search memories directly.
 
-## Quick start
+## Quick Setup (Recommended)
+
+**Web-hosted server - no local installation required:**
+
+```bash
+# Claude Desktop
+npx install-mcp "https://mcp.nebulacloud.app/mcp" \
+  --client claude \
+  --header "Authorization: Bearer YOUR_API_KEY" \
+  --header "X-Cluster-ID: YOUR_CLUSTER_ID"
+
+# Cursor
+npx install-mcp "https://mcp.nebulacloud.app/mcp" \
+  --client cursor \
+  --header "Authorization: Bearer YOUR_API_KEY" \
+  --header "X-Cluster-ID: YOUR_CLUSTER_ID"
+
+# VS Code/Cline
+npx install-mcp "https://mcp.nebulacloud.app/mcp" \
+  --client cline \
+  --header "Authorization: Bearer YOUR_API_KEY" \
+  --header "X-Cluster-ID: YOUR_CLUSTER_ID"
+```
+
+<Info>Get your API key from [trynebula.ai](https://trynebula.ai) → Settings → API Keys</Info>
+
+## Available Tools
+
+Once connected, your AI assistant gets these memory operations:
+
+### `add_memory`
+Store documents or conversation messages.
+
+**Parameters:**
+- `content` (required): Text to store
+- `role` (optional): For conversations - `user` or `assistant`
+- `metadata` (optional): Custom metadata object
+
+**Example:**
+```
+add_memory(content="User prefers dark mode", metadata={"user_id": "123"})
+```
+
+### `search_memories`
+Find and retrieve relevant memories semantically.
+
+**Parameters:**
+- `query` (required): Search text
+- `limit` (optional): Maximum results (default: 10)
+
+**Example:**
+```
+search_memories(query="user preferences", limit=5)
+```
+
+## Verification
+
+Test your setup with MCP Inspector:
+
+```bash
+npx @modelcontextprotocol/inspector \
+  npx @nebula-ai/mcp-server --stdio \
+  --api-key YOUR_API_KEY
+```
+
+Open the browser URL shown. If tools load and work, your config is correct.
+
+## Local Server Setup
+
+If you prefer running the MCP server locally:
 
 <Tabs>
-  <Tab title="Smithery (Easiest)">
-
-  **One-click installation from the [Smithery registry](https://smithery.ai)**
-
-  Simply submit your MCP server to Smithery using:
-  - **URL**: `https://mcp.nebulacloud.app/mcp`
-  - **Auth** (optional): Configure in your Smithery profile with `Authorization: Bearer YOUR_API_KEY` and `X-Cluster-ID: your_cluster_id`
-
-  Without auth, it uses the public demo cluster. With auth, it scopes to your cluster.
-
-  **Benefits:** Discoverable catalog, one-click install, zero configuration.
-
-  </Tab>
-  <Tab title="Web-Hosted (Recommended)">
-
-  **No local installation required!** Connect directly to your cluster:
-
-  ```bash
-  # Claude Desktop
-  npx install-mcp "https://mcp.nebulacloud.app/mcp" \
-    --client claude \
-    --header "Authorization: Bearer YOUR_NEBULA_API_KEY" \
-    --header "X-Cluster-ID: YOUR_CLUSTER_ID"
-
-  # Cursor
-  npx install-mcp "https://mcp.nebulacloud.app/mcp" \
-    --client cursor \
-    --header "Authorization: Bearer YOUR_NEBULA_API_KEY" \
-    --header "X-Cluster-ID: YOUR_CLUSTER_ID"
-
-  # VS Code/Cline
-  npx install-mcp "https://mcp.nebulacloud.app/mcp" \
-    --client cline \
-    --header "Authorization: Bearer YOUR_NEBULA_API_KEY" \
-    --header "X-Cluster-ID: YOUR_CLUSTER_ID"
-  ```
-
-  **Replace:** `YOUR_CLUSTER_ID` with your cluster ID, `YOUR_NEBULA_API_KEY` with your API key.
-
-  **Benefits:** Zero setup, clean URLs, automatic cluster scoping, always up-to-date.
-
-  <Details>
-    <Summary>Alternative: Path-based cluster ID (backwards compatible)</Summary>
-
-    You can also embed the cluster ID in the URL path:
-
+  <Tab title="Node.js">
     ```bash
-    npx install-mcp "https://mcp.nebulacloud.app/{cluster_id}" \
+    npm install -g @nebula-ai/mcp-server
+
+    npx install-mcp "@nebula-ai/mcp-server --stdio" \
       --client claude \
-      --header "Authorization: Bearer YOUR_NEBULA_API_KEY"
+      --env NEBULA_API_KEY=your_api_key \
+      --env NEBULA_CLUSTER_ID=your_collection_id
     ```
-
-    This works but headers are cleaner for multi-cluster setups.
-  </Details>
-
   </Tab>
-  <Tab title="Local Node.js">
+  <Tab title="Python">
+    ```bash
+    pip install nebula-mcp
 
-  For users who prefer local servers:
-
-  ```bash
-  # Claude Desktop
-  npx install-mcp "@nebula-ai/mcp-server --stdio" --client claude --env NEBULA_API_KEY=your_api_key
-
-  # Cursor
-  npx install-mcp "@nebula-ai/mcp-server --stdio" --client cursor --env NEBULA_API_KEY=your_api_key
-
-  # VS Code/Cline
-  npx install-mcp "@nebula-ai/mcp-server --stdio" --client cline --env NEBULA_API_KEY=your_api_key
-  ```
-
-  Config paths: Claude Desktop (macOS `~/Library/Application Support/Claude/claude_desktop_config.json`), Cursor (`~/.cursor/mcp.json`), Cline (`~/.cline/mcp.json`).
-
-  </Tab>
-  <Tab title="Local Python">
-
-  For Python environments:
-
-  ```bash
-  pip install nebula-mcp
-  npx install-mcp "python -m nebula_mcp" --client claude --env NEBULA_API_KEY=your_api_key
-  ```
-
-  Same config paths as Node.js, with `command: "python"` and `args: ["-m", "nebula_mcp"]`.
-
+    npx install-mcp "python -m nebula_mcp" \
+      --client claude \
+      --env NEBULA_API_KEY=your_api_key \
+      --env NEBULA_CLUSTER_ID=your_collection_id
+    ```
   </Tab>
 </Tabs>
 
-### Verify with Inspector
-Use MCP Inspector to confirm auth, tools, and health before troubleshooting.
+## Manual Configuration
 
-```bash
-# Node server under Inspector
-npx @modelcontextprotocol/inspector npx @nebula-ai/mcp-server --stdio --api-key your_api_key
-```
-
-If the browser UI loads and the tools are visible/invokable, the server is correctly configured.
-
-## Environment (Local Servers Only)
-- NEBULA_API_KEY (required): API key for Nebula.
-- NEBULA_API_URL (optional): Custom API endpoint, defaults to `https://api.nebulacloud.app`.
-
-## Web-Hosted MCP Servers
-**Recommended approach:** Connect directly to Nebula's hosted MCP endpoint:
-- **Single URL**: `https://mcp.nebulacloud.app/mcp`
-- **No local installation**: Works instantly, no Node.js or Python required
-- **Always up-to-date**: Automatically gets new features and improvements
-- **Easy multi-cluster**: Switch between work/personal clusters by changing one header
-
-### Smithery Integration
-Install from [Smithery](https://smithery.ai) for one-click setup:
-
-**MCP Server URL**: `https://mcp.nebulacloud.app/mcp`
-
-**Setup Options**:
-1. **Try it out** (no auth required): Uses a public demo cluster with sample data - perfect for testing
-2. **Connect your cluster**: Add your API key and cluster ID in Smithery's auth profile:
-   - `Authorization: Bearer YOUR_API_KEY`
-   - `X-Cluster-ID: YOUR_CLUSTER_ID`
-
-**How cluster selection works** (advanced):
-1. `X-Cluster-ID` header (recommended for easy multi-cluster setup)
-2. `?cluster_id=` query parameter
-3. Path-based `/{cluster_id}` (works but less flexible)
-4. No cluster specified = uses public demo cluster
-
-## Tools provided
-- **add_memory**: Store documents or conversation messages
-  - `content` (required): Text content to store
-  - `role` (optional): For conversation messages (user, assistant)
-  - `parent_id` (optional): For conversation threading
-  - `metadata` (optional): Additional metadata dictionary
-- **search_memories**: Search and retrieve memories
-  - `query` (required): Search query string
-  - `limit` (optional): Maximum results (default: 10)
-
-**Note:** Web-hosted servers automatically scope to the cluster in the URL—no `cluster_id` parameter needed!
-
-## Usage pattern
-- **Web-hosted**: Each URL is cluster-specific, tools automatically work within that cluster
-- **Local servers**: Use `cluster_id` parameter to specify which cluster to operate on
-
-<Details>
-  <Summary>Manual config (Web-hosted)</Summary>
-
-  Add cluster-specific MCP servers directly to your client config:
+<Accordion title="Web-Hosted Manual Config">
+  Add to your MCP client config file:
 
   ```json
   {
     "mcpServers": {
-      "nebula-cluster-1": {
-        "url": "https://mcp.nebulacloud.app/cluster_123",
+      "nebula": {
+        "url": "https://mcp.nebulacloud.app/mcp",
         "headers": {
-          "Authorization": "Bearer your_api_key_here"
-        }
-      },
-      "nebula-cluster-2": {
-        "url": "https://mcp.nebulacloud.app/cluster_456",
-        "headers": {
-          "Authorization": "Bearer your_api_key_here"
+          "Authorization": "Bearer YOUR_API_KEY",
+          "X-Cluster-ID": "YOUR_CLUSTER_ID"
         }
       }
     }
   }
   ```
+</Accordion>
 
-</Details>
-
-<Details>
-  <Summary>Manual config (Local Node.js)</Summary>
-
-  For local server installations:
-
+<Accordion title="Local Node.js Manual Config">
   ```json
   {
     "mcpServers": {
@@ -192,28 +129,16 @@ Install from [Smithery](https://smithery.ai) for one-click setup:
         "command": "npx",
         "args": ["-y", "@nebula-ai/mcp-server", "--stdio"],
         "env": {
-          "NEBULA_API_KEY": "your_api_key_here",
-          "NEBULA_API_URL": "https://api.nebulacloud.app"
+          "NEBULA_API_KEY": "your_api_key",
+          "NEBULA_CLUSTER_ID": "your_collection_id"
         }
       }
     }
   }
   ```
+</Accordion>
 
-</Details>
-
-<Details>
-  <Summary>Local Python config</Summary>
-
-  For Python environments using local servers:
-
-  ```bash
-  pip install nebula-mcp
-  npx install-mcp "python -m nebula_mcp" --client claude --env NEBULA_API_KEY=your_api_key
-  ```
-
-  Manual config with `command: "python"`, `args: ["-m", "nebula_mcp"]`:
-
+<Accordion title="Local Python Manual Config">
   ```json
   {
     "mcpServers": {
@@ -221,53 +146,29 @@ Install from [Smithery](https://smithery.ai) for one-click setup:
         "command": "python",
         "args": ["-m", "nebula_mcp"],
         "env": {
-          "NEBULA_API_KEY": "your_api_key_here",
-          "NEBULA_API_URL": "https://api.nebulacloud.app"
+          "NEBULA_API_KEY": "your_api_key",
+          "NEBULA_CLUSTER_ID": "your_collection_id"
         }
       }
     }
   }
   ```
+</Accordion>
 
-</Details>
+## Troubleshooting
 
-<Details>
-  <Summary>VS Code / Visual Studio one‑click</Summary>
-  
-  VS Code supports installing MCP servers directly from the web or the MCP Servers view; add an “Install in VS Code” badge to prefill the config.
-  
-  Visual Studio supports a deep‑link installer (`vsweb+mcp:/install?<encoded_json>`) for stdio/http servers; add an “Install in Visual Studio” badge.
-  
-</Details>
+**Tools not appearing:**
+- Restart your AI assistant after config changes
+- Verify API key is valid: `curl -H "Authorization: Bearer YOUR_API_KEY" https://api.nebulacloud.app/v1/health`
+- Check cluster ID exists in your Nebula account
 
-## Setting up the Demo Cluster
-
-For Smithery catalog scanning and public testing, you should create a dedicated demo cluster:
-
-1. **Create a cluster** named `demo` via the Nebula dashboard or API
-2. **Populate with sample data** (optional but recommended):
-   ```bash
-   # Using the API or SDK, add sample memories to the demo cluster
-   curl -X POST https://api.nebulacloud.app/v1/engrams \
-     -H "Authorization: Bearer YOUR_ADMIN_API_KEY" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "raw_text": "Sample memory for demo purposes",
-       "metadata": {"type": "demo"},
-       "collection_ids": ["demo"]
-     }'
-   ```
-3. **Configure access**: The demo cluster should allow read-only or limited operations for unauthenticated requests
-4. **Monitor usage**: Set up monitoring for the demo cluster to prevent abuse
-
-<Warning>
-The demo cluster is public and accessible without authentication. Do not store sensitive data in the demo cluster.
-</Warning>
+**Connection errors:**
+- Ensure environment variables are set correctly
+- Check firewall/proxy settings for web-hosted setup
+- Run MCP Inspector to debug locally
 
 ## Next Steps
 
-More information:
-- [Python SDK Documentation](/clients/python)
-- [JavaScript SDK Documentation](/clients/nodejs)
-- [Nebula API Reference](/api-reference/overview)
-- [GitHub Repository](https://github.com/nebula-ai/nebula)
+- [Memory Operations](/guides/memory-operations) - Learn what you can do with memories
+- [Python SDK](/clients/python) - Build with the Python SDK
+- [JavaScript SDK](/clients/nodejs) - Build with the Node.js SDK

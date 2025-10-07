@@ -1,0 +1,294 @@
+---
+title: 'Search Guide'
+description: 'Semantic search and intelligent filtering in Nebula'
+---
+
+# Search Guide
+
+Nebula provides powerful hybrid search that combines semantic (vector) and full-text search for optimal results.
+
+## Basic Search
+
+<CodeGroup>
+
+```python Python
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
+# Simple search
+results = client.search(
+    query="machine learning algorithms",
+    collection_ids=["research-collection"],
+    limit=10
+)
+
+for result in results:
+    print(f"Score: {result.score:.3f}")
+    print(f"Content: {result.content}")
+    print(f"Metadata: {result.metadata}\n")
+```
+
+```javascript JavaScript
+const { NebulaClient } = require('@nebula-ai/sdk');
+const client = new NebulaClient({ apiKey: 'your-api-key' });
+
+const results = await client.search({
+  query: "machine learning algorithms",
+  collection_ids: ["research-collection"],
+  limit: 10
+});
+
+results.forEach(result => {
+  console.log(`Score: ${result.score.toFixed(3)}`);
+  console.log(`Content: ${result.content}`);
+  console.log(`Metadata: ${JSON.stringify(result.metadata)}\n`);
+});
+```
+
+</CodeGroup>
+
+**Search results include:**
+- `score`: Relevance score (0-1, higher is better)
+- `content`: The memory content
+- `metadata`: Custom metadata
+- `memory_id`: Memory ID for retrieval
+- `collection_id`: Which collection it belongs to
+- `created_at`: Timestamp
+
+## Search with Metadata Filters
+
+Combine semantic search with metadata filtering:
+
+<CodeGroup>
+
+```python Python
+# Search with filters
+results = client.search(
+    query="project updates",
+    collection_ids=["work-collection"],
+    filters={
+        "priority": "high",
+        "status": "active",
+        "team": "engineering"
+    },
+    limit=20
+)
+```
+
+```javascript JavaScript
+// Search with filters
+const results = await client.search({
+  query: "project updates",
+  collection_ids: ["work-collection"],
+  filters: {
+    priority: "high",
+    status: "active",
+    team: "engineering"
+  },
+  limit: 20
+});
+```
+
+</CodeGroup>
+
+See [Metadata Filtering](/guides/metadata-filtering) for advanced filter operators.
+
+## Hybrid Search Weights
+
+Control the balance between semantic and full-text search:
+
+<CodeGroup>
+
+```python Python
+results = client.search(
+    query="neural networks",
+    collection_ids=["research-collection"],
+    search_settings={
+        "semantic_weight": 0.7,    # Semantic search weight
+        "fulltext_weight": 0.3  # Keyword search weight
+    },
+    limit=10
+)
+```
+
+```javascript JavaScript
+const results = await client.search({
+  query: "neural networks",
+  collection_ids: ["research-collection"],
+  searchSettings: {
+    semanticWeight: 0.7,    // Semantic search weight
+    fulltextWeight: 0.3  // Keyword search weight
+  },
+  limit: 10
+});
+```
+
+</CodeGroup>
+
+**Weight Guidelines:**
+- `semantic_weight: 0.8, fulltext_weight: 0.2` - Prefer semantic meaning (default)
+- `semantic_weight: 0.5, fulltext_weight: 0.5` - Balanced
+- `semantic_weight: 0.2, fulltext_weight: 0.8` - Prefer exact keyword matches
+
+<Tip>Default weights (0.8 semantic, 0.2 fulltext) work well for most use cases. Adjust only if needed.</Tip>
+
+## Limits
+
+Nebula always performs hybrid search. Per-type limits (semantic vs. keyword) are managed internally for optimal performance. Control the overall number of results with `limit` and adjust the balance using `semantic_weight` and `fulltext_weight`.
+
+## Advanced Search Options
+
+### Search Multiple Collections
+
+<CodeGroup>
+
+```python Python
+# Search across multiple collections
+results = client.search(
+    query="customer feedback",
+    collection_ids=["support-2024", "support-2023", "surveys"],
+    limit=30
+)
+```
+
+```javascript JavaScript
+// Search across multiple collections
+const results = await client.search({
+  query: "customer feedback",
+  collection_ids: ["support-2024", "support-2023", "surveys"],
+  limit: 30
+});
+```
+
+</CodeGroup>
+
+### Search All Collections
+
+Omit `collection_ids` to search across all accessible collections:
+
+<CodeGroup>
+
+```python Python
+# Search everything
+results = client.search(
+    query="product roadmap",
+    limit=50
+)
+```
+
+```javascript JavaScript
+// Search everything
+const results = await client.search({
+  query: "product roadmap",
+  limit: 50
+});
+```
+
+</CodeGroup>
+
+<Warning>Searching all collections is slower than targeting specific collections.</Warning>
+
+### Complex Metadata Filters
+
+<CodeGroup>
+
+```python Python
+# Advanced filtering
+results = client.search(
+    query="bug reports",
+    collection_ids=["issues-collection"],
+    filters={
+        "severity": {"$in": ["critical", "high"]},
+        "status": {"$ne": "closed"},
+        "created_date": {"$gte": "2024-01-01"}
+    },
+    limit=50
+)
+```
+
+```javascript JavaScript
+// Advanced filtering
+const results = await client.search({
+  query: "bug reports",
+  collection_ids: ["issues-collection"],
+  filters: {
+    severity: { $in: ["critical", "high"] },
+    status: { $ne: "closed" },
+    created_date: { $gte: "2024-01-01" }
+  },
+  limit: 50
+});
+```
+
+</CodeGroup>
+
+**Available operators:**
+- `$eq`: Equals
+- `$ne`: Not equals
+- `$in`: Value in array
+- `$nin`: Value not in array
+- `$gt`, `$gte`: Greater than (or equal)
+- `$lt`, `$lte`: Less than (or equal)
+
+Full details in [Metadata Filtering](/guides/metadata-filtering).
+
+## Pagination
+
+Handle large result sets:
+
+<CodeGroup>
+
+```python Python
+# Page 1
+page1 = client.search(
+    query="documentation",
+    collection_ids=["docs-collection"],
+    limit=20,
+    offset=0
+)
+
+# Page 2
+page2 = client.search(
+    query="documentation",
+    collection_ids=["docs-collection"],
+    limit=20,
+    offset=20
+)
+```
+
+```javascript JavaScript
+// Page 1
+const page1 = await client.search({
+  query: "documentation",
+  collection_ids: ["docs-collection"],
+  limit: 20,
+  offset: 0
+});
+
+// Page 2
+const page2 = await client.search({
+  query: "documentation",
+  collection_ids: ["docs-collection"],
+  limit: 20,
+  offset: 20
+});
+```
+
+</CodeGroup>
+
+## Search Best Practices
+
+1. **Use natural language queries** - "How do I reset my password?" works better than "password reset"
+2. **Target specific collections** - Faster and more relevant results
+3. **Start with defaults** - Only adjust weights if results aren't good
+4. **Leverage metadata filters** - Narrow results by structured fields
+5. **Set appropriate limits** - Balance between coverage and performance
+6. **Cache frequent queries** - Store common search results
+
+## Next Steps
+
+- [Metadata Filtering](/guides/metadata-filtering) - Advanced filter operators
+- [Advanced Features](/guides/advanced-features) - Chunk-level authority and optimization
+- [Memory Operations](/guides/memory-operations) - Store and manage memories
+- [Conversations](/guides/conversations) - Build chat applications

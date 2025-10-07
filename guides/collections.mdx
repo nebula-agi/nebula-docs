@@ -1,0 +1,359 @@
+---
+title: 'Collections Guide'
+description: 'Organize memories into logical collections'
+---
+
+# Collections
+
+Collections are organizational containers for your memories. Think of them like projects or workspaces—a way to keep related information grouped together.
+
+<Note>Collections are manual organizational units, not automatic similarity groupings. You control what goes where.</Note>
+
+## Why Use Collections?
+
+- **Separate contexts**: Keep work, personal, and project memories distinct
+- **Targeted search**: Search only within relevant collections
+- **Access control**: Different API keys can have different collection permissions
+- **Multi-tenancy**: Isolate data for different users or customers
+
+## Creating Collections
+
+<CodeGroup>
+
+```python Python
+from nebula_client import NebulaClient
+
+client = NebulaClient(api_key="your-api-key")
+
+# Create a single collection
+collection = client.create_collection(
+    name="Research Papers",
+    description="Academic research documents",
+    metadata={"category": "academic"}
+)
+print(f"Created: {collection.name} (ID: {collection.id})")
+
+# Create multiple collections
+collections = [
+    client.create_collection(name="Work", description="Work-related notes"),
+    client.create_collection(name="Personal", description="Personal memories")
+]
+```
+
+```javascript JavaScript
+const { NebulaClient } = require('@nebula-ai/sdk');
+const client = new NebulaClient({ apiKey: 'your-api-key' });
+
+async function createCollections() {
+  // Create a single collection
+  const collection = await client.createCollection({
+    name: "Research Papers",
+    description: "Academic research documents",
+    metadata: { category: "academic" }
+  });
+  console.log(`Created: ${collection.name} (ID: ${collection.id})`);
+
+  // Create multiple collections
+  const collections = await Promise.all([
+    client.createCollection({ name: "Work", description: "Work-related notes" }),
+    client.createCollection({ name: "Personal", description: "Personal memories" })
+  ]);
+}
+```
+
+</CodeGroup>
+
+## Storing Memories in Collections
+
+Always specify the `collection_id` when storing memories:
+
+<CodeGroup>
+
+```python Python
+# Store in specific collection
+work_memory = client.store_memory({
+    "collection_id": work_collection.id,
+    "content": "Q4 planning meeting notes",
+    "metadata": {"type": "meeting", "date": "2024-01-15"}
+})
+
+# Batch store to different collections
+memories = [
+    {
+        "collection_id": work_collection.id,
+        "content": "Project deadline is Friday",
+        "metadata": {"priority": "high"}
+    },
+    {
+        "collection_id": personal_collection.id,
+        "content": "Book recommendation: Clean Code",
+        "metadata": {"category": "books"}
+    }
+]
+memory_ids = client.store_memories(memories)
+```
+
+```javascript JavaScript
+// Store in specific collection
+const workMemory = await client.storeMemory({
+  collection_id: workCollection.id,
+  content: "Q4 planning meeting notes",
+  metadata: { type: "meeting", date: "2024-01-15" }
+});
+
+// Batch store to different collections
+const memories = [
+  {
+    collection_id: workCollection.id,
+    content: "Project deadline is Friday",
+    metadata: { priority: "high" }
+  },
+  {
+    collection_id: personalCollection.id,
+    content: "Book recommendation: Clean Code",
+    metadata: { category: "books" }
+  }
+];
+const memoryIds = await client.storeMemories(memories);
+```
+
+</CodeGroup>
+
+## Searching Within Collections
+
+Search within specific collections using IDs or names, or search across all your collections:
+
+<CodeGroup>
+
+```python Python
+# Search by collection name
+work_results = client.search(
+    query="project deadlines",
+    collection_ids=["Work"],
+    limit=10
+)
+
+# Search by collection ID
+work_results = client.search(
+    query="project deadlines",
+    collection_ids=[work_collection.id],
+    limit=10
+)
+
+# Search multiple collections (mix names and IDs)
+all_results = client.search(
+    query="important notes",
+    collection_ids=["Work", personal_collection.id],
+    limit=20
+)
+
+# Search all accessible collections
+global_results = client.search(
+    query="important notes",
+    limit=20
+)
+
+# Display results
+for result in work_results:
+    print(f"Score: {result.score:.2f}")
+    print(f"Content: {result.content}")
+    print(f"Cluster: {result.collection_id}")
+```
+
+```javascript JavaScript
+// Search by collection name
+const workResults = await client.search({
+  query: "project deadlines",
+  collection_ids: ["Work"],
+  limit: 10
+});
+
+// Search by collection ID
+const workResults = await client.search({
+  query: "project deadlines",
+  collection_ids: [workCollection.id],
+  limit: 10
+});
+
+// Search multiple collections (mix names and IDs)
+const allResults = await client.search({
+  query: "important notes",
+  collection_ids: ["Work", personalCollection.id],
+  limit: 20
+});
+
+// Search all accessible collections
+const globalResults = await client.search({
+  query: "important notes",
+  limit: 20
+});
+
+// Display results
+workResults.forEach(result => {
+  console.log(`Score: ${result.score?.toFixed(2)}`);
+  console.log(`Content: ${result.content}`);
+  console.log(`Collection: ${result.collection_id}`);
+});
+```
+
+</CodeGroup>
+
+<Tip>Use collection names for convenience or UUIDs for precision. Omit `collection_ids` entirely to search across all your collections.</Tip>
+
+## Managing Collections
+
+<Tabs>
+  <Tab title="List Collections">
+    <CodeGroup>
+      ```python Python
+      # List all collections
+      collections = client.list_collections(limit=50)
+
+      for collection in collections:
+          print(f"{collection.name} - {collection.memory_count} memories")
+          print(f"  ID: {collection.id}")
+          print(f"  Created: {collection.created_at}")
+      ```
+
+      ```javascript JavaScript
+      // List all collections
+      const collections = await client.listCollections({ limit: 50 });
+
+      collections.forEach(collection => {
+        console.log(`${collection.name} - ${collection.memory_count || 0} memories`);
+        console.log(`  ID: ${collection.id}`);
+        console.log(`  Created: ${collection.created_at}`);
+      });
+      ```
+    </CodeGroup>
+  </Tab>
+
+  <Tab title="Get Collection">
+    <CodeGroup>
+      ```python Python
+      # Get collection details
+      collection = client.get_collection(collection_id)
+
+      print(f"Name: {collection.name}")
+      print(f"Description: {collection.description}")
+      print(f"Memory count: {collection.memory_count}")
+      ```
+
+      ```javascript JavaScript
+      // Get collection details
+      const collection = await client.getCollection(collectionId);
+
+      console.log(`Name: ${collection.name}`);
+      console.log(`Description: ${collection.description}`);
+      console.log(`Memory count: ${collection.memory_count}`);
+      ```
+    </CodeGroup>
+  </Tab>
+
+  <Tab title="Update Collection">
+    <CodeGroup>
+      ```python Python
+      # Update collection
+      updated = client.update_collection(
+          collection_id=collection.id,
+          name="Updated Name",
+          description="New description",
+          metadata={"updated": "2024-01-15"}
+      )
+      ```
+
+      ```javascript JavaScript
+      // Update collection
+      const updated = await client.updateCollection({
+        collectionId: collection.id,
+        name: "Updated Name",
+        description: "New description",
+        metadata: { updated: "2024-01-15" }
+      });
+      ```
+    </CodeGroup>
+  </Tab>
+
+  <Tab title="Delete Collection">
+    <CodeGroup>
+      ```python Python
+      # Delete collection and all its memories
+      client.delete_collection(collection_id)
+      ```
+
+      ```javascript JavaScript
+      // Delete collection and all its memories
+      await client.deleteCollection(collectionId);
+      ```
+    </CodeGroup>
+    <Warning>Deleting a collection permanently removes all memories within it.</Warning>
+  </Tab>
+</Tabs>
+
+## Use Cases
+
+### Multi-Tenancy
+```python
+# Create collection per customer
+customer_collection = client.create_collection(
+    name=f"customer_{customer_id}",
+    description=f"Data for customer {customer_id}",
+    metadata={"customer_id": customer_id, "plan": "enterprise"}
+)
+
+# Store customer-specific data
+client.store_memory({
+    "collection_id": customer_collection.id,
+    "content": "Customer support conversation...",
+    "metadata": {"customer_id": customer_id}
+})
+```
+
+### Project Organization
+```python
+# Separate collections for each project
+projects = ["project_alpha", "project_beta", "project_gamma"]
+project_collections = {
+    name: client.create_collection(name=name, description=f"Project {name} documentation")
+    for name in projects
+}
+
+# Search within specific project (by name)
+results = client.search(
+    query="API documentation",
+    collection_ids=["project_alpha"]
+)
+```
+
+### Environment Separation
+```python
+# Development vs Production
+dev_collection = client.create_collection(name="dev", description="Development environment")
+prod_collection = client.create_collection(name="prod", description="Production environment")
+
+# Different API keys can have access to different collections
+```
+
+## Best Practices
+
+1. **Use descriptive names** - `customer_support` not `collection_1`
+2. **Leverage metadata** - Store organizational info in collection metadata
+3. **Specify collection_ids for targeted searches** - Use collection names or UUIDs for faster, scoped searches
+4. **Plan for scale** - Consider collectioning strategy early
+5. **Monitor collection sizes** - Keep collections focused and manageable
+6. **Implement soft deletes** - Mark collections as archived instead of deleting
+
+## Common Patterns
+
+| Pattern | When to Use |
+|---------|-------------|
+| **One collection per user** | User-specific memory/context |
+| **One collection per project** | Project-scoped documentation |
+| **One collection per data type** | Different content types (docs, chats, notes) |
+| **Hierarchical collections** | Use metadata to create virtual hierarchies |
+
+## Next Steps
+
+- [Memory Operations](/guides/memory-operations) - Learn to store and search
+- [Metadata Filtering](/guides/metadata-filtering) - Advanced filtering within collections
+- [Conversations](/guides/conversations) - Build conversational AI with collections

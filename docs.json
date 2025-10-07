@@ -20,21 +20,28 @@
             "group": "Get Started",
             "pages": [
               "introduction",
-              "quickstart",
-              "authentication",
-              "error-handling"
+              "quickstart"
             ]
           },
           {
-            "group": "Guides",
+            "group": "Core Guides",
             "pages": [
+              "guides/concepts",
               "guides/memory-operations",
-              "guides/clusters",
+              "guides/collections",
               "guides/conversations"
             ]
           },
           {
-            "group": "MCP Integration",
+            "group": "Advanced Guides",
+            "pages": [
+              "guides/search",
+              "guides/metadata-filtering",
+              "guides/advanced-features"
+            ]
+          },
+          {
+            "group": "Integration",
             "pages": [
               "mcp-integration"
             ]
@@ -47,8 +54,8 @@
           {
             "group": "Client Libraries",
             "pages": [
-              "clients/nodejs",
-              "clients/python"
+              "clients/python",
+              "clients/nodejs"
             ]
           }
         ]

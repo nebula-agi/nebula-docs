@@ -5,14 +5,14 @@ description: 'Get started with Nebula API in minutes'
 
 # Quick Start Guide
 
-Get up and running with Nebula API in minutes.
+<Warning>You'll need a Nebula API key before starting. Get one at [trynebula.ai](https://trynebula.ai)</Warning>
+
+Get up and running with Nebula in minutes.
 
 ## Prerequisites
 
-- A Nebula account ([trynebula.ai](https://trynebula.ai))
-- An API key ([Authentication](/authentication) guide)
-
-<Warning>You must have a valid API key configured before running any examples below.</Warning>
+- Python 3.8+ or Node.js 16+
+- A Nebula account at [trynebula.ai](https://trynebula.ai)
 
 ## 1. Install
 
@@ -62,12 +62,12 @@ from nebula_client import NebulaClient
 
 client = NebulaClient(api_key="your-api-key-here")
 
-# Create a cluster
-cluster = client.create_cluster("my_notes", "Personal notes")
+# Create a collection
+collection = client.create_collection(name="my_notes", description="Personal notes")
 
 # Store a memory
 memory_id = client.store_memory({
-    "cluster_id": cluster.id,
+    "collection_id": collection.id,
     "content": "Machine learning is transforming healthcare",
     "metadata": {"topic": "AI", "importance": "high"}
 })
@@ -75,7 +75,7 @@ memory_id = client.store_memory({
 # Search memories
 results = client.search(
     query="machine learning healthcare",
-    cluster_ids=[cluster.id],
+    collection_ids=[collection.id],
     limit=5
 )
 
@@ -92,15 +92,15 @@ const client = new NebulaClient({
 });
 
 async function storeAndSearch() {
-  // Create a cluster
-  const cluster = await client.createCluster({
+  // Create a collection
+  const collection = await client.createCollection({
     name: 'my_notes',
     description: 'Personal notes'
   });
 
   // Store a memory
   const memoryId = await client.storeMemory({
-    cluster_id: cluster.id,
+    collection_id: collection.id,
     content: 'Machine learning is transforming healthcare',
     metadata: { topic: 'AI', importance: 'high' }
   });
@@ -108,7 +108,7 @@ async function storeAndSearch() {
   // Search memories
   const results = await client.search({
     query: 'machine learning healthcare',
-    cluster_ids: [cluster.id],
+    collection_ids: [collection.id],
     limit: 5
   });
 
@@ -123,54 +123,45 @@ storeAndSearch();
 
 </CodeGroup>
 
-## 4. Test Connection
+## What You'll Get Back
 
-<CodeGroup>
+When you store a memory, Nebula returns the memory ID:
 
-```bash health_check.sh
-# Verify your setup
-curl -s -H "Authorization: ApiKey YOUR_API_KEY" \
-  https://api.nebulacloud.app/v1/health
+```python
+# Returns the memory ID
+memory_id = "eng_abc123def456"
 ```
 
-```python health_check.py
-import os
-import requests
+When you search, you get a list of relevant results with scores:
 
-api_key = os.getenv("NEBULA_API_KEY") or "YOUR_API_KEY"
-
-resp = requests.get(
-    "https://api.nebulacloud.app/v1/health",
-    headers={"Authorization": f"ApiKey {api_key}"},
-    timeout=10,
-)
-
-print(resp.status_code)
-print(resp.json())
+```python
+# Search results structure
+[
+  {
+    "memory_id": "eng_abc123def456",
+    "content": "Machine learning is transforming healthcare",
+    "score": 0.95,
+    "metadata": {"topic": "AI", "importance": "high"},
+    "created_at": "2024-01-15T10:30:00Z"
+  },
+  {
+    "memory_id": "eng_xyz789ghi012",
+    "content": "AI models improve diagnostic accuracy",
+    "score": 0.87,
+    "metadata": {"topic": "AI", "importance": "high"},
+    "created_at": "2024-01-14T09:15:00Z"
+  }
+]
 ```
 
-```javascript health_check.js
-// Node 18+ provides global fetch
-const apiKey = process.env.NEBULA_API_KEY || 'YOUR_API_KEY';
-
-(async () => {
-  const res = await fetch('https://api.nebulacloud.app/v1/health', {
-    headers: { Authorization: `ApiKey ${apiKey}` }
-  });
-  console.log(res.status);
-  const json = await res.json();
-  console.log(json);
-})();
-```
-
-</CodeGroup>
+<Tip>Scores range from 0-1, with higher scores indicating better semantic matches to your query.</Tip>
 
 ## Next Steps
 
+- [Core Concepts](/guides/concepts) - Understand how Nebula works
 - [Memory Operations Guide](/guides/memory-operations) - Detailed examples and advanced usage
-- [Clusters Guide](/guides/clusters) - Organize your memories effectively
-- [Authentication](/authentication) - API key management and security
-- [API Reference](/api-reference/overview) - Complete endpoint documentation
+- [Collections Guide](/guides/collections) - Organize your memories effectively
+- [Search Guide](/guides/search) - Semantic search and filtering
 
 ## Need Help?
 

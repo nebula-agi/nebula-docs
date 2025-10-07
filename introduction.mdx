@@ -1,74 +1,117 @@
 ---
-title: 'Introduction'
-description: 'Welcome to Nebula — the simplest way to add self-improving memory to your apps.'
+title: Introduction
+description: "Add persistent memory to your AI applications in minutes"
 ---
+
+<img
+  src="/images/hero.png"
+  alt="Nebula Hero"
+/>
 
 # Welcome to Nebula
 
-Nebula is an AI-powered memory layer that makes it easy to store, recall, and search information. With just a few lines of code, you can give your applications long-term memory and build more intelligent, context-aware experiences.
+Nebula is a persistent memory layer for AI applications. Store, search, and retrieve information with semantic understanding—giving your AI long-term memory across every interaction.
 
+## Quick Example
+
+```python
+from nebula_sdk import NebulaClient
+
+client = NebulaClient(api_key="your_api_key")
+
+# Create a memory collection
+collection = client.create_collection(name="customer_support")
+
+# Store information
+client.store_memory({
+    "collection_id": collection.id,
+    "content": "User prefers email notifications over SMS",
+    "metadata": {"user_id": "user_123", "preference": "email"}
+})
+
+# Search semantically
+results = client.search("How does user_123 want to be contacted?", collection_id=collection.id)
+print(results[0].content)  # Returns: "User prefers email notifications over SMS"
+```
+
+[Get your API key and start building →](/quickstart)
 
 ## Key Features
 
+- **Semantic Search** - Find information by meaning, not just keywords
+- **Persistent Memory** - Context that persists across sessions and conversations
+- **Rich Metadata** - Filter and organize with custom metadata fields
+- **Collection Organization** - Group related information into logical collections
+- **Sub-100ms Retrieval** - Fast semantic search even at scale
+- **Multi-Language SDKs** - Python, JavaScript/TypeScript, and MCP support
+- **SOC 2 Compliant** - Enterprise-grade security and encryption
+
+## Core Concepts
+
 <CardGroup cols={3}>
   <Card
-    title="Memory"
+    title="Memory Operations"
     href="/guides/memory-operations"
+    icon="brain"
   >
-    Store, search, and retrieve information with semantic understanding and rich metadata.
+    Store, search, and retrieve information with semantic understanding
   </Card>
   <Card
-    title="Clusters"
-    href="/guides/clusters"
+    title="Collections"
+    href="/guides/collections"
+    icon="folder-tree"
   >
-    Organize information in logical collections with automatic deduplication and relationship mapping.
+    Organize memories into logical collections with automatic deduplication
   </Card>
   <Card
-    title="API & MCP"
-    href="/mcp-integration"
+    title="Conversations"
+    href="/guides/conversations"
+    icon="messages"
   >
-    RESTful APIs, SDKs, and MCP protocol support for seamless integration with any application.
+    Build chat applications with multi-turn conversation memory
   </Card>
 </CardGroup>
 
-
-## Quick Start
-
-Start here: [Quick Start Guide](/quickstart).
-
 ## Client Libraries
-
-Nebula provides official client libraries for multiple programming languages:
 
 <CardGroup cols={3}>
   <Card
     title="Python SDK"
     href="/clients/python"
+    icon="python"
   >
-    Full-featured Python client (v0.0.21) with async support and conversation management
+    Full-featured Python client with async support
   </Card>
   <Card
     title="JavaScript SDK"
     href="/clients/nodejs"
+    icon="js"
   >
-    TypeScript/JavaScript SDK (v0.0.19) with comprehensive type definitions
+    TypeScript/JavaScript SDK with comprehensive types
   </Card>
   <Card
     title="MCP Integration"
     href="/mcp-integration"
+    icon="plug"
   >
-    Connect AI assistants directly to your memory clusters via Model Context Protocol
+    Connect AI assistants via Model Context Protocol
   </Card>
 </CardGroup>
 
 ## Next Steps
 
-- [Quick Start Guide](/quickstart) - Get up and running in minutes
-- [Authentication](/authentication) - Learn about API keys and authentication
-- [Memory Operations](/guides/memory-operations) - See practical usage examples
-- [Clusters Guide](/guides/clusters) - Learn about organizing your data
+<Steps>
+  <Step title="Quickstart">
+    [Get started in 5 minutes →](/quickstart) Install the SDK, create your first collection, and store memories
+  </Step>
+  <Step title="Core Concepts">
+    [Learn the fundamentals →](/guides/concepts) Understand how Nebula stores and organizes information
+  </Step>
+  <Step title="Build">
+    [Explore guides →](/guides/memory-operations) Deep dive into memory operations, filtering, and conversations
+  </Step>
+</Steps>
 
 ## Support
 
-- **Email**: [Contact support](mailto:support@trynebula.ai)
- 
+Need help? Reach out to [support@trynebula.ai](mailto:support@trynebula.ai)

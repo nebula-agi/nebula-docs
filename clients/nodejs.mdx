@@ -1,431 +1,75 @@
 ---
 title: 'Node.js Client'
-description: 'Official Node.js client library for the Nebula Memory API'
+description: 'Official Node.js SDK for Nebula'
 ---
 
 # Node.js Client
 
-The official Node.js client library for the Nebula Memory API provides a simple and intuitive interface for storing, retrieving, and searching memories with advanced clustering capabilities.
+Official Node.js/TypeScript SDK for the Nebula Memory API.
 
+## Installation
 
-## Installation & Setup
-
-**Install:**
 ```bash
 npm install @nebula-ai/sdk
 ```
 
-**Environment setup:**
+## Setup
+
 ```bash
+# Set environment variable
 export NEBULA_API_KEY="your_api_key_here"
 ```
 
-## Client Initialization
-
-**Basic usage:**
 ```javascript
 import { NebulaClient } from '@nebula-ai/sdk';
-// or
-const { NebulaClient } = require('@nebula-ai/sdk');
+// or: const { NebulaClient } = require('@nebula-ai/sdk');
 
-const client = new NebulaClient({
-  apiKey: 'your_api_key_here'
-});
+// Automatically uses NEBULA_API_KEY environment variable
+const client = new NebulaClient();
 ```
 
-**Advanced configuration:**
-```javascript
-const client = new NebulaClient({
-  apiKey: 'your_api_key_here',
-  baseUrl: 'https://api.nebulacloud.app', // Default
-  timeout: 30000 // Default timeout in ms
-});
-```
-
-## Cluster Management
-
-**Create cluster:**
-```javascript
-const cluster = await client.createCluster({
-  name: 'research_notes',
-  description: 'Cluster for research-related memories',
-  metadata: { category: 'academic', priority: 'high' }
-});
-```
-
-**Get cluster:**
-```javascript
-const cluster = await client.getCluster('cluster_id_here');
-```
-
-**List clusters:**
-```javascript
-const clusters = await client.listClusters({
-  limit: 100, // Default: 100
-  offset: 0   // Default: 0
-});
-```
-
-**Update cluster:**
-```javascript
-const updatedCluster = await client.updateCluster({
-  clusterId: 'cluster_id_here',
-  name: 'new_name', // Optional
-  description: 'new_description', // Optional
-  metadata: { updated: true } // Optional
-});
-```
-
-**Delete cluster:**
-```javascript
-const success = await client.deleteCluster('cluster_id_here');
-```
-
-## Memory Storage
-
-**Store memory:**
-```javascript
-// Using plain object (recommended)
-const engramId = await client.storeMemory({
-  cluster_id: 'user_preferences', // Required
-  content: 'User prefers email communication over phone calls',
-  metadata: {
-    userId: 'user_123',
-    preferenceType: 'communication',
-    importance: 'high'
-  }
-});
-
-// Using Memory interface
-const memory = {
-  cluster_id: 'user_preferences',
-  content: 'User prefers email communication over phone calls',
-  role: undefined,
-  parent_id: undefined,
-  metadata: {
-    userId: 'user_123',
-    preferenceType: 'communication'
-  }
-};
-const engramId = await client.storeMemory(memory);
-```
-
-**Store multiple memories:**
-```javascript
-const memories = [
-  {
-    cluster_id: 'research',
-    content: 'AI research findings',
-    metadata: { topic: 'ai' }
-  },
-  {
-    cluster_id: 'research',
-    content: 'Machine learning insights',
-    metadata: { topic: 'ml' }
-  }
-];
-
-const engramIds = await client.storeMemories(memories);
-```
-
-## Conversation Storage
-
-**Create a conversation:**
-```javascript
-// Create an empty conversation (role triggers conversation creation)
-const conversationId = await client.storeMemory(
-  {
-    cluster_id: 'conversations',
-    content: '',
-    role: 'assistant'  // Presence of role creates a conversation
-  },
-  'Customer Support Chat'  // name
-);
-```
-
-**Add messages to conversation:**
-```javascript
-// Append messages to the conversation
-await client.appendMemory(conversationId, {
-  cluster_id: 'conversations',
-  content: [
-    {
-      content: 'Hello! How can I help you today?',
-      role: 'assistant',
-      metadata: { sentiment: 'positive' }
-    },
-    {
-      content: 'I need help with my account',
-      role: 'user'
-    }
-  ]
-});
-```
-
-**Create conversation with initial message:**
-```javascript
-// Create conversation and add first message in one call
-const conversationId = await client.storeMemory(
-  {
-    cluster_id: 'conversations',
-    content: 'Hello! How can I help you today?',
-    role: 'assistant',  // Presence of role creates a conversation
-    metadata: { session_id: 'sess_123' }
-  },
-  'Support Session'  // name
-);
-```
-
-**Append more content to documents:**
-```javascript
-// Append additional text to an existing document memory
-await client.appendMemory('doc_engram_id', {
-  cluster_id: 'research_cluster',
-  content: 'Additional paragraph of content...'
-});
-
-// Or append multiple chunks
-await client.appendMemory('doc_engram_id', {
-  cluster_id: 'research_cluster',
-  content: ['Chunk 1 text', 'Chunk 2 text']
-});
-```
-
-## Memory Retrieval
-
-**Get specific memory:**
-```javascript
-const memory = await client.getMemory('engram_id_here');
-```
-
-**List memories:**
-```javascript
-const memories = await client.listMemories({
-  cluster_ids: ['cluster_123', 'cluster_456'], // Required array of cluster IDs
-  limit: 100,    // Optional, default: 100
-  offset: 0      // Optional, default: 0
-});
-```
-
-## Search Operations
-
-**Basic search:**
-```javascript
-const results = await client.search({
-  query: 'artificial intelligence',
-  cluster_ids: ['research_cluster'],      // Required
-  limit: 10                               // Optional - default: 10
-});
-```
-
-**Advanced search with filters:**
-```javascript
-const results = await client.search({
-  query: 'machine learning research',
-  cluster_ids: ['research_cluster'],
-  limit: 15,
-  searchSettings: {
-    search_mode: 'super',                 // 'fast' or 'super' (default: 'super')
-    filters: { 'metadata.topic': 'ai' },
-    semantic_weight: 7.0,                 // Emphasize conceptual matching
-    fulltext_weight: 3.0,                 // Some keyword matching
-  }
-});
-```
-
-**Search modes:**
-```javascript
-// Fast mode: Fast BFS graph traversal (max_depth=3, simple scoring)
-const results = await client.search({
-  query: 'quick search',
-  cluster_ids: ['cluster_id'],
-  searchSettings: { search_mode: 'fast' }
-});
-
-// Super mode: SuperBFS with set transformers (max_depth=50, contextualized scoring)
-const results = await client.search({
-  query: 'complex query',
-  cluster_ids: ['cluster_id'],
-  searchSettings: { search_mode: 'super' }  // Default
-});
-```
-
-**Search with source role filtering:**
-```javascript
-// Filter by conversation roles using canonical filter keys
-const results = await client.search({
-  query: 'user feedback',
-  cluster_ids: ['support_cluster'],
-  searchSettings: {
-    filters: {
-      source_role: 'user',               // Special filter key for graph search
-      'metadata.category': 'feedback'
-    }
-  }
-});
-```
-
-## Memory Management
-
-**Delete single memory:**
-```javascript
-const success = await client.delete('engram_id_here');
-console.log('Deleted:', success); // true
-```
-
-**Delete multiple memories (batch):**
-```javascript
-// Delete multiple memories in a single operation
-const engramIds = ['eng_id_1', 'eng_id_2', 'eng_id_3'];
-const result = await client.delete(engramIds);
-
-// Access detailed results
-console.log('Message:', result.message);
-console.log('Deleted:', result.results.successful);
-console.log('Failed:', result.results.failed);
-console.log('Summary:', result.results.summary);
-
-// Example response:
-// {
-//   message: "Deleted 2 of 3 documents",
-//   results: {
-//     successful: ["mem_id_1", "mem_id_2"],
-//     failed: [{id: "mem_id_3", error: "Not found or no permission"}],
-//     summary: {total: 3, succeeded: 2, failed: 1}
-//   }
-// }
-```
-
-**TypeScript types:**
-```typescript
-// Single deletion returns boolean
-const deleted: boolean = await client.delete('engram_id');
-
-// Batch deletion returns detailed results
-const result: {
-  message: string;
-  results: {
-    successful: string[];
-    failed: Array<{id: string; error: string}>;
-    summary: {
-      total: number;
-      succeeded: number;
-      failed: number;
-    };
-  };
-} = await client.delete(['id1', 'id2']);
-```
-
-## TypeScript Interfaces
-
-**Memory interface (for writing):**
-```typescript
-interface Memory {
-  cluster_id: string;        // Required: cluster to store in
-  content: string;           // Required: text content
-  role?: string;             // Optional: 'user', 'assistant', or custom (for conversations)
-  parent_id?: string;        // Optional: conversation ID (for conversations)
-  metadata?: Record<string, any>; // Optional: additional metadata
-}
-```
-
-**MemoryResponse interface (for reading):**
-```typescript
-interface MemoryResponse {
-  id: string;
-  content?: string;
-  chunks?: string[];
-  metadata: Record<string, any>;
-  cluster_ids: string[];
-  created_at?: string;
-  updated_at?: string;
-}
-```
-
-## Error Handling
-
-**Exception types:**
-- `NebulaException` - Base exception
-- `NebulaClientException` - Client-side errors
-- `NebulaAuthenticationException` - Authentication errors
-- `NebulaRateLimitException` - Rate limiting errors
-- `NebulaValidationException` - Validation errors
-
-**Error handling:**
-```javascript
-try {
-  const memory = await client.storeMemory({
-    content: 'Test memory',
-    cluster_id: 'test_cluster'
-  });
-} catch (error) {
-  if (error instanceof NebulaAuthenticationException) {
-    console.error('Invalid API key');
-  } else if (error instanceof NebulaRateLimitException) {
-    console.error('Rate limit exceeded');
-  } else if (error instanceof NebulaValidationException) {
-    console.error('Validation error:', error.message);
-  } else if (error instanceof NebulaException) {
-    console.error('API error:', error.message);
-  } else {
-    console.error('Unexpected error:', error);
-  }
-}
-```
-
-## Conversation Management
-
-**Get single conversation messages:**
-```javascript
-const messages = await client.getConversationMessages('conversation-uuid');
-console.log(`Found ${messages.length} messages`);
-```
-
-**Get multiple conversations (batch):**
-```javascript
-// Efficiently retrieve multiple conversations in one call
-const conversationIds = ['conv-1', 'conv-2', 'conv-3'];
-const batchResults = await client.getConversationMessages(conversationIds);
-
-// Returns: { 'conv-1': [...messages], 'conv-2': [...messages], 'conv-3': [...messages] }
-for (const [convId, messages] of Object.entries(batchResults)) {
-  console.log(`${convId}: ${messages.length} messages`);
-}
-```
-
-## Quick Example
+## Basic Usage
 
 ```javascript
-const { NebulaClient } = require('@nebula-ai/sdk');
+import { NebulaClient } from '@nebula-ai/sdk';
 
-(async () => {
-  const client = new NebulaClient({ apiKey: 'your_api_key' });
+const client = new NebulaClient();
 
-  // Create cluster and store memory
-  const cluster = await client.createCluster({
-    name: 'customer_support',
-    description: 'Customer support interactions'
+async function example() {
+  // Create a collection
+  const collection = await client.createCollection({
+    name: 'my_notes',
+    description: 'Personal notes'
   });
 
-  const memory = await client.storeMemory({
-    content: 'Customer prefers email communication over phone calls',
-    cluster_id: cluster.id,
-    metadata: { userId: 'user_123', preferenceType: 'communication' }
+  // Store a memory
+  const memoryId = await client.storeMemory({
+    collection_id: collection.id,
+    content: 'JavaScript is great for web development',
+    metadata: { topic: 'programming', language: 'javascript' }
   });
 
-  // Search
+  // Search memories
   const results = await client.search({
-    query: 'communication preferences',
-    cluster_ids: [cluster.id],
-    limit: 5
+    query: 'web development',
+    collection_ids: [collection.id],
+    limit: 10
   });
 
-  console.log('Search results:', results.length);
-})();
+  results.forEach(result => {
+    console.log(`Score: ${result.score.toFixed(2)}`);
+    console.log(`Content: ${result.content}`);
+  });
+}
+
+example();
 ```
 
 ## Next Steps
 
-- [Quick Start Guide](/quickstart) - Get up and running quickly
-- [API Reference](/api-reference/overview) - Explore all available endpoints
-- [Memory Operations](/guides/memory-operations) - See practical usage examples 
+For detailed examples and advanced features, see:
+
+- [Memory Operations](/guides/memory-operations) - Store, retrieve, delete
+- [Search Guide](/guides/search) - Semantic search and filtering
+- [Collections Guide](/guides/collections) - Organize your data
+- [Conversations Guide](/guides/conversations) - Build chat applications

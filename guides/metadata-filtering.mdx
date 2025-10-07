@@ -5,105 +5,70 @@ description: 'Advanced filtering for search and retrieval'
 
 # Metadata Filtering
 
-Use metadata filters to refine your search results based on custom attributes. Nebula doesn't need metadata filtering to perform, but it can be used to refine the results.
-
-## Overview
-
-Metadata filtering allows you to:
-- **Filter by attributes**: Search only memories matching specific metadata criteria
-- **Combine conditions**: Use logical operators (`$and`, `$or`) for complex queries
-- **Support all data types**: Filter strings, numbers, booleans, arrays, and nested objects
-- **Works everywhere**: Same syntax for vector search, entity search, relationship search, and community search
+Filter search results by metadata attributes. Use logical operators and data type comparisons to find exactly what you need.
 
 ## Basic Filtering
 
-### Equality Filters
+### Equality & Not Equal
 
 <CodeGroup>
 
-```python Basic Equality
+```python Python
 from nebula_client import NebulaClient
-
 client = NebulaClient(api_key="your-api-key")
 
-# Find memories with category="research"
+# Simple equality
 results = client.search(
     query="machine learning",
-    cluster_ids=["my-cluster"],
-    filters={"metadata.category": {"$eq": "research"}}
-)
-
-# Shorthand (equivalent to $eq)
-results = client.search(
-    query="machine learning",
-    cluster_ids=["my-cluster"],
+    collection_ids=["my-collection"],
     filters={"metadata.category": "research"}
 )
-```
 
-```javascript Basic Equality
-const { NebulaClient } = require('@nebula-ai/sdk');
-
-const client = new NebulaClient({ apiKey: 'your-api-key' });
-
-// Find memories with category="research"
-const results = await client.search({
-  query: "machine learning",
-  cluster_ids: ["my-cluster"],
-  filters: {"metadata.category": {"$eq": "research"}}
-});
-
-// Shorthand (equivalent to $eq)
-const results2 = await client.search({
-  query: "machine learning",
-  cluster_ids: ["my-cluster"],
-  filters: {"metadata.category": "research"}
-});
-```
-
-</CodeGroup>
-
-### Not Equal
-
-<CodeGroup>
-
-```python Not Equal
-# Exclude memories with status="archived"
+# Not equal
 results = client.search(
-    query="important documents",
-    cluster_ids=["docs-cluster"],
+    query="documents",
+    collection_ids=["docs"],
     filters={"metadata.status": {"$ne": "archived"}}
 )
 ```
 
-```javascript Not Equal
+```javascript JavaScript
+const { NebulaClient } = require('@nebula-ai/sdk');
+const client = new NebulaClient({ apiKey: 'your-api-key' });
+
+// Simple equality
 const results = await client.search({
-  query: "important documents",
-  cluster_ids: ["docs-cluster"],
+  query: "machine learning",
+  collection_ids: ["my-collection"],
+  filters: {"metadata.category": "research"}
+});
+
+// Not equal
+const results2 = await client.search({
+  query: "documents",
+  collection_ids: ["docs"],
   filters: {"metadata.status": {"$ne": "archived"}}
 });
 ```
 
 </CodeGroup>
 
-## Numeric Comparisons
-
-Filter by numeric values using comparison operators.
+### Numeric Comparisons
 
 <CodeGroup>
 
-```python Numeric Filters
-# Find high-priority items (priority >= 7)
+```python Python
+# Greater than or equal
 results = client.search(
-    query="urgent tasks",
-    cluster_ids=["tasks-cluster"],
+    query="high priority tasks",
+    collection_ids=["tasks"],
     filters={"metadata.priority": {"$gte": 7}}
 )
 
-# Find items with score between 80 and 95
+# Range (between values)
 results = client.search(
     query="quality content",
-    cluster_ids=["content-cluster"],
+    collection_ids=["content"],
     filters={
         "$and": [
             {"metadata.score": {"$gte": 80}},
@@ -113,18 +78,18 @@ results = client.search(
 )
 ```
 
-```javascript Numeric Filters
-// Find high-priority items (priority >= 7)
+```javascript JavaScript
+// Greater than or equal
 const results = await client.search({
-  query: "urgent tasks",
-  cluster_ids: ["tasks-cluster"],
+  query: "high priority tasks",
+  collection_ids: ["tasks"],
   filters: {"metadata.priority": {"$gte": 7}}
 });
 
-// Find items with score between 80 and 95
+// Range (between values)
 const results2 = await client.search({
   query: "quality content",
-  cluster_ids: ["content-cluster"],
+  collection_ids: ["content"],
   filters: {
     "$and": [
       {"metadata.score": {"$gte": 80}},
@@ -136,235 +101,159 @@ const results2 = await client.search({
 
 </CodeGroup>
 
-**Available operators:**
-- `$gt` - Greater than
-- `$gte` - Greater than or equal
-- `$lt` - Less than
-- `$lte` - Less than or equal
+**Operators**: `$gt`, `$gte`, `$lt`, `$lte`
 
-## String Matching
-
-Use pattern matching for string fields.
+### String Matching
 
 <CodeGroup>
 
-```python String Matching
-# Case-insensitive: find emails ending with @company.com
+```python Python
+# Case-insensitive pattern matching
 results = client.search(
     query="employees",
-    cluster_ids=["team-cluster"],
+    collection_ids=["team"],
     filters={"metadata.email": {"$ilike": "%@company.com"}}
 )
 
-# Case-sensitive: find titles starting with "Important"
+# Case-sensitive pattern matching
 results = client.search(
     query="documents",
-    cluster_ids=["docs-cluster"],
+    collection_ids=["docs"],
     filters={"metadata.title": {"$like": "Important%"}}
 )
 ```
 
-```javascript String Matching
-// Case-insensitive: find emails ending with @company.com
+```javascript JavaScript
+// Case-insensitive pattern matching
 const results = await client.search({
   query: "employees",
-  cluster_ids: ["team-cluster"],
+  collection_ids: ["team"],
   filters: {"metadata.email": {"$ilike": "%@company.com"}}
 });
 
-// Case-sensitive: find titles starting with "Important"
+// Case-sensitive pattern matching
 const results2 = await client.search({
   query: "documents",
-  cluster_ids: ["docs-cluster"],
+  collection_ids: ["docs"],
   filters: {"metadata.title": {"$like": "Important%"}}
 });
 ```
 
 </CodeGroup>
 
-**Available operators:**
-- `$like` - Case-sensitive pattern matching (use `%` as wildcard)
-- `$ilike` - Case-insensitive pattern matching (use `%` as wildcard)
+**Operators**: `$like` (case-sensitive), `$ilike` (case-insensitive). Use `%` as wildcard.
 
-## Array Operations
+## Advanced Filtering
 
-Filter based on array membership and overlap.
+### Array Operations
 
 <CodeGroup>
 
-```python Array Filters
-# Find memories with ANY of these tags
-results = client.search(
-    query="AI content",
-    cluster_ids=["research-cluster"],
-    filters={"metadata.tags": {"$overlap": ["ai", "ml", "deep-learning"]}}
-)
-
-# Find memories with ALL of these skills
-results = client.search(
-    query="senior engineers",
-    cluster_ids=["team-cluster"],
-    filters={"metadata.skills": {"$contains": ["python", "kubernetes"]}}
-)
-
-# Find memories where category is in the list
+```python Python
+# Has any of these tags
 results = client.search(
     query="content",
-    cluster_ids=["content-cluster"],
-    filters={"metadata.category": {"$in": ["tech", "science", "research"]}}
+    collection_ids=["posts"],
+    filters={"metadata.tags": {"$overlap": ["urgent", "important"]}}
+)
+
+# Has all of these skills
+results = client.search(
+    query="candidates",
+    collection_ids=["hr"],
+    filters={"metadata.skills": {"$contains": ["python", "ml"]}}
+)
+
+# Exact value match
+results = client.search(
+    query="items",
+    collection_ids=["inventory"],
+    filters={"metadata.category": {"$in": ["electronics", "books"]}}
 )
 ```
 
-```javascript Array Filters
-// Find memories with ANY of these tags
+```javascript JavaScript
+// Has any of these tags
 const results = await client.search({
-  query: "AI content",
-  cluster_ids: ["research-cluster"],
-  filters: {"metadata.tags": {"$overlap": ["ai", "ml", "deep-learning"]}}
-});
-
-// Find memories with ALL of these skills
-const results2 = await client.search({
-  query: "senior engineers",
-  cluster_ids: ["team-cluster"],
-  filters: {"metadata.skills": {"$contains": ["python", "kubernetes"]}}
-});
-
-// Find memories where category is in the list
-const results3 = await client.search({
   query: "content",
-  cluster_ids: ["content-cluster"],
-  filters: {"metadata.category": {"$in": ["tech", "science", "research"]}}
-});
-```
-
-</CodeGroup>
-
-**Available operators:**
-- `$in` - Value is in the array
-- `$nin` - Value is not in the array
-- `$overlap` - Array has ANY of these values (useful for tags)
-- `$contains` - Array has ALL of these values
-
-## Nested Metadata Paths
-
-Access deeply nested metadata fields using dot notation.
-
-<CodeGroup>
-
-```python Nested Paths
-# Filter by nested preference
-results = client.search(
-    query="user profiles",
-    cluster_ids=["users-cluster"],
-    filters={"metadata.user.preferences.theme": {"$eq": "dark"}}
-)
-
-# Multiple nested conditions
-results = client.search(
-    query="configurations",
-    cluster_ids=["config-cluster"],
-    filters={
-        "$and": [
-            {"metadata.settings.notifications.email": True},
-            {"metadata.settings.privacy.analytics": False}
-        ]
-    }
-)
-```
-
-```javascript Nested Paths
-// Filter by nested preference
-const results = await client.search({
-  query: "user profiles",
-  cluster_ids: ["users-cluster"],
-  filters: {"metadata.user.preferences.theme": {"$eq": "dark"}}
+  collection_ids: ["posts"],
+  filters: {"metadata.tags": {"$overlap": ["urgent", "important"]}}
 });
 
-// Multiple nested conditions
+// Has all of these skills
 const results2 = await client.search({
-  query: "configurations",
-  cluster_ids: ["config-cluster"],
-  filters: {
-    "$and": [
-      {"metadata.settings.notifications.email": true},
-      {"metadata.settings.privacy.analytics": false}
-    ]
-  }
+  query: "candidates",
+  collection_ids: ["hr"],
+  filters: {"metadata.skills": {"$contains": ["python", "ml"]}}
+});
+
+// Exact value match
+const results3 = await client.search({
+  query: "items",
+  collection_ids: ["inventory"],
+  filters: {"metadata.category": {"$in": ["electronics", "books"]}}
 });
 ```
 
 </CodeGroup>
 
-## Logical Operators
+**Operators**: `$overlap` (has any), `$contains` (has all), `$in` (value in list), `$nin` (not in list)
 
-Combine multiple conditions with `$and` and `$or`.
-
-### AND Operator
-
-All conditions must be true.
+### Logical Operations
 
 <CodeGroup>
 
-```python AND Operator
-# Find verified, high-priority memories with specific tags
+```python Python
+# AND: All conditions must match
 results = client.search(
-    query="critical items",
-    cluster_ids=["items-cluster"],
+    query="research papers",
+    collection_ids=["academic"],
     filters={
         "$and": [
             {"metadata.verified": True},
-            {"metadata.priority": {"$gte": 8}},
-            {"metadata.tags": {"$overlap": ["critical", "urgent"]}}
+            {"metadata.score": {"$gte": 85}},
+            {"metadata.department": "ai"}
         ]
     }
 )
-```
 
-```javascript AND Operator
-const results = await client.search({
-  query: "critical items",
-  cluster_ids: ["items-cluster"],
-  filters: {
-    "$and": [
-      {"metadata.verified": true},
-      {"metadata.priority": {"$gte": 8}},
-      {"metadata.tags": {"$overlap": ["critical", "urgent"]}}
-    ]
-  }
-});
-```
-
-</CodeGroup>
-
-### OR Operator
-
-At least one condition must be true.
-
-<CodeGroup>
-
-```python OR Operator
-# Find memories that are either urgent OR high priority
+# OR: Any condition can match
 results = client.search(
-    query="important tasks",
-    cluster_ids=["tasks-cluster"],
+    query="urgent items",
+    collection_ids=["tasks"],
     filters={
         "$or": [
             {"metadata.urgent": True},
-            {"metadata.priority": {"$gte": 9}}
+            {"metadata.priority": {"$gte": 9}},
+            {"metadata.deadline": {"$lte": "2024-12-31"}}
         ]
     }
 )
 ```
 
-```javascript OR Operator
+```javascript JavaScript
+// AND: All conditions must match
 const results = await client.search({
-  query: "important tasks",
-  cluster_ids: ["tasks-cluster"],
+  query: "research papers",
+  collection_ids: ["academic"],
+  filters: {
+    "$and": [
+      {"metadata.verified": true},
+      {"metadata.score": {"$gte": 85}},
+      {"metadata.department": "ai"}
+    ]
+  }
+});
+
+// OR: Any condition can match
+const results2 = await client.search({
+  query: "urgent items",
+  collection_ids: ["tasks"],
   filters: {
     "$or": [
       {"metadata.urgent": true},
-      {"metadata.priority": {"$gte": 9}}
+      {"metadata.priority": {"$gte": 9}},
+      {"metadata.deadline": {"$lte": "2024-12-31"}}
     ]
   }
 });
@@ -372,440 +261,39 @@ const results = await client.search({
 
 </CodeGroup>
 
-### Complex Combinations
-
-Nest logical operators for advanced queries.
+### Nested Objects
 
 <CodeGroup>
 
-```python Complex Filters
-# Find senior engineers OR experienced developers with specific skills
+```python Python
+# Filter nested object properties
 results = client.search(
-    query="candidates",
-    cluster_ids=["hiring-cluster"],
+    query="user profiles",
+    collection_ids=["users"],
     filters={
-        "$and": [
-            {"metadata.verified": True},
-            {"metadata.location": {"$ilike": "%san francisco%"}},
-            {
-                "$or": [
-                    {
-                        "$and": [
-                            {"metadata.title": {"$ilike": "%senior%"}},
-                            {"metadata.department": "engineering"}
-                        ]
-                    },
-                    {
-                        "$and": [
-                            {"metadata.years_experience": {"$gte": 8}},
-                            {"metadata.skills": {"$overlap": ["python", "go", "rust"]}}
-                        ]
-                    }
-                ]
-            }
-        ]
+        "metadata.user.profile.age": {"$gte": 25},
+        "metadata.user.location.city": "San Francisco"
     }
 )
 ```
 
-```javascript Complex Filters
+```javascript JavaScript
+// Filter nested object properties
 const results = await client.search({
-  query: "candidates",
-  cluster_ids: ["hiring-cluster"],
+  query: "user profiles",
+  collection_ids: ["users"],
   filters: {
-    "$and": [
-      {"metadata.verified": true},
-      {"metadata.location": {"$ilike": "%san francisco%"}},
-      {
-        "$or": [
-          {
-            "$and": [
-              {"metadata.title": {"$ilike": "%senior%"}},
-              {"metadata.department": "engineering"}
-            ]
-          },
-          {
-            "$and": [
-              {"metadata.years_experience": {"$gte": 8}},
-              {"metadata.skills": {"$overlap": ["python", "go", "rust"]}}
-            ]
-          }
-        ]
-      }
-    ]
+    "metadata.user.profile.age": {"$gte": 25},
+    "metadata.user.location.city": "San Francisco"
   }
 });
 ```
 
 </CodeGroup>
-
-## Real-World Examples
-
-### E-commerce Product Search
-
-<CodeGroup>
-
-```python E-commerce
-from nebula_client import NebulaClient
-
-client = NebulaClient(api_key="your-api-key")
-
-# Find in-stock products under $100 with good ratings
-results = client.search(
-    query="laptop",
-    cluster_ids=["products-cluster"],
-    filters={
-        "$and": [
-            {"metadata.price": {"$lte": 100}},
-            {"metadata.in_stock": True},
-            {"metadata.rating": {"$gte": 4.0}},
-            {"metadata.categories": {"$overlap": ["electronics", "computers"]}}
-        ]
-    },
-    limit=20
-)
-
-for result in results:
-    print(f"{result.content} - ${result.metadata.get('price')}")
-```
-
-```javascript E-commerce
-const { NebulaClient } = require('@nebula-ai/sdk');
-
-const client = new NebulaClient({ apiKey: 'your-api-key' });
-
-// Find in-stock products under $100 with good ratings
-const results = await client.search({
-  query: "laptop",
-  cluster_ids: ["products-cluster"],
-  filters: {
-    "$and": [
-      {"metadata.price": {"$lte": 100}},
-      {"metadata.in_stock": true},
-      {"metadata.rating": {"$gte": 4.0}},
-      {"metadata.categories": {"$overlap": ["electronics", "computers"]}}
-    ]
-  },
-  limit: 20
-});
-
-results.forEach(result => {
-  console.log(`${result.content} - $${result.metadata.price}`);
-});
-```
-
-</CodeGroup>
-
-### Team Member Search
-
-<CodeGroup>
-
-```python Team Search
-# Find available senior engineers in specific locations
-results = client.search(
-    query="backend developer",
-    cluster_ids=["team-cluster"],
-    filters={
-        "$and": [
-            {"metadata.level": {"$gte": 5}},
-            {"metadata.available": True},
-            {"metadata.department": "engineering"},
-            {
-                "$or": [
-                    {"metadata.location.city": {"$ilike": "%san francisco%"}},
-                    {"metadata.location.city": {"$ilike": "%new york%"}},
-                    {"metadata.remote": True}
-                ]
-            },
-            {"metadata.skills": {"$overlap": ["python", "postgresql", "kubernetes"]}}
-        ]
-    }
-)
-```
-
-```javascript Team Search
-// Find available senior engineers in specific locations
-const results = await client.search({
-  query: "backend developer",
-  cluster_ids: ["team-cluster"],
-  filters: {
-    "$and": [
-      {"metadata.level": {"$gte": 5}},
-      {"metadata.available": true},
-      {"metadata.department": "engineering"},
-      {
-        "$or": [
-          {"metadata.location.city": {"$ilike": "%san francisco%"}},
-          {"metadata.location.city": {"$ilike": "%new york%"}},
-          {"metadata.remote": true}
-        ]
-      },
-      {"metadata.skills": {"$overlap": ["python", "postgresql", "kubernetes"]}}
-    ]
-  }
-});
-```
-
-</CodeGroup>
-
-### Document Management
-
-<CodeGroup>
-
-```python Document Search
-from datetime import datetime, timedelta
-
-# Find recent, verified documents by specific authors
-recent_date = (datetime.now() - timedelta(days=30)).isoformat()
-
-results = client.search(
-    query="project proposal",
-    cluster_ids=["documents-cluster"],
-    filters={
-        "$and": [
-            {"metadata.type": "proposal"},
-            {"metadata.status": {"$ne": "archived"}},
-            {"metadata.verified": True},
-            {"metadata.created_date": {"$gte": recent_date}},
-            {"metadata.author.email": {"$ilike": "%@company.com"}},
-            {"metadata.tags": {"$contains": ["important", "reviewed"]}}
-        ]
-    }
-)
-```
-
-```javascript Document Search
-// Find recent, verified documents by specific authors
-const recentDate = new Date();
-recentDate.setDate(recentDate.getDate() - 30);
-
-const results = await client.search({
-  query: "project proposal",
-  cluster_ids: ["documents-cluster"],
-  filters: {
-    "$and": [
-      {"metadata.type": "proposal"},
-      {"metadata.status": {"$ne": "archived"}},
-      {"metadata.verified": true},
-      {"metadata.created_date": {"$gte": recentDate.toISOString()}},
-      {"metadata.author.email": {"$ilike": "%@company.com"}},
-      {"metadata.tags": {"$contains": ["important", "reviewed"]}}
-    ]
-  }
-});
-```
-
-</CodeGroup>
-
-## Special First-Level Filters
-
-Use `source_role` and `timestamp` at the top level (not under `metadata.*`) for graph search and conversations.
-
-<Info>
-**Performance tip:** Include `source_role` and `timestamp` in your tool calls when storing memories. If not provided, they will be automatically determined at query time, adding ~200ms latency. Note: `category` is an internal field and should not be set manually.
-</Info>
-
-<CodeGroup>
-
-```python Special Filters
-from datetime import datetime, timedelta
-
-# Filter by speaker/source role
-results = client.search(
-    query="budget discussion",
-    cluster_ids=["conversations-cluster"],
-    filters={"source_role": "Alice"}
-)
-
-# Filter by date range (ISO format: YYYY-MM-DD)
-results = client.search(
-    query="Q4 planning",
-    cluster_ids=["meetings-cluster"],
-    filters={
-        "timestamp": {
-            "$gte": "2024-10-01",
-            "$lte": "2024-12-31"
-        }
-    }
-)
-
-# Combine both
-results = client.search(
-    query="product roadmap",
-    cluster_ids=["planning-cluster"],
-    filters={
-        "$and": [
-            {"source_role": "CEO"},
-            {"timestamp": {"$gte": "2024-01-01"}},
-            {"metadata.verified": True}
-        ]
-    }
-)
-```
-
-```javascript Special Filters
-// Filter by speaker/source role
-const results = await client.search({
-  query: "budget discussion",
-  cluster_ids: ["conversations-cluster"],
-  filters: {"source_role": "Alice"}
-});
-
-// Filter by date range (ISO format: YYYY-MM-DD)
-const results2 = await client.search({
-  query: "Q4 planning",
-  cluster_ids: ["meetings-cluster"],
-  filters: {
-    "timestamp": {
-      "$gte": "2024-10-01",
-      "$lte": "2024-12-31"
-    }
-  }
-});
-
-// Combine both
-const results3 = await client.search({
-  query: "product roadmap",
-  cluster_ids: ["planning-cluster"],
-  filters: {
-    "$and": [
-      {"source_role": "CEO"},
-      {"timestamp": {"$gte": "2024-01-01"}},
-      {"metadata.verified": true}
-    ]
-  }
-});
-```
-
-</CodeGroup>
-
-## Operator Reference
-
-### Comparison Operators
-
-| Operator | Description | Example |
-|----------|-------------|---------|
-| `$eq` | Equal to | `{"metadata.status": {"$eq": "active"}}` |
-| `$ne` | Not equal to | `{"metadata.type": {"$ne": "draft"}}` |
-| `$gt` | Greater than | `{"metadata.score": {"$gt": 80}}` |
-| `$gte` | Greater than or equal | `{"metadata.level": {"$gte": 5}}` |
-| `$lt` | Less than | `{"metadata.price": {"$lt": 100}}` |
-| `$lte` | Less than or equal | `{"metadata.priority": {"$lte": 3}}` |
-
-### String Operators
-
-| Operator | Description | Example |
-|----------|-------------|---------|
-| `$like` | Case-sensitive pattern | `{"metadata.title": {"$like": "Important%"}}` |
-| `$ilike` | Case-insensitive pattern | `{"metadata.email": {"$ilike": "%@gmail.com"}}` |
-
-### Array Operators
-
-| Operator | Description | Example |
-|----------|-------------|---------|
-| `$in` | Value in array | `{"metadata.category": {"$in": ["tech", "science"]}}` |
-| `$nin` | Value not in array | `{"metadata.status": {"$nin": ["archived", "deleted"]}}` |
-| `$overlap` | Has any of these | `{"metadata.tags": {"$overlap": ["ai", "ml"]}}` |
-| `$contains` | Has all of these | `{"metadata.skills": {"$contains": ["python", "go"]}}` |
-
-### Logical Operators
-
-| Operator | Description | Example |
-|----------|-------------|---------|
-| `$and` | All conditions must be true | `{"$and": [{"metadata.a": 1}, {"metadata.b": 2}]}` |
-| `$or` | At least one condition must be true | `{"$or": [{"metadata.urgent": true}, {"metadata.priority": {"$gte": 9}}]}` |
-
-## Best Practices
-
-### 1. Start Simple
-
-Begin with basic filters and add complexity as needed:
-
-```python
-# Start with simple equality
-filters = {"metadata.category": "research"}
-
-# Add more conditions incrementally
-filters = {
-    "$and": [
-        {"metadata.category": "research"},
-        {"metadata.verified": True}
-    ]
-}
-```
-
-### 2. Use Appropriate Data Types
-
-Store metadata with proper types for efficient filtering:
-
-```python
-# Good: Numbers for numeric comparisons
-client.store_memory({
-    "content": "...",
-    "metadata": {
-        "priority": 7,  # Number, not string
-        "score": 85.5,  # Float
-        "verified": True  # Boolean
-    }
-})
-
-# Avoid: Everything as strings
-# Bad: {"priority": "7", "score": "85.5", "verified": "true"}
-```
-
-### 3. Index Nested Paths
-
-For frequently queried nested paths, consider flattening important fields:
-
-```python
-# Instead of deeply nested:
-metadata = {
-    "user": {
-        "profile": {
-            "preferences": {
-                "notifications": {"email": True}
-            }
-        }
-    }
-}
-
-# Consider also storing:
-metadata = {
-    "email_notifications": True,  # Flattened for easier querying
-    "user": {...}  # Keep nested for completeness
-}
-```
-
-### 4. Use Array Operators Wisely
-
-- Use `$overlap` for "has any of" (tags, categories)
-- Use `$contains` for "has all of" (required skills, features)
-- Use `$in` for exact value matching
-
-### 5. Test Complex Queries
-
-For complex filters, test incrementally:
-
-```python
-# Build up complex queries step by step
-filters_1 = {"metadata.department": "engineering"}
-results_1 = client.search("test", cluster_ids=["test"], filters=filters_1)
-
-filters_2 = {
-    "$and": [
-        {"metadata.department": "engineering"},
-        {"metadata.level": {"$gte": 5}}
-    ]
-}
-results_2 = client.search("test", cluster_ids=["test"], filters=filters_2)
-
-# Continue adding conditions...
-```
 
 ## Common Patterns
 
-### Date Range Filtering
-
+### Date Ranges
 ```python
 from datetime import datetime, timedelta
 
@@ -823,79 +311,24 @@ filters = {
 ```
 
 ### Multi-Status Filtering
-
 ```python
-# Find items in specific statuses
-filters = {
-    "metadata.status": {
-        "$in": ["pending", "in_progress", "review"]
-    }
-}
+# Include specific statuses
+filters = {"metadata.status": {"$in": ["pending", "in_progress", "review"]}}
 
-# Find items NOT in these statuses
-filters = {
-    "metadata.status": {
-        "$nin": ["archived", "deleted", "cancelled"]
-    }
-}
+# Exclude specific statuses
+filters = {"metadata.status": {"$nin": ["archived", "deleted"]}}
 ```
 
-### Location-Based Filtering
+## Best Practices
 
-```python
-# Exact match
-filters = {"metadata.location.city": "San Francisco"}
-
-# Fuzzy match (case-insensitive)
-filters = {"metadata.location.city": {"$ilike": "%francisco%"}}
-
-# Multiple locations
-filters = {
-    "$or": [
-        {"metadata.location.city": {"$ilike": "%san francisco%"}},
-        {"metadata.location.city": {"$ilike": "%new york%"}},
-        {"metadata.remote": True}
-    ]
-}
-```
-
-## Troubleshooting
-
-### No Results Returned
-
-**Check filter syntax:**
-```python
-# Wrong: Missing metadata prefix
-filters = {"category": "research"}
-
-# Correct: Include metadata prefix
-filters = {"metadata.category": "research"}
-```
-
-### Type Mismatches
-
-**Ensure filter values match stored types:**
-```python
-# If stored as number, filter as number
-filters = {"metadata.priority": {"$gte": 5}}  # Not "5"
-
-# If stored as boolean, filter as boolean
-filters = {"metadata.verified": True}  # Not "true"
-```
-
-### Nested Path Errors
-
-**Use correct dot notation:**
-```python
-# Wrong: Incorrect nesting
-filters = {"metadata": {"user": {"name": "Alice"}}}
-
-# Correct: Dot notation
-filters = {"metadata.user.name": "Alice"}
-```
+- **Use proper data types**: Store numbers as numbers, booleans as booleans
+- **Start simple**: Begin with basic equality, add complexity as needed
+- **Test incrementally**: Build complex queries step by step
+- **Use appropriate array operators**: `$overlap` for "any of", `$contains` for "all of"
 
 ## Next Steps
 
-- Learn about [search strategies](/guides/memory-operations#search-strategies)
-- Explore [cluster management](/guides/clusters)
-- See [authentication best practices](/authentication)
+- [Core Concepts](/guides/concepts) - Understanding engrams and Nebula's architecture
+- [Memory Operations Guide](/guides/memory-operations) - Search strategies and examples
+- [Collections Guide](/guides/collections) - Organizing your memories  
+- [Advanced Features](/guides/advanced-features) - Chunk-level authority and optimization

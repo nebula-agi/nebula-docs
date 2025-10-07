@@ -1,0 +1,209 @@
+---
+title: "Core Concepts"
+description: "Understanding Nebula's architecture: memories, chunks, and containers"
+---
+
+# Core Concepts
+
+Understanding Nebula's architecture helps you work more effectively with memories, conversations, and documents.
+
+## Memories: Universal Information Containers
+
+In Nebula, everything is stored as a **memory** - a container for related information. A memory represents a complete unit:
+
+- **Conversation Memory**: Contains all messages in a conversation
+- **Document Memory**: Contains an entire document (potentially split into chunks)
+- **Simple Memory**: Contains a single piece of information
+
+### Memories vs Chunks
+
+- **Memory**: The container with a unique `memory_id` - represents complete conversations or documents
+- **Chunks**: Individual pieces within a memory (messages in conversations, sections in documents)
+- **Chunk ID**: Unique identifier for each chunk, used for granular operations
+
+```python
+# Create a conversation memory
+conversation_id = client.store_memory({
+    "collection_id": "support_chats",
+    "content": "Hello! How can I help you today?",
+    "role": "assistant",
+    "metadata": {"conversation_name": "Support Chat #123"}
+})
+
+# Add more messages to the same conversation
+client.store_memory({
+    "memory_id": conversation_id,  # Add to existing memory
+    "collection_id": "support_chats",
+    "content": [
+        {"content": "I need help with billing", "role": "user"},
+        {"content": "I'll help you with that", "role": "assistant"}
+    ]
+})
+# The memory now contains 3 messages total
+```
+
+## Types of Memories
+
+### Document Memories
+Contain entire documents, split into chunks internally for processing.
+
+```python
+# Create a document memory
+doc_id = client.store_memory({
+    "collection_id": "research_papers",
+    "content": "Chapter 1: Introduction to AI...",
+    "metadata": {
+        "title": "AI Research Paper",
+        "authors": ["Dr. Smith", "Dr. Jones"],
+        "type": "academic_paper"
+    }
+})
+
+# Add more chapters to the same document
+client.store_memory({
+    "memory_id": doc_id,  # Add to existing memory
+    "collection_id": "research_papers",
+    "content": "Chapter 2: Machine Learning Fundamentals..."
+})
+# The memory now contains the full document across multiple chunks
+```
+
+### Conversation Memories
+Contain entire conversations with all messages and context.
+
+```python
+# Create a conversation memory
+conv_id = client.store_memory({
+    "collection_id": "customer_support",
+    "content": "Hello! How can I help you today?",
+    "role": "assistant",  # Indicates conversation
+    "metadata": {
+        "conversation_name": "Support Chat #123",
+        "customer_id": "cust_456"
+    }
+})
+
+# Add more messages to the same conversation
+client.store_memory({
+    "memory_id": conv_id,  # Add to existing memory
+    "collection_id": "customer_support",
+    "content": [
+        {"content": "I have a billing question", "role": "user"},
+        {"content": "I'd be happy to help with billing", "role": "assistant"}
+    ]
+})
+# The memory now contains the entire conversation history
+```
+
+### Simple Memories
+Contain standalone pieces of information.
+
+```python
+# Create a simple memory
+memory_id = client.store_memory({
+    "collection_id": "user_preferences",
+    "content": "User prefers dark mode and email notifications",
+    "metadata": {
+        "user_id": "user_789",
+        "preference_type": "ui_settings"
+    }
+})
+# Single piece of information
+```
+
+## Memory Operations
+
+### Creation
+Every `store_memory()` call without `memory_id` creates a new memory:
+
+```python
+memory_id = client.store_memory({
+    "collection_id": "documents",
+    "content": "Initial document content"
+})
+# Creates new memory container
+```
+
+### Expanding (Adding Content)
+Use `store_memory()` with `memory_id` to add content to existing memories:
+
+```python
+# Add more content to document
+client.store_memory({
+    "memory_id": doc_id,
+    "collection_id": "documents",
+    "content": "Chapter 2: Advanced Topics..."
+})
+
+# Add more messages to conversation
+client.store_memory({
+    "memory_id": conv_id,
+    "collection_id": "conversations",
+    "content": [
+        {"content": "Thanks for the help!", "role": "user"},
+        {"content": "You're welcome!", "role": "assistant"}
+    ]
+})
+# Each call adds chunks/messages to the same memory
+```
+
+### Retrieval
+Retrieve complete memories with all chunks:
+
+```python
+# Get entire memory (complete document or conversation)
+memory = client.get_memory(memory_id)
+
+# Access individual chunks with IDs
+for chunk in memory.chunks:
+    print(f"Chunk {chunk.id}: {chunk.content}")
+
+# Search across memories
+results = client.search(
+    query="machine learning",
+    collection_ids=["research_papers"]
+)
+# Returns matching chunks with their parent memory_id
+```
+
+### Chunk Operations
+Work with individual pieces within memories:
+
+```python
+# Delete a specific message or chunk
+client.delete_chunk(chunk_id)
+
+# Update a specific chunk
+client.update_chunk(chunk_id, "Updated content", metadata={"edited": True})
+```
+
+## Memory Lifecycle
+
+1. **Creation**: `store_memory()` without `memory_id` creates new memory with unique ID
+2. **Expansion**: `store_memory()` with `memory_id` adds chunks/messages to existing memory
+3. **Retrieval**: `get_memory()` returns complete memory with all chunks (each chunk has an ID)
+4. **Chunk Operations**: Use chunk IDs for granular updates/deletes
+5. **Deletion**: `delete()` removes entire memory and all its chunks
+
+## Why This Matters
+
+Understanding memories and chunks helps you:
+
+- **Think in containers**: Build complete conversations or documents, not isolated pieces
+- **Use `memory_id` effectively**: Add to existing conversations/documents vs creating new ones
+- **Understand search results**: Search returns chunks with their parent `memory_id`
+- **Granular control**: Use chunk IDs to update/delete specific messages or sections
+
+## Best Practices
+
+- **Build complete units**: Use `memory_id` to build entire conversations or documents in the same container
+- **Use descriptive metadata**: Identify memory types (conversation, document, preference)
+- **Choose appropriate collections**: Group related memories logically
+- **Consider memory scope**: Each memory should represent one complete conversation or document
+- **Chunk operations when needed**: Use chunk IDs only for granular edits (e.g., deleting one message)
+
+## Next Steps
+
+- [Memory Operations Guide](/guides/memory-operations) - Practical usage examples
+- [Conversations Guide](/guides/conversations) - Working with conversation memories
+- [Collections Guide](/guides/collections) - Organizing your memories effectively

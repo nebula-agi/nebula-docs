@@ -1,361 +1,127 @@
 ---
 title: 'Python Client'
-description: 'Official Python client library for the Nebula Memory API'
+description: 'Official Python SDK for Nebula'
 ---
 
 # Python Client
 
-The official Python client library for the Nebula Memory API provides a simple and intuitive interface for storing, retrieving, and searching memories with advanced clustering capabilities.
+Official Python SDK for the Nebula Memory API.
 
+## Installation
 
-## Installation & Setup
-
-**Install:**
 ```bash
 pip install nebula-client
 ```
 
-**Environment setup:**
+## Setup
+
 ```bash
+# Set environment variable
 export NEBULA_API_KEY="your_api_key_here"
 ```
 
-## Client Initialization
-
-**Basic usage:**
 ```python
 from nebula_client import NebulaClient
 
-# Using environment variable
+# Automatically uses NEBULA_API_KEY environment variable
+client = NebulaClient()
+```
+
+## Basic Usage
+
+```python
+from nebula_client import NebulaClient
+
 client = NebulaClient()
 
-# Or with explicit API key
-client = NebulaClient(api_key="your_api_key_here")
-```
+# Create a collection
+collection = client.create_collection(name="my_notes", description="Personal notes")
 
-**Advanced configuration:**
-```python
-client = NebulaClient(
-    api_key="your_api_key_here",
-    base_url="https://api.nebulacloud.app",  # Default
-    timeout=30.0  # Default timeout in seconds
-)
-```
-
-## Cluster Management
-
-**Create cluster:**
-```python
-cluster = client.create_cluster(
-    name="research_notes",
-    description="Cluster for research-related memories",
-    metadata={"category": "academic", "priority": "high"}
-)
-```
-
-**Get cluster:**
-```python
-cluster = client.get_cluster("cluster_id_here")
-```
-
-**List clusters:**
-```python
-clusters = client.list_clusters(limit=100, offset=0)
-```
-
-**Update cluster:**
-```python
-updated_cluster = client.update_cluster(
-    cluster_id="cluster_id_here",
-    name="new_name",  # Optional
-    description="new_description",  # Optional
-    metadata={"updated": True}  # Optional
-)
-```
-
-**Delete cluster:**
-```python
-success = client.delete_cluster("cluster_id_here")
-```
-
-## Memory Storage
-
-**Store memory:**
-```python
-# Using dict (recommended)
-engram_id = client.store_memory({
-    "cluster_id": "user_preferences",
-    "content": "User prefers email communication over phone calls",
-    "metadata": {
-        "user_id": "user_123",
-        "preference_type": "communication",
-        "importance": "high"
-    }
+# Store a memory
+memory_id = client.store_memory({
+    "collection_id": collection.id,
+    "content": "Python is great for data science",
+    "metadata": {"topic": "programming", "language": "python"}
 })
 
-# Using Memory class
-from nebula_client import Memory
-memory = Memory(
-    cluster_id="user_preferences",
-    content="User prefers email communication over phone calls",
-    metadata={"user_id": "user_123"}
-)
-engram_id = client.store_memory(memory)
-```
-
-## Conversation Storage
-
-**Create a conversation:**
-```python
-# Create an empty conversation (role triggers conversation creation)
-conversation_id = client.store_memory(
-    cluster_id="conversations",
-    content="",
-    role="assistant",  # Presence of role creates a conversation
-    name="Customer Support Chat"
-)
-```
-
-**Add messages to conversation:**
-```python
-# Append messages to the conversation
-client.append_memory(
-    engram_id=conversation_id,
-    memory={
-        "cluster_id": "conversations",
-        "content": [
-            {
-                "content": "Hello! How can I help you today?",
-                "role": "assistant",
-                "metadata": {"sentiment": "positive"}
-            },
-            {
-                "content": "I need help with my account",
-                "role": "user"
-            }
-        ]
-    }
-)
-```
-
-**Create conversation with initial message:**
-```python
-# Create conversation and add first message in one call
-conversation_id = client.store_memory(
-    cluster_id="conversations",
-    content="Hello! How can I help you today?",
-    role="assistant",  # Presence of role creates a conversation
-    name="Support Session",
-    metadata={"session_id": "sess_123"}
-)
-```
-
-**Append more content to documents:**
-```python
-# Append additional text to an existing document memory
-client.append_memory(
-    engram_id="doc_engram_id",
-    memory={
-        "cluster_id": "research_cluster",
-        "content": "Additional paragraph of content..."
-    }
-)
-
-# Or append multiple chunks
-client.append_memory(
-    engram_id="doc_engram_id",
-    memory={
-        "cluster_id": "research_cluster",
-        "content": ["Chunk 1 text", "Chunk 2 text"]
-    }
-)
-```
-
-## Memory Retrieval
-
-**Get specific memory:**
-```python
-memory = client.get_memory("engram_id_here")
-```
-
-**List memories:**
-```python
-memories = client.list_memories(
-    cluster_ids=["cluster_123"],  # Required - list of cluster IDs
-    limit=100,      # Default: 100
-    offset=0        # Default: 0
-)
-```
-
-
-## Search Operations
-
-**Basic search:**
-```python
+# Search memories
 results = client.search(
-    query="artificial intelligence",
-    cluster_ids=["research_cluster"],     # Required - list of cluster IDs
-    limit=10                              # Optional - default: 10
-)
-```
-
-**Advanced search with filters:**
-```python
-results = client.search(
-    query="machine learning research",
-    cluster_ids=["research_cluster"],
-    limit=15,
-    search_settings={
-        "search_mode": "super",           # 'fast' or 'super' (default: 'super')
-        "filters": {"metadata.topic": "ai"},
-        "semantic_weight": 7.0,           # Emphasize conceptual matching
-        "fulltext_weight": 3.0,           # Some keyword matching
-    }
-)
-```
-
-**Search modes:**
-```python
-# Fast mode: Fast BFS graph traversal (max_depth=3, simple scoring)
-results = client.search(
-    query="quick search",
-    cluster_ids=["cluster_id"],
-    search_settings={"search_mode": "fast"}
+    query="data science",
+    collection_ids=[collection.id],
+    limit=10
 )
 
-# Super mode: SuperBFS with set transformers (max_depth=50, contextualized scoring)
-results = client.search(
-    query="complex query",
-    cluster_ids=["cluster_id"],
-    search_settings={"search_mode": "super"}  # Default
-)
+for result in results:
+    print(f"Score: {result.score:.2f}")
+    print(f"Content: {result.content}")
 ```
 
-**Search with source role filtering:**
+## Async Support
+
+The Python SDK includes a dedicated async client:
+
 ```python
-# Filter by conversation roles using canonical filter keys
-results = client.search(
-    query="user feedback",
-    cluster_ids=["support_cluster"],
-    search_settings={
-        "filters": {
-            "source_role": "user",        # Special filter key for graph search
-            "metadata.category": "feedback"
-        }
-    }
-)
-```
+import asyncio
+from nebula_client import AsyncNebulaClient
 
-## Memory Management
+async def main():
+    # Create async client (uses NEBULA_API_KEY env var)
+    client = AsyncNebulaClient()
 
-**Delete single memory:**
-```python
-success = client.delete("engram_id_here")
-print(f"Deleted: {success}")  # True
-```
+    # All operations are async
+    collection = await client.create_collection(name="async_notes", description="Async example")
 
-**Delete multiple memories (batch):**
-```python
-# Delete multiple memories in a single operation
-engram_ids = ["eng_id_1", "eng_id_2", "eng_id_3"]
-result = client.delete(engram_ids)
-
-# Access detailed results
-print(f"Message: {result['message']}")
-print(f"Deleted: {result['results']['successful']}")
-print(f"Failed: {result['results']['failed']}")
-print(f"Summary: {result['results']['summary']}")
-
-# Example response:
-# {
-#   "message": "Deleted 2 of 3 documents",
-#   "results": {
-#     "successful": ["mem_id_1", "mem_id_2"],
-#     "failed": [{"id": "mem_id_3", "error": "Not found or no permission"}],
-#     "summary": {"total": 3, "succeeded": 2, "failed": 1}
-#   }
-# }
-```
-
-## Data Models
-
-**Memory class (for writing):**
-```python
-from nebula_client import Memory
-
-# Memory class structure
-memory = Memory(
-    cluster_id="user_preferences",  # Required: cluster to store in
-    content="User prefers email communication",  # Required: text content
-    role="user",  # Optional: 'user', 'assistant', or custom (for conversations)
-    parent_id="conv_123",  # Optional: conversation ID (for conversations)
-    metadata={"user_id": "user_123"}  # Optional: additional metadata
-)
-```
-
-**MemoryResponse class (for reading):**
-```python
-# Returned by get_memory(), list_memories(), etc.
-class MemoryResponse:
-    id: str                    # Memory/document ID
-    content: str              # Memory content (retrieved from chunks)
-    metadata: dict            # Additional metadata
-    cluster_ids: List[str]    # Associated clusters
-    created_at: str           # Creation timestamp
-    updated_at: str           # Last update timestamp
-```
-
-## Error Handling
-
-**Exception types:**
-```python
-from nebula_client.exceptions import (
-    NebulaException,              # Base exception
-    NebulaClientException,        # Client-side errors
-    NebulaAuthenticationException, # Authentication errors
-    NebulaRateLimitException,     # Rate limiting errors
-    NebulaValidationException     # Validation errors
-)
-```
-
-**Error handling:**
-```python
-try:
-    memory = client.store_memory({
-        "content": "Test memory",
-        "cluster_id": "test_cluster"
+    memory_id = await client.store_memory({
+        "collection_id": collection.id,
+        "content": "Async operations are fast",
+        "metadata": {"type": "example"}
     })
-except NebulaAuthenticationException:
-    print("Invalid API key")
-except NebulaRateLimitException:
-    print("Rate limit exceeded")
-except NebulaValidationException as e:
-    print(f"Validation error: {e}")
-except NebulaException as e:
-    print(f"API error: {e}")
+
+    results = await client.search(
+        query="async",
+        collection_ids=[collection.id]
+    )
+
+    for result in results:
+        print(f"{result.content}")
+
+    # Clean up
+    await client.aclose()
+
+asyncio.run(main())
 ```
 
-## Quick Example
+### Async Context Manager
 
 ```python
-from nebula_client import NebulaClient
+import asyncio
+from nebula_client import AsyncNebulaClient
 
-# Initialize
-client = NebulaClient(api_key="your_api_key")
+async def main():
+    # Automatically handles cleanup
+    async with AsyncNebulaClient() as client:
+        collection = await client.create_collection(name="notes", description="My notes")
 
-# Create cluster and store memory
-cluster = client.create_cluster("my_cluster", "Example cluster")
-engram_id = client.store_memory({
-    "cluster_id": cluster.id,
-    "content": "Hello world",
-    "metadata": {"test": True}
-})
+        memory_id = await client.store_memory({
+            "collection_id": collection.id,
+            "content": "Context managers are clean"
+        })
 
-# Search
-results = client.search("hello", cluster_ids=[cluster.id])
+        results = await client.search(
+            query="clean",
+            collection_ids=[collection.id]
+        )
+
+        print(f"Found {len(results)} results")
+
+asyncio.run(main())
 ```
 
 ## Next Steps
 
-- [Memory Operations Guide](/guides/memory-operations) - Detailed examples
-- [API Reference](/api-reference/overview) - Full endpoint documentation 
+For detailed examples and advanced features, see:
+
+- [Memory Operations](/guides/memory-operations) - Store, retrieve, delete
+- [Search Guide](/guides/search) - Semantic search and filtering
+- [Collections Guide](/guides/collections) - Organize your data
+- [Conversations Guide](/guides/conversations) - Build chat applications
