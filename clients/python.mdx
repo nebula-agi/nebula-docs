@@ -83,7 +83,7 @@ success = client.delete_cluster("cluster_id_here")
 **Store memory:**
 ```python
 # Using dict (recommended)
-memory_id = client.store_memory({
+engram_id = client.store_memory({
     "cluster_id": "user_preferences",
     "content": "User prefers email communication over phone calls",
     "metadata": {
@@ -100,14 +100,82 @@ memory = Memory(
     content="User prefers email communication over phone calls",
     metadata={"user_id": "user_123"}
 )
-memory_id = client.store_memory(memory)
+engram_id = client.store_memory(memory)
+```
+
+## Conversation Storage
+
+**Create a conversation:**
+```python
+# Create an empty conversation (role triggers conversation creation)
+conversation_id = client.store_memory(
+    cluster_id="conversations",
+    content="",
+    role="assistant",  # Presence of role creates a conversation
+    name="Customer Support Chat"
+)
+```
+
+**Add messages to conversation:**
+```python
+# Append messages to the conversation
+client.append_memory(
+    engram_id=conversation_id,
+    memory={
+        "cluster_id": "conversations",
+        "content": [
+            {
+                "content": "Hello! How can I help you today?",
+                "role": "assistant",
+                "metadata": {"sentiment": "positive"}
+            },
+            {
+                "content": "I need help with my account",
+                "role": "user"
+            }
+        ]
+    }
+)
+```
+
+**Create conversation with initial message:**
+```python
+# Create conversation and add first message in one call
+conversation_id = client.store_memory(
+    cluster_id="conversations",
+    content="Hello! How can I help you today?",
+    role="assistant",  # Presence of role creates a conversation
+    name="Support Session",
+    metadata={"session_id": "sess_123"}
+)
+```
+
+**Append more content to documents:**
+```python
+# Append additional text to an existing document memory
+client.append_memory(
+    engram_id="doc_engram_id",
+    memory={
+        "cluster_id": "research_cluster",
+        "content": "Additional paragraph of content..."
+    }
+)
+
+# Or append multiple chunks
+client.append_memory(
+    engram_id="doc_engram_id",
+    memory={
+        "cluster_id": "research_cluster",
+        "content": ["Chunk 1 text", "Chunk 2 text"]
+    }
+)
 ```
 
 ## Memory Retrieval
 
 **Get specific memory:**
 ```python
-memory = client.get_memory("memory_id_here")
+memory = client.get_memory("engram_id_here")
 ```
 
 **List memories:**
@@ -182,15 +250,15 @@ results = client.search(
 
 **Delete single memory:**
 ```python
-success = client.delete("memory_id_here")
+success = client.delete("engram_id_here")
 print(f"Deleted: {success}")  # True
 ```
 
 **Delete multiple memories (batch):**
 ```python
 # Delete multiple memories in a single operation
-memory_ids = ["mem_id_1", "mem_id_2", "mem_id_3"]
-result = client.delete(memory_ids)
+engram_ids = ["eng_id_1", "eng_id_2", "eng_id_3"]
+result = client.delete(engram_ids)
 
 # Access detailed results
 print(f"Message: {result['message']}")
@@ -277,7 +345,7 @@ client = NebulaClient(api_key="your_api_key")
 
 # Create cluster and store memory
 cluster = client.create_cluster("my_cluster", "Example cluster")
-memory_id = client.store_memory({
+engram_id = client.store_memory({
     "cluster_id": cluster.id,
     "content": "Hello world",
     "metadata": {"test": True}

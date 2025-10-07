@@ -86,7 +86,7 @@ const success = await client.deleteCluster('cluster_id_here');
 **Store memory:**
 ```javascript
 // Using plain object (recommended)
-const memoryId = await client.storeMemory({
+const engramId = await client.storeMemory({
   cluster_id: 'user_preferences', // Required
   content: 'User prefers email communication over phone calls',
   metadata: {
@@ -107,18 +107,7 @@ const memory = {
     preferenceType: 'communication'
   }
 };
-const memoryId = await client.storeMemory(memory);
-```
-
-**Store conversation message:**
-```javascript
-const messageId = await client.storeMemory({
-  cluster_id: 'conversations',
-  content: 'Hello, how can I help you?',
-  role: 'assistant', // For conversation messages
-  parent_id: 'conv_123', // Optional conversation ID
-  metadata: { session: 'user_session' }
-});
+const engramId = await client.storeMemory(memory);
 ```
 
 **Store multiple memories:**
@@ -136,14 +125,77 @@ const memories = [
   }
 ];
 
-const memoryIds = await client.storeMemories(memories);
+const engramIds = await client.storeMemories(memories);
+```
+
+## Conversation Storage
+
+**Create a conversation:**
+```javascript
+// Create an empty conversation (role triggers conversation creation)
+const conversationId = await client.storeMemory(
+  {
+    cluster_id: 'conversations',
+    content: '',
+    role: 'assistant'  // Presence of role creates a conversation
+  },
+  'Customer Support Chat'  // name
+);
+```
+
+**Add messages to conversation:**
+```javascript
+// Append messages to the conversation
+await client.appendMemory(conversationId, {
+  cluster_id: 'conversations',
+  content: [
+    {
+      content: 'Hello! How can I help you today?',
+      role: 'assistant',
+      metadata: { sentiment: 'positive' }
+    },
+    {
+      content: 'I need help with my account',
+      role: 'user'
+    }
+  ]
+});
+```
+
+**Create conversation with initial message:**
+```javascript
+// Create conversation and add first message in one call
+const conversationId = await client.storeMemory(
+  {
+    cluster_id: 'conversations',
+    content: 'Hello! How can I help you today?',
+    role: 'assistant',  // Presence of role creates a conversation
+    metadata: { session_id: 'sess_123' }
+  },
+  'Support Session'  // name
+);
+```
+
+**Append more content to documents:**
+```javascript
+// Append additional text to an existing document memory
+await client.appendMemory('doc_engram_id', {
+  cluster_id: 'research_cluster',
+  content: 'Additional paragraph of content...'
+});
+
+// Or append multiple chunks
+await client.appendMemory('doc_engram_id', {
+  cluster_id: 'research_cluster',
+  content: ['Chunk 1 text', 'Chunk 2 text']
+});
 ```
 
 ## Memory Retrieval
 
 **Get specific memory:**
 ```javascript
-const memory = await client.getMemory('memory_id_here');
+const memory = await client.getMemory('engram_id_here');
 ```
 
 **List memories:**
@@ -217,15 +269,15 @@ const results = await client.search({
 
 **Delete single memory:**
 ```javascript
-const success = await client.delete('memory_id_here');
+const success = await client.delete('engram_id_here');
 console.log('Deleted:', success); // true
 ```
 
 **Delete multiple memories (batch):**
 ```javascript
 // Delete multiple memories in a single operation
-const memoryIds = ['mem_id_1', 'mem_id_2', 'mem_id_3'];
-const result = await client.delete(memoryIds);
+const engramIds = ['eng_id_1', 'eng_id_2', 'eng_id_3'];
+const result = await client.delete(engramIds);
 
 // Access detailed results
 console.log('Message:', result.message);
@@ -247,7 +299,7 @@ console.log('Summary:', result.results.summary);
 **TypeScript types:**
 ```typescript
 // Single deletion returns boolean
-const deleted: boolean = await client.delete('memory_id');
+const deleted: boolean = await client.delete('engram_id');
 
 // Batch deletion returns detailed results
 const result: {
