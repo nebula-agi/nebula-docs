@@ -16,19 +16,19 @@ Connect Claude Desktop, Cursor, VS Code, and other MCP-compatible clients to Neb
 npx install-mcp "https://mcp.nebulacloud.app/mcp" \
   --client claude \
   --header "Authorization: Bearer YOUR_API_KEY" \
-  --header "X-Cluster-ID: YOUR_CLUSTER_ID"
+  --header "X-Collection-ID: YOUR_COLLECTION_ID"
 
 # Cursor
 npx install-mcp "https://mcp.nebulacloud.app/mcp" \
   --client cursor \
   --header "Authorization: Bearer YOUR_API_KEY" \
-  --header "X-Cluster-ID: YOUR_CLUSTER_ID"
+  --header "X-Collection-ID: YOUR_COLLECTION_ID"
 
 # VS Code/Cline
 npx install-mcp "https://mcp.nebulacloud.app/mcp" \
   --client cline \
   --header "Authorization: Bearer YOUR_API_KEY" \
-  --header "X-Cluster-ID: YOUR_CLUSTER_ID"
+  --header "X-Collection-ID: YOUR_COLLECTION_ID"
 ```
 
 <Info>Get your API key from [trynebula.ai](https://trynebula.ai) → Settings → API Keys</Info>
@@ -86,7 +86,7 @@ If you prefer running the MCP server locally:
     npx install-mcp "@nebula-ai/mcp-server --stdio" \
       --client claude \
       --env NEBULA_API_KEY=your_api_key \
-      --env NEBULA_CLUSTER_ID=your_collection_id
+      --env NEBULA_COLLECTION_ID=your_collection_id
     ```
   </Tab>
   <Tab title="Python">
@@ -96,7 +96,7 @@ If you prefer running the MCP server locally:
     npx install-mcp "python -m nebula_mcp" \
       --client claude \
       --env NEBULA_API_KEY=your_api_key \
-      --env NEBULA_CLUSTER_ID=your_collection_id
+      --env NEBULA_COLLECTION_ID=your_collection_id
     ```
   </Tab>
 </Tabs>
@@ -113,7 +113,7 @@ If you prefer running the MCP server locally:
         "url": "https://mcp.nebulacloud.app/mcp",
         "headers": {
           "Authorization": "Bearer YOUR_API_KEY",
-          "X-Cluster-ID": "YOUR_CLUSTER_ID"
+          "X-Collection-ID": "YOUR_COLLECTION_ID"
         }
       }
     }
@@ -130,7 +130,7 @@ If you prefer running the MCP server locally:
         "args": ["-y", "@nebula-ai/mcp-server", "--stdio"],
         "env": {
           "NEBULA_API_KEY": "your_api_key",
-          "NEBULA_CLUSTER_ID": "your_collection_id"
+          "NEBULA_COLLECTION_ID": "your_collection_id"
         }
       }
     }
@@ -147,7 +147,7 @@ If you prefer running the MCP server locally:
         "args": ["-m", "nebula_mcp"],
         "env": {
           "NEBULA_API_KEY": "your_api_key",
-          "NEBULA_CLUSTER_ID": "your_collection_id"
+          "NEBULA_COLLECTION_ID": "your_collection_id"
         }
       }
     }
@@ -160,7 +160,7 @@ If you prefer running the MCP server locally:
 **Tools not appearing:**
 - Restart your AI assistant after config changes
 - Verify API key is valid: `curl -H "Authorization: Bearer YOUR_API_KEY" https://api.nebulacloud.app/v1/health`
-- Check cluster ID exists in your Nebula account
+- Check collection ID exists in your Nebula account
 
 **Connection errors:**
 - Ensure environment variables are set correctly
