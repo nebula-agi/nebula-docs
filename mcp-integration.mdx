@@ -20,161 +20,144 @@ The easiest way to connect is through your collection's Connect dialog at [tryne
 
 This automatically generates a dedicated API key for your MCP client and provides ready-to-use configuration.
 
-## Supported Clients
-
-### Cursor (Web-Hosted)
-
-Cursor supports HTTP-based MCP servers, making it easy to connect to Nebula's web-hosted service.
-
-Install in one click with deeplinks:
-
-<a href="https://cursor.com/en-US/install-mcp?name=nebula&config=BASE64_CONFIG">
-  <img src="https://cursor.com/deeplink/mcp-install-light.svg" alt="Add nebula MCP server to Cursor" height="32" />
-</a>
-
-Or add this configuration to `.cursor/mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "nebula-memory": {
-      "url": "https://mcp.nebulacloud.app/mcp",
-      "headers": {
-        "Authorization": "Bearer YOUR_API_KEY",
-        "X-Collection-ID": "YOUR_COLLECTION_ID"
-      }
-    }
-  }
-}
-```
-
-Need help? [View Cursor MCP docs](https://docs.cursor.com/context/mcp)
-
-### VS Code (Web-Hosted)
-
-VS Code with Copilot or Cline supports HTTP-based MCP servers.
-
-**One-Click Install:**
-
-You can install via deeplink (VS Code must be installed):
-
-```
-vscode:mcp/install?{URL-encoded-JSON-config}
-```
-
-Or use the button in the Connect dialog at [trynebula.ai](https://trynebula.ai).
-
-**Manual Configuration:**
-
-Add this configuration to `.vscode/mcp.json`:
-
-```json
-{
-  "servers": {
-    "nebula-memory": {
-      "type": "http",
-      "url": "https://mcp.nebulacloud.app/mcp",
-      "headers": {
-        "Authorization": "Bearer YOUR_API_KEY",
-        "X-Collection-ID": "YOUR_COLLECTION_ID"
-      }
-    }
-  }
-}
-```
-
-Note: VS Code uses `"servers"` as the top-level key, not `"mcpServers"`.
-
-Need help? [View VS Code MCP docs](https://code.visualstudio.com/docs/copilot/customization/mcp-servers)
-
-### Windsurf (Web-Hosted)
-
-Windsurf supports HTTP-based MCP servers through its Cascade feature.
-
-Add this configuration to `~/.codeium/windsurf/mcp_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "nebula-memory": {
-      "serverUrl": "https://mcp.nebulacloud.app/mcp",
-      "headers": {
-        "Authorization": "Bearer YOUR_API_KEY",
-        "X-Collection-ID": "YOUR_COLLECTION_ID"
-      }
-    }
-  }
-}
-```
-
-Note: Windsurf uses `"serverUrl"` instead of `"url"`.
-
-Need help? [View Windsurf MCP docs](https://docs.windsurf.com/windsurf/cascade/mcp)
-
-### Claude Desktop (Web-Hosted via mcp-remote)
-
-Claude Desktop uses stdio transport, but can connect to web-hosted servers via the `mcp-remote` bridge package.
-
-Add this configuration to `claude_desktop_config.json`:
-- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
-
-```json
-{
-  "mcpServers": {
-    "nebula-memory": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://mcp.nebulacloud.app/mcp",
-        "--header", "Authorization: Bearer ${NEBULA_API_KEY}",
-        "--header", "X-Collection-ID: YOUR_COLLECTION_ID"
-      ],
-      "env": {
-        "NEBULA_API_KEY": "YOUR_API_KEY"
-      }
-    }
-  }
-}
-```
-
-The `mcp-remote` package bridges HTTP MCP servers to stdio transport automatically.
-
-Need help? [View Claude Desktop MCP docs](https://modelcontextprotocol.io/quickstart/user)
-
-### Claude Code (Web-Hosted)
-
-Claude Code supports HTTP transport directly. Install using the CLI or manual configuration.
-
-**Quick Install (Recommended):**
-```bash
-claude mcp add --transport http --scope user nebula-memory https://mcp.nebulacloud.app/mcp \
-  --header "Authorization: Bearer YOUR_API_KEY" \
-  --header "X-Collection-ID: YOUR_COLLECTION_ID"
-```
-
-**Manual Configuration:**
-Add to `~/.claude.json` for global configuration:
-
-```json
-{
-  "mcpServers": {
-    "nebula-memory": {
-      "transport": "http",
-      "url": "https://mcp.nebulacloud.app/mcp",
-      "httpHeaders": {
-        "Authorization": "Bearer YOUR_API_KEY",
-        "X-Collection-ID": "YOUR_COLLECTION_ID"
-      }
-    }
-  }
-}
-```
-
-Need help? [View Claude Code MCP docs](https://docs.claude.com/en/docs/claude-code/mcp)
+## Configuration
 
 <Info>Get your API key from [trynebula.ai](https://trynebula.ai) → Settings → API Keys, or generate one automatically through the collection's Connect dialog.</Info>
+
+<Tabs>
+  <Tab title="Cursor">
+    Cursor supports HTTP-based MCP servers with native transport.
+
+    **Configuration File:** `.cursor/mcp.json`
+
+    ```json
+    {
+      "mcpServers": {
+        "nebula-memory": {
+          "url": "https://mcp.nebulacloud.app/mcp",
+          "headers": {
+            "Authorization": "Bearer YOUR_API_KEY",
+            "X-Collection-ID": "YOUR_COLLECTION_ID"
+          }
+        }
+      }
+    }
+    ```
+
+    [View Cursor MCP docs](https://docs.cursor.com/context/mcp)
+  </Tab>
+
+  <Tab title="VS Code">
+    VS Code with Copilot or Cline supports HTTP-based MCP servers.
+
+    **Configuration File:** `.vscode/mcp.json`
+
+    ```json
+    {
+      "servers": {
+        "nebula-memory": {
+          "type": "http",
+          "url": "https://mcp.nebulacloud.app/mcp",
+          "headers": {
+            "Authorization": "Bearer YOUR_API_KEY",
+            "X-Collection-ID": "YOUR_COLLECTION_ID"
+          }
+        }
+      }
+    }
+    ```
+
+    <Note>VS Code uses `"servers"` as the top-level key, not `"mcpServers"`.</Note>
+
+    [View VS Code MCP docs](https://code.visualstudio.com/docs/copilot/customization/mcp-servers)
+  </Tab>
+
+  <Tab title="Windsurf">
+    Windsurf supports HTTP-based MCP servers through its Cascade feature.
+
+    **Configuration File:** `~/.codeium/windsurf/mcp_config.json`
+
+    ```json
+    {
+      "mcpServers": {
+        "nebula-memory": {
+          "serverUrl": "https://mcp.nebulacloud.app/mcp",
+          "headers": {
+            "Authorization": "Bearer YOUR_API_KEY",
+            "X-Collection-ID": "YOUR_COLLECTION_ID"
+          }
+        }
+      }
+    }
+    ```
+
+    <Note>Windsurf uses `"serverUrl"` instead of `"url"`.</Note>
+
+    [View Windsurf MCP docs](https://docs.windsurf.com/windsurf/cascade/mcp)
+  </Tab>
+
+  <Tab title="Claude Desktop">
+    Claude Desktop uses stdio transport and connects to web-hosted servers via the `mcp-remote` bridge package.
+
+    **Configuration File:**
+    - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+    - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+
+    ```json
+    {
+      "mcpServers": {
+        "nebula-memory": {
+          "command": "npx",
+          "args": [
+            "-y",
+            "mcp-remote",
+            "https://mcp.nebulacloud.app/mcp",
+            "--header", "Authorization: Bearer ${NEBULA_API_KEY}",
+            "--header", "X-Collection-ID: YOUR_COLLECTION_ID"
+          ],
+          "env": {
+            "NEBULA_API_KEY": "YOUR_API_KEY"
+          }
+        }
+      }
+    }
+    ```
+
+    <Note>The `mcp-remote` package bridges HTTP MCP servers to stdio transport automatically.</Note>
+
+    [View Claude Desktop MCP docs](https://modelcontextprotocol.io/quickstart/user)
+  </Tab>
+
+  <Tab title="Claude Code">
+    Claude Code supports HTTP transport directly.
+
+    **Quick Install (CLI):**
+    ```bash
+    claude mcp add --transport http --scope user nebula-memory https://mcp.nebulacloud.app/mcp \
+      --header "Authorization: Bearer YOUR_API_KEY" \
+      --header "X-Collection-ID: YOUR_COLLECTION_ID"
+    ```
+
+    **Manual Configuration:** `~/.claude.json`
+
+    ```json
+    {
+      "mcpServers": {
+        "nebula-memory": {
+          "transport": "http",
+          "url": "https://mcp.nebulacloud.app/mcp",
+          "httpHeaders": {
+            "Authorization": "Bearer YOUR_API_KEY",
+            "X-Collection-ID": "YOUR_COLLECTION_ID"
+          }
+        }
+      }
+    }
+    ```
+
+    [View Claude Code MCP docs](https://docs.claude.com/en/docs/claude-code/mcp)
+  </Tab>
+</Tabs>
 
 ## Available Tools
 
@@ -203,55 +186,6 @@ Find and retrieve relevant memories semantically.
 **Example:**
 ```
 search_memories(query="user preferences", limit=5)
-```
-
-## Generating Deeplinks
-
-For clients that support deeplinks, you can programmatically generate installation links:
-
-### Cursor
-
-1. Create your JSON configuration
-2. JSON.stringify the configuration
-3. Base64 encode it
-4. Create the Cursor deeplink URL
-
-**Example:**
-
-```javascript
-const config = {
-  url: "https://mcp.nebulacloud.app/mcp",
-  headers: {
-    "Authorization": "Bearer YOUR_API_KEY",
-    "X-Collection-ID": "YOUR_COLLECTION_ID"
-  }
-};
-
-const encodedConfig = btoa(JSON.stringify(config));
-const deeplinkUrl = `https://cursor.com/en-US/install-mcp?name=nebula-memory&config=${encodedConfig}`;
-```
-
-### VS Code
-
-1. Create your JSON configuration
-2. JSON.stringify the configuration
-3. URL encode it
-4. Create the VS Code deeplink URL
-
-**Example:**
-
-```javascript
-const config = {
-  name: "nebula-memory",
-  type: "http",
-  url: "https://mcp.nebulacloud.app/mcp",
-  headers: {
-    "Authorization": "Bearer YOUR_API_KEY",
-    "X-Collection-ID": "YOUR_COLLECTION_ID"
-  }
-};
-
-const deeplinkUrl = `vscode:mcp/install?${encodeURIComponent(JSON.stringify(config))}`;
 ```
 
 ## Troubleshooting
