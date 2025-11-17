@@ -56,6 +56,30 @@ for result in results:
     print(f"Content: {result.content}")
 ```
 
+## Document Upload
+
+```python
+# Upload text
+doc_id = client.create_document_text(
+    collection_ref="my-collection",
+    raw_text="Machine learning is a subset of AI...",
+    metadata={"title": "ML Intro"}
+)
+
+# Upload from file
+with open("doc.txt", "r") as f:
+    doc_id = client.create_document_text(
+        collection_ref="my-collection",
+        raw_text=f.read()
+    )
+
+# Upload pre-chunked
+doc_id = client.create_document_chunks(
+    collection_ref="my-collection",
+    chunks=["Chunk 1", "Chunk 2", "Chunk 3"]
+)
+```
+
 ## Async Support
 
 The Python SDK includes a dedicated async client:

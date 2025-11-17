@@ -48,24 +48,19 @@ client.store_memory({
 Contain entire documents, split into chunks internally for processing.
 
 ```python
-# Create a document memory
-doc_id = client.store_memory({
-    "collection_id": "research_papers",
-    "content": "Chapter 1: Introduction to AI...",
-    "metadata": {
-        "title": "AI Research Paper",
-        "authors": ["Dr. Smith", "Dr. Jones"],
-        "type": "academic_paper"
-    }
-})
+# Store document
+doc_id = client.create_document_text(
+    collection_ref="research_papers",
+    raw_text="Full document content here...",
+    metadata={"title": "AI Research Paper"}
+)
 
-# Add more chapters to the same document
-client.store_memory({
-    "memory_id": doc_id,  # Add to existing memory
-    "collection_id": "research_papers",
-    "content": "Chapter 2: Machine Learning Fundamentals..."
-})
-# The memory now contains the full document across multiple chunks
+# Pre-chunked documents
+doc_id = client.create_document_chunks(
+    collection_ref="research_papers",
+    chunks=["Chapter 1...", "Chapter 2..."],
+    metadata={"title": "AI Research Paper"}
+)
 ```
 
 ### Conversation Memories
