@@ -16,11 +16,11 @@ Learn the core operations for working with memories in Nebula: storing, retrievi
 <CodeGroup>
 
 ```python Python
-from nebula_client import NebulaClient
+from nebula_client import Nebula
 
-client = NebulaClient(api_key="your-api-key")
+nebula = Nebula(api_key="your-api-key")
 
-memory_id = client.store_memory({
+memory_id = nebula.store_memory({
     "collection_id": "research-collection",
     "content": "Machine learning automates analytical model building",
     "metadata": {"topic": "AI", "difficulty": "intermediate"}
@@ -30,10 +30,10 @@ print(f"Stored memory: {memory_id}")
 ```
 
 ```javascript JavaScript
-const { NebulaClient } = require('@nebula-ai/sdk');
-const client = new NebulaClient({ apiKey: 'your-api-key' });
+const { Nebula } = require('@nebula-ai/sdk');
+const nebula = new Nebula({ apiKey: 'your-api-key' });
 
-const memoryId = await client.storeMemory({
+const memoryId = await nebula.storeMemory({
   collection_id: "research-collection",
   content: "Machine learning automates analytical model building",
   metadata: { topic: "AI", difficulty: "intermediate" }
@@ -66,7 +66,7 @@ memories = [
     }
 ]
 
-memory_ids = client.store_memories(memories)
+memory_ids = nebula.store_memories(memories)
 print(f"Stored {len(memory_ids)} memories")
 ```
 
@@ -84,7 +84,7 @@ const memories = [
   }
 ];
 
-const memoryIds = await client.storeMemories(memories);
+const memoryIds = await nebula.storeMemories(memories);
 console.log(`Stored ${memoryIds.length} memories`);
 ```
 
@@ -100,7 +100,7 @@ Store conversational exchanges with roles:
 
 ```python Python
 # Initial message
-conversation_id = client.store_memory({
+conversation_id = nebula.store_memory({
     "collection_id": "support-collection",
     "content": "Hello! How can I help you?",
     "role": "assistant",
@@ -108,7 +108,7 @@ conversation_id = client.store_memory({
 })
 
 # Follow-up messages
-client.store_memory({
+nebula.store_memory({
     "memory_id": conversation_id,  # Add to same conversation
     "collection_id": "support-collection",
     "content": "I need help with my account",
@@ -118,7 +118,7 @@ client.store_memory({
 
 ```javascript JavaScript
 // Initial message
-const conversationId = await client.storeMemory({
+const conversationId = await nebula.storeMemory({
   collection_id: "support-collection",
   content: "Hello! How can I help you?",
   role: "assistant",
@@ -126,7 +126,7 @@ const conversationId = await client.storeMemory({
 });
 
 // Follow-up messages
-await client.storeMemory({
+await nebula.storeMemory({
   memory_id: conversationId,  // Add to same conversation
   collection_id: "support-collection",
   content: "I need help with my account",
@@ -144,7 +144,7 @@ See [Conversations Guide](/guides/conversations) for multi-turn conversation pat
 
 ```python Python
 # Upload text
-doc_id = client.create_document_text(
+doc_id = nebula.create_document_text(
     collection_ref="my-collection",
     raw_text="Machine learning is a subset of AI...",
     metadata={"title": "ML Intro"}
@@ -152,14 +152,14 @@ doc_id = client.create_document_text(
 
 # Upload from file
 with open("doc.txt", "r") as f:
-    doc_id = client.create_document_text(
+    doc_id = nebula.create_document_text(
         collection_ref="my-collection",
         raw_text=f.read(),
         metadata={"filename": "doc.txt"}
     )
 
 # Upload pre-chunked
-doc_id = client.create_document_chunks(
+doc_id = nebula.create_document_chunks(
     collection_ref="my-collection",
     chunks=["Intro...", "Chapter 1...", "Chapter 2..."],
     metadata={"title": "My Doc"}
@@ -168,7 +168,7 @@ doc_id = client.create_document_chunks(
 
 ```javascript JavaScript
 // Upload text
-const docId = await client.createDocumentText({
+const docId = await nebula.createDocumentText({
   collection_ref: "my-collection",
   raw_text: "Machine learning is a subset of AI...",
   metadata: { title: "ML Intro" }
@@ -177,14 +177,14 @@ const docId = await client.createDocumentText({
 // Upload from file
 const fs = require('fs').promises;
 const content = await fs.readFile('doc.txt', 'utf-8');
-const docId = await client.createDocumentText({
+const docId = await nebula.createDocumentText({
   collection_ref: "my-collection",
   raw_text: content,
   metadata: { filename: "doc.txt" }
 });
 
 // Upload pre-chunked
-const docId = await client.createDocumentChunks({
+const docId = await nebula.createDocumentChunks({
   collection_ref: "my-collection",
   chunks: ["Intro...", "Chapter 1...", "Chapter 2..."],
   metadata: { title: "My Doc" }
@@ -204,7 +204,7 @@ const docId = await client.createDocumentChunks({
 <CodeGroup>
 
 ```python Python
-memory = client.get_memory(memory_id)
+memory = nebula.get_memory(memory_id)
 
 print(f"Content: {memory.content}")
 print(f"Metadata: {memory.metadata}")
@@ -212,7 +212,7 @@ print(f"Created: {memory.created_at}")
 ```
 
 ```javascript JavaScript
-const memory = await client.getMemory(memoryId);
+const memory = await nebula.getMemory(memoryId);
 
 console.log(`Content: ${memory.content}`);
 console.log(`Metadata: ${memory.metadata}`);
@@ -228,7 +228,7 @@ Retrieve all memories in a collection:
 <CodeGroup>
 
 ```python Python
-memories = client.list_memories(
+memories = nebula.list_memories(
     collection_ids=["research-collection"],
     limit=50,
     offset=0
@@ -239,7 +239,7 @@ for memory in memories:
 ```
 
 ```javascript JavaScript
-const memories = await client.listMemories({
+const memories = await nebula.listMemories({
   collection_ids: ["research-collection"],
   limit: 50,
   offset: 0
@@ -261,12 +261,12 @@ memories.forEach(memory => {
 <CodeGroup>
 
 ```python Python
-result = client.delete(memory_id)
+result = nebula.delete(memory_id)
 print(f"Deleted: {result}")
 ```
 
 ```javascript JavaScript
-const result = await client.delete(memoryId);
+const result = await nebula.delete(memoryId);
 console.log(`Deleted: ${result}`);
 ```
 
@@ -278,13 +278,13 @@ console.log(`Deleted: ${result}`);
 
 ```python Python
 # Delete multiple memories
-result = client.delete([memory_id_1, memory_id_2, memory_id_3])
+result = nebula.delete([memory_id_1, memory_id_2, memory_id_3])
 print(f"Deleted {result['deleted_count']} memories")
 ```
 
 ```javascript JavaScript
 // Delete multiple memories
-const result = await client.delete([memoryId1, memoryId2, memoryId3]);
+const result = await nebula.delete([memoryId1, memoryId2, memoryId3]);
 console.log(`Deleted ${result.deleted_count} memories`);
 ```
 
@@ -303,7 +303,7 @@ When retrieving a memory, chunks include their IDs:
 <CodeGroup>
 
 ```python Python
-memory = client.get_memory(memory_id)
+memory = nebula.get_memory(memory_id)
 
 # Access chunks with IDs
 for chunk in memory.chunks:
@@ -313,7 +313,7 @@ for chunk in memory.chunks:
 ```
 
 ```javascript JavaScript
-const memory = await client.getMemory(memoryId);
+const memory = await nebula.getMemory(memoryId);
 
 // Access chunks with IDs
 memory.chunks?.forEach(chunk => {
@@ -334,12 +334,12 @@ Delete a specific chunk or message:
 
 ```python Python
 # Delete a specific message in a conversation
-client.delete_chunk(chunk_id)
+nebula.delete_chunk(chunk_id)
 ```
 
 ```javascript JavaScript
 // Delete a specific message in a conversation
-await client.deleteChunk(chunkId);
+await nebula.deleteChunk(chunkId);
 ```
 
 </CodeGroup>
@@ -352,7 +352,7 @@ Update content or metadata of a specific chunk:
 
 ```python Python
 # Update chunk content
-client.update_chunk(
+nebula.update_chunk(
     chunk_id=chunk_id,
     content="Updated content here",
     metadata={"edited": True}
@@ -361,7 +361,7 @@ client.update_chunk(
 
 ```javascript JavaScript
 // Update chunk content
-await client.updateChunk(
+await nebula.updateChunk(
   chunkId,
   "Updated content here",
   { edited: true }
@@ -379,12 +379,12 @@ Here's a full workflow demonstrating all operations:
 <CodeGroup>
 
 ```python Python
-from nebula_client import NebulaClient
+from nebula_client import Nebula
 
-client = NebulaClient(api_key="your-api-key")
+nebula = Nebula(api_key="your-api-key")
 
 # 1. Create collection
-collection = client.create_collection(name="demo", description="Example collection")
+collection = nebula.create_collection(name="demo", description="Example collection")
 
 # 2. Store memories
 memories = [
@@ -399,15 +399,15 @@ memories = [
         "metadata": {"language": "javascript"}
     }
 ]
-memory_ids = client.store_memories(memories)
+memory_ids = nebula.store_memories(memories)
 print(f"Stored {len(memory_ids)} memories")
 
 # 3. Retrieve
-memory = client.get_memory(memory_ids[0])
+memory = nebula.get_memory(memory_ids[0])
 print(f"Retrieved: {memory.content}")
 
 # 4. Search
-results = client.search(
+results = nebula.search(
     query="programming languages",
     collection_ids=[collection.id],
     limit=5
@@ -415,17 +415,17 @@ results = client.search(
 print(f"Found {len(results)} results")
 
 # 5. Delete
-client.delete(memory_ids)
+nebula.delete(memory_ids)
 print("Deleted all memories")
 ```
 
 ```javascript JavaScript
-const { NebulaClient } = require('@nebula-ai/sdk');
-const client = new NebulaClient({ apiKey: 'your-api-key' });
+const { Nebula } = require('@nebula-ai/sdk');
+const nebula = new Nebula({ apiKey: 'your-api-key' });
 
 async function fullWorkflow() {
   // 1. Create collection
-  const collection = await client.createCollection({
+  const collection = await nebula.createCollection({
     name: "demo",
     description: "Example collection"
   });
@@ -444,15 +444,15 @@ async function fullWorkflow() {
     }
   ];
 
-  const memoryIds = await client.storeMemories(memories);
+  const memoryIds = await nebula.storeMemories(memories);
   console.log(`Stored ${memoryIds.length} memories`);
 
   // 3. Retrieve
-  const memory = await client.getMemory(memoryIds[0]);
+  const memory = await nebula.getMemory(memoryIds[0]);
   console.log(`Retrieved: ${memory.content}`);
 
   // 4. Search
-  const results = await client.search({
+  const results = await nebula.search({
     query: "programming languages",
     collection_ids: [collection.id],
     limit: 5
@@ -460,7 +460,7 @@ async function fullWorkflow() {
   console.log(`Found ${results.length} results`);
 
   // 5. Delete
-  await client.delete(memoryIds);
+  await nebula.delete(memoryIds);
   console.log("Deleted all memories");
 }
 

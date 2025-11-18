@@ -14,18 +14,18 @@ Filter search results by metadata attributes. Use logical operators and data typ
 <CodeGroup>
 
 ```python Python
-from nebula_client import NebulaClient
-client = NebulaClient(api_key="your-api-key")
+from nebula_client import Nebula
+nebula = Nebula(api_key="your-api-key")
 
 # Simple equality
-results = client.search(
+results = nebula.search(
     query="machine learning",
     collection_ids=["my-collection"],
     filters={"metadata.category": "research"}
 )
 
 # Not equal
-results = client.search(
+results = nebula.search(
     query="documents",
     collection_ids=["docs"],
     filters={"metadata.status": {"$ne": "archived"}}
@@ -33,18 +33,18 @@ results = client.search(
 ```
 
 ```javascript JavaScript
-const { NebulaClient } = require('@nebula-ai/sdk');
-const client = new NebulaClient({ apiKey: 'your-api-key' });
+const { Nebula } = require('@nebula-ai/sdk');
+const nebula = new Nebula({ apiKey: 'your-api-key' });
 
 // Simple equality
-const results = await client.search({
+const results = await nebula.search({
   query: "machine learning",
   collection_ids: ["my-collection"],
   filters: {"metadata.category": "research"}
 });
 
 // Not equal
-const results2 = await client.search({
+const results2 = await nebula.search({
   query: "documents",
   collection_ids: ["docs"],
   filters: {"metadata.status": {"$ne": "archived"}}
@@ -59,14 +59,14 @@ const results2 = await client.search({
 
 ```python Python
 # Greater than or equal
-results = client.search(
+results = nebula.search(
     query="high priority tasks",
     collection_ids=["tasks"],
     filters={"metadata.priority": {"$gte": 7}}
 )
 
 # Range (between values)
-results = client.search(
+results = nebula.search(
     query="quality content",
     collection_ids=["content"],
     filters={
@@ -80,14 +80,14 @@ results = client.search(
 
 ```javascript JavaScript
 // Greater than or equal
-const results = await client.search({
+const results = await nebula.search({
   query: "high priority tasks",
   collection_ids: ["tasks"],
   filters: {"metadata.priority": {"$gte": 7}}
 });
 
 // Range (between values)
-const results2 = await client.search({
+const results2 = await nebula.search({
   query: "quality content",
   collection_ids: ["content"],
   filters: {
@@ -109,14 +109,14 @@ const results2 = await client.search({
 
 ```python Python
 # Case-insensitive pattern matching
-results = client.search(
+results = nebula.search(
     query="employees",
     collection_ids=["team"],
     filters={"metadata.email": {"$ilike": "%@company.com"}}
 )
 
 # Case-sensitive pattern matching
-results = client.search(
+results = nebula.search(
     query="documents",
     collection_ids=["docs"],
     filters={"metadata.title": {"$like": "Important%"}}
@@ -125,14 +125,14 @@ results = client.search(
 
 ```javascript JavaScript
 // Case-insensitive pattern matching
-const results = await client.search({
+const results = await nebula.search({
   query: "employees",
   collection_ids: ["team"],
   filters: {"metadata.email": {"$ilike": "%@company.com"}}
 });
 
 // Case-sensitive pattern matching
-const results2 = await client.search({
+const results2 = await nebula.search({
   query: "documents",
   collection_ids: ["docs"],
   filters: {"metadata.title": {"$like": "Important%"}}
@@ -151,21 +151,21 @@ const results2 = await client.search({
 
 ```python Python
 # Has any of these tags
-results = client.search(
+results = nebula.search(
     query="content",
     collection_ids=["posts"],
     filters={"metadata.tags": {"$overlap": ["urgent", "important"]}}
 )
 
 # Has all of these skills
-results = client.search(
+results = nebula.search(
     query="candidates",
     collection_ids=["hr"],
     filters={"metadata.skills": {"$contains": ["python", "ml"]}}
 )
 
 # Exact value match
-results = client.search(
+results = nebula.search(
     query="items",
     collection_ids=["inventory"],
     filters={"metadata.category": {"$in": ["electronics", "books"]}}
@@ -174,21 +174,21 @@ results = client.search(
 
 ```javascript JavaScript
 // Has any of these tags
-const results = await client.search({
+const results = await nebula.search({
   query: "content",
   collection_ids: ["posts"],
   filters: {"metadata.tags": {"$overlap": ["urgent", "important"]}}
 });
 
 // Has all of these skills
-const results2 = await client.search({
+const results2 = await nebula.search({
   query: "candidates",
   collection_ids: ["hr"],
   filters: {"metadata.skills": {"$contains": ["python", "ml"]}}
 });
 
 // Exact value match
-const results3 = await client.search({
+const results3 = await nebula.search({
   query: "items",
   collection_ids: ["inventory"],
   filters: {"metadata.category": {"$in": ["electronics", "books"]}}
@@ -205,7 +205,7 @@ const results3 = await client.search({
 
 ```python Python
 # AND: All conditions must match
-results = client.search(
+results = nebula.search(
     query="research papers",
     collection_ids=["academic"],
     filters={
@@ -218,7 +218,7 @@ results = client.search(
 )
 
 # OR: Any condition can match
-results = client.search(
+results = nebula.search(
     query="urgent items",
     collection_ids=["tasks"],
     filters={
@@ -233,7 +233,7 @@ results = client.search(
 
 ```javascript JavaScript
 // AND: All conditions must match
-const results = await client.search({
+const results = await nebula.search({
   query: "research papers",
   collection_ids: ["academic"],
   filters: {
@@ -246,7 +246,7 @@ const results = await client.search({
 });
 
 // OR: Any condition can match
-const results2 = await client.search({
+const results2 = await nebula.search({
   query: "urgent items",
   collection_ids: ["tasks"],
   filters: {
@@ -267,7 +267,7 @@ const results2 = await client.search({
 
 ```python Python
 # Filter nested object properties
-results = client.search(
+results = nebula.search(
     query="user profiles",
     collection_ids=["users"],
     filters={
@@ -279,7 +279,7 @@ results = client.search(
 
 ```javascript JavaScript
 // Filter nested object properties
-const results = await client.search({
+const results = await nebula.search({
   query: "user profiles",
   collection_ids: ["users"],
   filters: {

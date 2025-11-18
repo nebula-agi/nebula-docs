@@ -15,22 +15,22 @@ Nebula is a persistent memory layer for AI applications. Store, search, and retr
 ## Quick Example
 
 ```python
-from nebula_sdk import NebulaClient
+from nebula_client import Nebula
 
-client = NebulaClient(api_key="your_api_key")
+nebula = Nebula(api_key="your_api_key")
 
 # Create a memory collection
-collection = client.create_collection(name="customer_support")
+collection = nebula.create_collection(name="customer_support")
 
 # Store information
-client.store_memory({
+nebula.store_memory({
     "collection_id": collection.id,
     "content": "User prefers email notifications over SMS",
     "metadata": {"user_id": "user_123", "preference": "email"}
 })
 
 # Search semantically
-results = client.search("How does user_123 want to be contacted?", collection_id=collection.id)
+results = nebula.search("How does user_123 want to be contacted?", collection_id=collection.id)
 print(results[0].content)  # Returns: "User prefers email notifications over SMS"
 ```
 

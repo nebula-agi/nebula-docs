@@ -26,12 +26,12 @@ Authority is a confidence score (0-1) that you can assign to individual messages
 <CodeGroup>
 
 ```python Python
-from nebula_client import NebulaClient
+from nebula_client import Nebula
 
-client = NebulaClient(api_key="your-api-key")
+nebula = Nebula(api_key="your-api-key")
 
 # Store memory with authority score
-memory_id = client.store_memory({
+memory_id = nebula.store_memory({
     "collection_id": "support-collection",
     "content": "To reset password, go to Settings > Security > Reset Password",
     "metadata": {
@@ -42,7 +42,7 @@ memory_id = client.store_memory({
 })
 
 # Lower authority for user-contributed content
-user_memory = client.store_memory({
+user_memory = nebula.store_memory({
     "collection_id": "support-collection",
     "content": "I think you can reset it in settings somewhere",
     "metadata": {
@@ -54,11 +54,11 @@ user_memory = client.store_memory({
 ```
 
 ```javascript JavaScript
-const { NebulaClient } = require('@nebula-ai/sdk');
-const client = new NebulaClient({ apiKey: 'your-api-key' });
+const { Nebula } = require('@nebula-ai/sdk');
+const nebula = new Nebula({ apiKey: 'your-api-key' });
 
 // Store memory with authority score
-const memoryId = await client.storeMemory({
+const memoryId = await nebula.storeMemory({
   collection_id: "support-collection",
   content: "To reset password, go to Settings > Security > Reset Password",
   metadata: {
@@ -69,7 +69,7 @@ const memoryId = await client.storeMemory({
 });
 
 // Lower authority for user-contributed content
-const userMemory = await client.storeMemory({
+const userMemory = await nebula.storeMemory({
   collection_id: "support-collection",
   content: "I think you can reset it in settings somewhere",
   metadata: {
@@ -98,7 +98,7 @@ const userMemory = await client.storeMemory({
 
 ```python
 # High authority for assistant responses
-client.store_memory({
+nebula.store_memory({
     "memory_id": conversation_id,
     "collection_id": "support-collection",
     "content": "Based on your account, you're on the Pro plan.",
@@ -108,7 +108,7 @@ client.store_memory({
 })
 
 # Lower authority for user messages
-client.store_memory({
+nebula.store_memory({
     "memory_id": conversation_id,
     "collection_id": "support-collection",
     "content": "I think I'm on the Pro plan",
@@ -124,7 +124,7 @@ Update authority scores as content is verified or becomes outdated:
 
 ```python
 # Update existing memory's authority
-client.update_memory(
+nebula.update_memory(
     memory_id=memory_id,
     authority=0.3  # Downgrade outdated information
 )
@@ -157,20 +157,20 @@ metadata = {
 ```python
 # Bad - individual stores
 for item in items:
-    client.store_memory(item)  # Slow!
+    nebula.store_memory(item)  # Slow!
 
 # Good - batch store
-client.store_memories(items)  # Fast!
+nebula.store_memories(items)  # Fast!
 ```
 
 ### 3. Smart Limits
 
 ```python
 # User-facing search - need quick results
-results = client.search(query="test", collection_ids=[collection_id], limit=10)
+results = nebula.search(query="test", collection_ids=[collection_id], limit=10)
 
 # Background processing - need comprehensive results
-results = client.search(query="test", collection_ids=[collection_id], limit=100)
+results = nebula.search(query="test", collection_ids=[collection_id], limit=100)
 ```
 
 ## Bulk Operations
@@ -179,21 +179,21 @@ results = client.search(query="test", collection_ids=[collection_id], limit=100)
 
 ```python
 # Delete all memories matching criteria
-memories = client.list_memories(
+memories = nebula.list_memories(
     collection_ids=["temp-collection"],
     filters={"status": "archived"},
     limit=1000
 )
 
 memory_ids = [m.memory_id for m in memories]
-client.delete(memory_ids)
+nebula.delete(memory_ids)
 ```
 
 ### Bulk Update
 
 ```python
 # Get memories to update
-memories = client.list_memories(
+memories = nebula.list_memories(
     collection_ids=["docs-collection"],
     filters={"version": "1.0"},
     limit=500
@@ -201,7 +201,7 @@ memories = client.list_memories(
 
 # Update each with new metadata
 for memory in memories:
-    client.update_memory(
+    nebula.update_memory(
         memory_id=memory.memory_id,
         metadata={**memory.metadata, "deprecated": True}
     )
@@ -220,7 +220,7 @@ for memory in memories:
 
 ```python
 # Store high-quality content
-official_doc = client.store_memory({
+official_doc = nebula.store_memory({
     "collection_id": "docs",
     "content": "Official API documentation...",
     "authority": 0.95,
@@ -228,7 +228,7 @@ official_doc = client.store_memory({
 })
 
 # Store community content
-community_doc = client.store_memory({
+community_doc = nebula.store_memory({
     "collection_id": "docs",
     "content": "Community guide...",
     "authority": 0.6,
@@ -253,7 +253,7 @@ def calculate_authority(base_authority: float, created_date: str) -> float:
     return max(0.3, base_authority - decay)
 
 # Apply when storing
-client.store_memory({
+nebula.store_memory({
     "collection_id": "docs",
     "content": "Documentation content...",
     "authority": calculate_authority(0.9, "2023-01-15"),

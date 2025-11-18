@@ -32,19 +32,19 @@ go get github.com/nebula-ai/nebula-client-go
 <CodeGroup>
 
 ```python client.py
-from nebula_client import NebulaClient
+from nebula_client import Nebula
 
 # With API key
-client = NebulaClient(api_key="your-api-key-here")
+nebula = Nebula(api_key="your-api-key-here")
 
 # Or set NEBULA_API_KEY environment variable
-# client = NebulaClient()
+# nebula = Nebula()
 ```
 
 ```javascript client.js
-const { NebulaClient } = require('@nebula-ai/sdk');
+const { Nebula } = require('@nebula-ai/sdk');
 
-const client = new NebulaClient({
+const nebula = new Nebula({
   apiKey: 'your-api-key-here'
 });
 ```
@@ -58,22 +58,22 @@ const client = new NebulaClient({
 <CodeGroup>
 
 ```python store_and_search.py
-from nebula_client import NebulaClient
+from nebula_client import Nebula
 
-client = NebulaClient(api_key="your-api-key-here")
+nebula = Nebula(api_key="your-api-key-here")
 
 # Create a collection
-collection = client.create_collection(name="my_notes", description="Personal notes")
+collection = nebula.create_collection(name="my_notes", description="Personal notes")
 
 # Store a memory
-memory_id = client.store_memory({
+memory_id = nebula.store_memory({
     "collection_id": collection.id,
     "content": "Machine learning is transforming healthcare",
     "metadata": {"topic": "AI", "importance": "high"}
 })
 
 # Search memories
-results = client.search(
+results = nebula.search(
     query="machine learning healthcare",
     collection_ids=[collection.id],
     limit=5
@@ -85,28 +85,28 @@ for result in results:
 ```
 
 ```javascript store_and_search.js
-const { NebulaClient } = require('@nebula-ai/sdk');
+const { Nebula } = require('@nebula-ai/sdk');
 
-const client = new NebulaClient({
+const nebula = new Nebula({
   apiKey: 'your-api-key-here'
 });
 
 async function storeAndSearch() {
   // Create a collection
-  const collection = await client.createCollection({
+  const collection = await nebula.createCollection({
     name: 'my_notes',
     description: 'Personal notes'
   });
 
   // Store a memory
-  const memoryId = await client.storeMemory({
+  const memoryId = await nebula.storeMemory({
     collection_id: collection.id,
     content: 'Machine learning is transforming healthcare',
     metadata: { topic: 'AI', importance: 'high' }
   });
 
   // Search memories
-  const results = await client.search({
+  const results = await nebula.search({
     query: 'machine learning healthcare',
     collection_ids: [collection.id],
     limit: 5

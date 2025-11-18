@@ -21,12 +21,12 @@ Collections are organizational containers for your memories. Think of them like 
 <CodeGroup>
 
 ```python Python
-from nebula_client import NebulaClient
+from nebula_client import Nebula
 
-client = NebulaClient(api_key="your-api-key")
+nebula = Nebula(api_key="your-api-key")
 
 # Create a single collection
-collection = client.create_collection(
+collection = nebula.create_collection(
     name="Research Papers",
     description="Academic research documents",
     metadata={"category": "academic"}
@@ -35,18 +35,18 @@ print(f"Created: {collection.name} (ID: {collection.id})")
 
 # Create multiple collections
 collections = [
-    client.create_collection(name="Work", description="Work-related notes"),
-    client.create_collection(name="Personal", description="Personal memories")
+    nebula.create_collection(name="Work", description="Work-related notes"),
+    nebula.create_collection(name="Personal", description="Personal memories")
 ]
 ```
 
 ```javascript JavaScript
-const { NebulaClient } = require('@nebula-ai/sdk');
-const client = new NebulaClient({ apiKey: 'your-api-key' });
+const { Nebula } = require('@nebula-ai/sdk');
+const nebula = new Nebula({ apiKey: 'your-api-key' });
 
 async function createCollections() {
   // Create a single collection
-  const collection = await client.createCollection({
+  const collection = await nebula.createCollection({
     name: "Research Papers",
     description: "Academic research documents",
     metadata: { category: "academic" }
@@ -55,8 +55,8 @@ async function createCollections() {
 
   // Create multiple collections
   const collections = await Promise.all([
-    client.createCollection({ name: "Work", description: "Work-related notes" }),
-    client.createCollection({ name: "Personal", description: "Personal memories" })
+    nebula.createCollection({ name: "Work", description: "Work-related notes" }),
+    nebula.createCollection({ name: "Personal", description: "Personal memories" })
   ]);
 }
 ```
@@ -71,7 +71,7 @@ Always specify the `collection_id` when storing memories:
 
 ```python Python
 # Store in specific collection
-work_memory = client.store_memory({
+work_memory = nebula.store_memory({
     "collection_id": work_collection.id,
     "content": "Q4 planning meeting notes",
     "metadata": {"type": "meeting", "date": "2024-01-15"}
@@ -90,12 +90,12 @@ memories = [
         "metadata": {"category": "books"}
     }
 ]
-memory_ids = client.store_memories(memories)
+memory_ids = nebula.store_memories(memories)
 ```
 
 ```javascript JavaScript
 // Store in specific collection
-const workMemory = await client.storeMemory({
+const workMemory = await nebula.storeMemory({
   collection_id: workCollection.id,
   content: "Q4 planning meeting notes",
   metadata: { type: "meeting", date: "2024-01-15" }
@@ -114,7 +114,7 @@ const memories = [
     metadata: { category: "books" }
   }
 ];
-const memoryIds = await client.storeMemories(memories);
+const memoryIds = await nebula.storeMemories(memories);
 ```
 
 </CodeGroup>
@@ -127,28 +127,28 @@ Search within specific collections using IDs or names, or search across all your
 
 ```python Python
 # Search by collection name
-work_results = client.search(
+work_results = nebula.search(
     query="project deadlines",
     collection_ids=["Work"],
     limit=10
 )
 
 # Search by collection ID
-work_results = client.search(
+work_results = nebula.search(
     query="project deadlines",
     collection_ids=[work_collection.id],
     limit=10
 )
 
 # Search multiple collections (mix names and IDs)
-all_results = client.search(
+all_results = nebula.search(
     query="important notes",
     collection_ids=["Work", personal_collection.id],
     limit=20
 )
 
 # Search all accessible collections
-global_results = client.search(
+global_results = nebula.search(
     query="important notes",
     limit=20
 )
@@ -162,28 +162,28 @@ for result in work_results:
 
 ```javascript JavaScript
 // Search by collection name
-const workResults = await client.search({
+const workResults = await nebula.search({
   query: "project deadlines",
   collection_ids: ["Work"],
   limit: 10
 });
 
 // Search by collection ID
-const workResults = await client.search({
+const workResults = await nebula.search({
   query: "project deadlines",
   collection_ids: [workCollection.id],
   limit: 10
 });
 
 // Search multiple collections (mix names and IDs)
-const allResults = await client.search({
+const allResults = await nebula.search({
   query: "important notes",
   collection_ids: ["Work", personalCollection.id],
   limit: 20
 });
 
 // Search all accessible collections
-const globalResults = await client.search({
+const globalResults = await nebula.search({
   query: "important notes",
   limit: 20
 });
@@ -207,7 +207,7 @@ workResults.forEach(result => {
     <CodeGroup>
       ```python Python
       # List all collections
-      collections = client.list_collections(limit=50)
+      collections = nebula.list_collections(limit=50)
 
       for collection in collections:
           print(f"{collection.name} - {collection.memory_count} memories")
@@ -217,7 +217,7 @@ workResults.forEach(result => {
 
       ```javascript JavaScript
       // List all collections
-      const collections = await client.listCollections({ limit: 50 });
+      const collections = await nebula.listCollections({ limit: 50 });
 
       collections.forEach(collection => {
         console.log(`${collection.name} - ${collection.memory_count || 0} memories`);
@@ -232,7 +232,7 @@ workResults.forEach(result => {
     <CodeGroup>
       ```python Python
       # Get collection details
-      collection = client.get_collection(collection_id)
+      collection = nebula.get_collection(collection_id)
 
       print(f"Name: {collection.name}")
       print(f"Description: {collection.description}")
@@ -241,7 +241,7 @@ workResults.forEach(result => {
 
       ```javascript JavaScript
       // Get collection details
-      const collection = await client.getCollection(collectionId);
+      const collection = await nebula.getCollection(collectionId);
 
       console.log(`Name: ${collection.name}`);
       console.log(`Description: ${collection.description}`);
@@ -254,7 +254,7 @@ workResults.forEach(result => {
     <CodeGroup>
       ```python Python
       # Update collection
-      updated = client.update_collection(
+      updated = nebula.update_collection(
           collection_id=collection.id,
           name="Updated Name",
           description="New description",
@@ -264,7 +264,7 @@ workResults.forEach(result => {
 
       ```javascript JavaScript
       // Update collection
-      const updated = await client.updateCollection({
+      const updated = await nebula.updateCollection({
         collectionId: collection.id,
         name: "Updated Name",
         description: "New description",
@@ -278,12 +278,12 @@ workResults.forEach(result => {
     <CodeGroup>
       ```python Python
       # Delete collection and all its memories
-      client.delete_collection(collection_id)
+      nebula.delete_collection(collection_id)
       ```
 
       ```javascript JavaScript
       // Delete collection and all its memories
-      await client.deleteCollection(collectionId);
+      await nebula.deleteCollection(collectionId);
       ```
     </CodeGroup>
     <Warning>Deleting a collection permanently removes all memories within it.</Warning>
@@ -295,14 +295,14 @@ workResults.forEach(result => {
 ### Multi-Tenancy
 ```python
 # Create collection per customer
-customer_collection = client.create_collection(
+customer_collection = nebula.create_collection(
     name=f"customer_{customer_id}",
     description=f"Data for customer {customer_id}",
     metadata={"customer_id": customer_id, "plan": "enterprise"}
 )
 
 # Store customer-specific data
-client.store_memory({
+nebula.store_memory({
     "collection_id": customer_collection.id,
     "content": "Customer support conversation...",
     "metadata": {"customer_id": customer_id}
@@ -314,12 +314,12 @@ client.store_memory({
 # Separate collections for each project
 projects = ["project_alpha", "project_beta", "project_gamma"]
 project_collections = {
-    name: client.create_collection(name=name, description=f"Project {name} documentation")
+    name: nebula.create_collection(name=name, description=f"Project {name} documentation")
     for name in projects
 }
 
 # Search within specific project (by name)
-results = client.search(
+results = nebula.search(
     query="API documentation",
     collection_ids=["project_alpha"]
 )
@@ -328,8 +328,8 @@ results = client.search(
 ### Environment Separation
 ```python
 # Development vs Production
-dev_collection = client.create_collection(name="dev", description="Development environment")
-prod_collection = client.create_collection(name="prod", description="Production environment")
+dev_collection = nebula.create_collection(name="dev", description="Development environment")
+prod_collection = nebula.create_collection(name="prod", description="Production environment")
 
 # Different API keys can have access to different collections
 ```

@@ -21,36 +21,36 @@ export NEBULA_API_KEY="your_api_key_here"
 ```
 
 ```javascript
-import { NebulaClient } from '@nebula-ai/sdk';
-// or: const { NebulaClient } = require('@nebula-ai/sdk');
+import { Nebula } from '@nebula-ai/sdk';
+// or: const { Nebula } = require('@nebula-ai/sdk');
 
 // Automatically uses NEBULA_API_KEY environment variable
-const client = new NebulaClient();
+const nebula = new Nebula();
 ```
 
 ## Basic Usage
 
 ```javascript
-import { NebulaClient } from '@nebula-ai/sdk';
+import { Nebula } from '@nebula-ai/sdk';
 
-const client = new NebulaClient();
+const nebula = new Nebula();
 
 async function example() {
   // Create a collection
-  const collection = await client.createCollection({
+  const collection = await nebula.createCollection({
     name: 'my_notes',
     description: 'Personal notes'
   });
 
   // Store a memory
-  const memoryId = await client.storeMemory({
+  const memoryId = await nebula.storeMemory({
     collection_id: collection.id,
     content: 'JavaScript is great for web development',
     metadata: { topic: 'programming', language: 'javascript' }
   });
 
   // Search memories
-  const results = await client.search({
+  const results = await nebula.search({
     query: 'web development',
     collection_ids: [collection.id],
     limit: 10

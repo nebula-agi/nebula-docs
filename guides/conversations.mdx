@@ -22,12 +22,12 @@ Conversations are stored as **conversation memories** - containers that hold ent
 <CodeGroup>
 
 ```python Python
-from nebula_client import NebulaClient
+from nebula_client import Nebula
 
-client = NebulaClient(api_key="your-api-key")
+nebula = Nebula(api_key="your-api-key")
 
 # Create conversation with initial message
-conversation_memory_id = client.store_memory({
+conversation_memory_id = nebula.store_memory({
     "collection_id": "chat-collection",
     "content": "Hello! How can I help you today?",
     "role": "assistant",
@@ -40,12 +40,12 @@ conversation_memory_id = client.store_memory({
 ```
 
 ```javascript JavaScript
-const { NebulaClient } = require('@nebula-ai/sdk');
+const { Nebula } = require('@nebula-ai/sdk');
 
-const client = new NebulaClient({ apiKey: 'your-api-key' });
+const nebula = new Nebula({ apiKey: 'your-api-key' });
 
 // Create conversation with initial message
-const conversationId = await client.storeMemory({
+const conversationId = await nebula.storeMemory({
   collection_id: "chat-collection",
   content: "Hello! How can I help you today?",
   role: "assistant",
@@ -67,7 +67,7 @@ Add more messages to the conversation container:
 
 ```python Python
 # Add single message to conversation
-client.store_memory({
+nebula.store_memory({
     "memory_id": conversation_memory_id,  # Same conversation container
     "collection_id": "chat-collection",
     "content": "I need help with my account",
@@ -75,7 +75,7 @@ client.store_memory({
 })
 
 # Add multiple messages to same conversation
-client.store_memory({
+nebula.store_memory({
     "memory_id": conversation_memory_id,  # Same container
     "collection_id": "chat-collection",
     "content": [
@@ -94,7 +94,7 @@ client.store_memory({
 
 ```javascript JavaScript
 // Add single message to conversation
-await client.storeMemory({
+await nebula.storeMemory({
   memory_id: conversationId,  // Same conversation container
   collection_id: "chat-collection",
   content: "I need help with my account",
@@ -102,7 +102,7 @@ await client.storeMemory({
 });
 
 // Add multiple messages to same conversation
-await client.storeMemory({
+await nebula.storeMemory({
   memory_id: conversationId,  // Same container
   collection_id: "chat-collection",
   content: [
@@ -128,7 +128,7 @@ await client.storeMemory({
 
 ```python Python
 # Get entire conversation (all messages)
-messages = client.get_conversation_messages(conversation_memory_id)
+messages = nebula.get_conversation_messages(conversation_memory_id)
 
 for message in messages:
     role = message.metadata.get('source_role', 'unknown')
@@ -137,7 +137,7 @@ for message in messages:
 
 ```javascript JavaScript
 // Get entire conversation (all messages)
-const messages = await client.getConversationMessages(conversationId);
+const messages = await nebula.getConversationMessages(conversationId);
 
 messages.forEach(message => {
   const role = message.metadata.source_role || 'unknown';
@@ -146,7 +146,7 @@ messages.forEach(message => {
 
 // Get multiple conversations (batch)
 const conversationIds = ["conv_1", "conv_2", "conv_3"];
-const batchResults = await client.getConversationMessages(conversationIds);
+const batchResults = await nebula.getConversationMessages(conversationIds);
 
 for (const [conversationId, messages] of Object.entries(batchResults)) {
   console.log(`Conversation ${conversationId}: ${messages.length} messages`);
@@ -161,21 +161,21 @@ for (const [conversationId, messages] of Object.entries(batchResults)) {
 
 ```python Python
 # List conversations
-conversations = client.list_conversations(limit=50, offset=0)
+conversations = nebula.list_conversations(limit=50, offset=0)
 
 for conv in conversations:
     name = conv.get("name", "Unnamed Conversation")
     print(f"{name} - ID: {conv.get('id')}")
 
 # Filter by collection
-filtered_conversations = client.list_conversations(
+filtered_conversations = nebula.list_conversations(
     collection_ids=["chat-collection"]
 )
 ```
 
 ```javascript JavaScript  
 // List conversations
-const conversations = await client.listConversations({
+const conversations = await nebula.listConversations({
   limit: 50,
   offset: 0
 });
@@ -186,7 +186,7 @@ conversations.forEach(conv => {
 });
 
 // Filter by collection
-const filtered = await client.listConversations({
+const filtered = await nebula.listConversations({
   collection_ids: ["chat-collection"]
 });
 ```

@@ -12,12 +12,12 @@ Nebula provides powerful hybrid search that combines semantic (vector) and full-
 <CodeGroup>
 
 ```python Python
-from nebula_client import NebulaClient
+from nebula_client import Nebula
 
-client = NebulaClient(api_key="your-api-key")
+nebula = Nebula(api_key="your-api-key")
 
 # Simple search
-results = client.search(
+results = nebula.search(
     query="machine learning algorithms",
     collection_ids=["research-collection"],
     limit=10
@@ -30,10 +30,10 @@ for result in results:
 ```
 
 ```javascript JavaScript
-const { NebulaClient } = require('@nebula-ai/sdk');
-const client = new NebulaClient({ apiKey: 'your-api-key' });
+const { Nebula } = require('@nebula-ai/sdk');
+const nebula = new Nebula({ apiKey: 'your-api-key' });
 
-const results = await client.search({
+const results = await nebula.search({
   query: "machine learning algorithms",
   collection_ids: ["research-collection"],
   limit: 10
@@ -64,7 +64,7 @@ Combine semantic search with metadata filtering:
 
 ```python Python
 # Search with filters
-results = client.search(
+results = nebula.search(
     query="project updates",
     collection_ids=["work-collection"],
     filters={
@@ -78,7 +78,7 @@ results = client.search(
 
 ```javascript JavaScript
 // Search with filters
-const results = await client.search({
+const results = await nebula.search({
   query: "project updates",
   collection_ids: ["work-collection"],
   filters: {
@@ -101,7 +101,7 @@ Control the balance between semantic and full-text search:
 <CodeGroup>
 
 ```python Python
-results = client.search(
+results = nebula.search(
     query="neural networks",
     collection_ids=["research-collection"],
     search_settings={
@@ -113,7 +113,7 @@ results = client.search(
 ```
 
 ```javascript JavaScript
-const results = await client.search({
+const results = await nebula.search({
   query: "neural networks",
   collection_ids: ["research-collection"],
   searchSettings: {
@@ -145,7 +145,7 @@ Nebula always performs hybrid search. Per-type limits (semantic vs. keyword) are
 
 ```python Python
 # Search across multiple collections
-results = client.search(
+results = nebula.search(
     query="customer feedback",
     collection_ids=["support-2024", "support-2023", "surveys"],
     limit=30
@@ -154,7 +154,7 @@ results = client.search(
 
 ```javascript JavaScript
 // Search across multiple collections
-const results = await client.search({
+const results = await nebula.search({
   query: "customer feedback",
   collection_ids: ["support-2024", "support-2023", "surveys"],
   limit: 30
@@ -171,7 +171,7 @@ Omit `collection_ids` to search across all accessible collections:
 
 ```python Python
 # Search everything
-results = client.search(
+results = nebula.search(
     query="product roadmap",
     limit=50
 )
@@ -179,7 +179,7 @@ results = client.search(
 
 ```javascript JavaScript
 // Search everything
-const results = await client.search({
+const results = await nebula.search({
   query: "product roadmap",
   limit: 50
 });
@@ -195,7 +195,7 @@ const results = await client.search({
 
 ```python Python
 # Advanced filtering
-results = client.search(
+results = nebula.search(
     query="bug reports",
     collection_ids=["issues-collection"],
     filters={
@@ -209,7 +209,7 @@ results = client.search(
 
 ```javascript JavaScript
 // Advanced filtering
-const results = await client.search({
+const results = await nebula.search({
   query: "bug reports",
   collection_ids: ["issues-collection"],
   filters: {
@@ -241,7 +241,7 @@ Handle large result sets:
 
 ```python Python
 # Page 1
-page1 = client.search(
+page1 = nebula.search(
     query="documentation",
     collection_ids=["docs-collection"],
     limit=20,
@@ -249,7 +249,7 @@ page1 = client.search(
 )
 
 # Page 2
-page2 = client.search(
+page2 = nebula.search(
     query="documentation",
     collection_ids=["docs-collection"],
     limit=20,
@@ -259,7 +259,7 @@ page2 = client.search(
 
 ```javascript JavaScript
 // Page 1
-const page1 = await client.search({
+const page1 = await nebula.search({
   query: "documentation",
   collection_ids: ["docs-collection"],
   limit: 20,
@@ -267,7 +267,7 @@ const page1 = await client.search({
 });
 
 // Page 2
-const page2 = await client.search({
+const page2 = await nebula.search({
   query: "documentation",
   collection_ids: ["docs-collection"],
   limit: 20,

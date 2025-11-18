@@ -21,31 +21,31 @@ export NEBULA_API_KEY="your_api_key_here"
 ```
 
 ```python
-from nebula_client import NebulaClient
+from nebula_client import Nebula
 
 # Automatically uses NEBULA_API_KEY environment variable
-client = NebulaClient()
+nebula = Nebula()
 ```
 
 ## Basic Usage
 
 ```python
-from nebula_client import NebulaClient
+from nebula_client import Nebula
 
-client = NebulaClient()
+nebula = Nebula()
 
 # Create a collection
-collection = client.create_collection(name="my_notes", description="Personal notes")
+collection = nebula.create_collection(name="my_notes", description="Personal notes")
 
 # Store a memory
-memory_id = client.store_memory({
+memory_id = nebula.store_memory({
     "collection_id": collection.id,
     "content": "Python is great for data science",
     "metadata": {"topic": "programming", "language": "python"}
 })
 
 # Search memories
-results = client.search(
+results = nebula.search(
     query="data science",
     collection_ids=[collection.id],
     limit=10
@@ -60,7 +60,7 @@ for result in results:
 
 ```python
 # Upload text
-doc_id = client.create_document_text(
+doc_id = nebula.create_document_text(
     collection_ref="my-collection",
     raw_text="Machine learning is a subset of AI...",
     metadata={"title": "ML Intro"}
@@ -68,13 +68,13 @@ doc_id = client.create_document_text(
 
 # Upload from file
 with open("doc.txt", "r") as f:
-    doc_id = client.create_document_text(
+    doc_id = nebula.create_document_text(
         collection_ref="my-collection",
         raw_text=f.read()
     )
 
 # Upload pre-chunked
-doc_id = client.create_document_chunks(
+doc_id = nebula.create_document_chunks(
     collection_ref="my-collection",
     chunks=["Chunk 1", "Chunk 2", "Chunk 3"]
 )
@@ -86,22 +86,22 @@ The Python SDK includes a dedicated async client:
 
 ```python
 import asyncio
-from nebula_client import AsyncNebulaClient
+from nebula_client import AsyncNebula
 
 async def main():
     # Create async client (uses NEBULA_API_KEY env var)
-    client = AsyncNebulaClient()
+    nebula = AsyncNebula()
 
     # All operations are async
-    collection = await client.create_collection(name="async_notes", description="Async example")
+    collection = await nebula.create_collection(name="async_notes", description="Async example")
 
-    memory_id = await client.store_memory({
+    memory_id = await nebula.store_memory({
         "collection_id": collection.id,
         "content": "Async operations are fast",
         "metadata": {"type": "example"}
     })
 
-    results = await client.search(
+    results = await nebula.search(
         query="async",
         collection_ids=[collection.id]
     )
@@ -110,7 +110,7 @@ async def main():
         print(f"{result.content}")
 
     # Clean up
-    await client.aclose()
+    await nebula.aclose()
 
 asyncio.run(main())
 ```
@@ -119,19 +119,19 @@ asyncio.run(main())
 
 ```python
 import asyncio
-from nebula_client import AsyncNebulaClient
+from nebula_client import AsyncNebula
 
 async def main():
     # Automatically handles cleanup
-    async with AsyncNebulaClient() as client:
-        collection = await client.create_collection(name="notes", description="My notes")
+    async with AsyncNebula() as nebula:
+        collection = await nebula.create_collection(name="notes", description="My notes")
 
-        memory_id = await client.store_memory({
+        memory_id = await nebula.store_memory({
             "collection_id": collection.id,
             "content": "Context managers are clean"
         })
 
-        results = await client.search(
+        results = await nebula.search(
             query="clean",
             collection_ids=[collection.id]
         )
