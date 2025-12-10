@@ -46,6 +46,17 @@ results.forEach(result => {
 });
 ```
 
+```bash cURL
+curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "machine learning algorithms",
+    "collection_ids": ["research-collection"],
+    "limit": 10
+  }'
+```
+
 </CodeGroup>
 
 **Search results include:**
@@ -90,6 +101,22 @@ const results = await nebula.search({
 });
 ```
 
+```bash cURL
+curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "project updates",
+    "collection_ids": ["work-collection"],
+    "filters": {
+      "metadata.priority": {"$eq": "high"},
+      "metadata.status": {"$eq": "active"},
+      "metadata.team": {"$eq": "engineering"}
+    },
+    "limit": 20
+  }'
+```
+
 </CodeGroup>
 
 See [Metadata Filtering](/guides/metadata-filtering) for advanced filter operators.
@@ -122,6 +149,21 @@ const results = await nebula.search({
   },
   limit: 10
 });
+```
+
+```bash cURL
+curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "neural networks",
+    "collection_ids": ["research-collection"],
+    "search_settings": {
+      "semantic_weight": 0.7,
+      "fulltext_weight": 0.3
+    },
+    "limit": 10
+  }'
 ```
 
 </CodeGroup>
@@ -161,6 +203,17 @@ const results = await nebula.search({
 });
 ```
 
+```bash cURL
+curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "customer feedback",
+    "collection_ids": ["support-2024", "support-2023", "surveys"],
+    "limit": 30
+  }'
+```
+
 </CodeGroup>
 
 ### Search All Collections
@@ -183,6 +236,16 @@ const results = await nebula.search({
   query: "product roadmap",
   limit: 50
 });
+```
+
+```bash cURL
+curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "product roadmap",
+    "limit": 50
+  }'
 ```
 
 </CodeGroup>
@@ -221,6 +284,22 @@ const results = await nebula.search({
 });
 ```
 
+```bash cURL
+curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "bug reports",
+    "collection_ids": ["issues-collection"],
+    "filters": {
+      "metadata.severity": {"$in": ["critical", "high"]},
+      "metadata.status": {"$ne": "closed"},
+      "metadata.created_date": {"$gte": "2024-01-01"}
+    },
+    "limit": 50
+  }'
+```
+
 </CodeGroup>
 
 **Available operators:**
@@ -233,49 +312,6 @@ const results = await nebula.search({
 
 Full details in [Metadata Filtering](/guides/metadata-filtering).
 
-## Pagination
-
-Handle large result sets:
-
-<CodeGroup>
-
-```python Python
-# Page 1
-page1 = nebula.search(
-    query="documentation",
-    collection_ids=["docs-collection"],
-    limit=20,
-    offset=0
-)
-
-# Page 2
-page2 = nebula.search(
-    query="documentation",
-    collection_ids=["docs-collection"],
-    limit=20,
-    offset=20
-)
-```
-
-```javascript JavaScript
-// Page 1
-const page1 = await nebula.search({
-  query: "documentation",
-  collection_ids: ["docs-collection"],
-  limit: 20,
-  offset: 0
-});
-
-// Page 2
-const page2 = await nebula.search({
-  query: "documentation",
-  collection_ids: ["docs-collection"],
-  limit: 20,
-  offset: 20
-});
-```
-
-</CodeGroup>
 
 ## Search Best Practices
 

@@ -49,6 +49,11 @@ const nebula = new Nebula({
 });
 ```
 
+```bash cURL
+# Verify your API key by listing collections
+curl -X GET "https://api.nebulacloud.app/v1/collections?limit=5" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
  
 
 </CodeGroup>
@@ -119,6 +124,35 @@ async function storeAndSearch() {
 }
 
 storeAndSearch();
+```
+
+```bash cURL
+# 1) Create a collection
+curl -X POST "https://api.nebulacloud.app/v1/collections" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{"name": "my_notes", "description": "Personal notes"}'
+
+# 2) Store a memory
+curl -X POST "https://api.nebulacloud.app/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "collection_ref": "my_notes",
+    "engram_type": "document",
+    "raw_text": "Machine learning is transforming healthcare",
+    "metadata": {"topic": "AI", "importance": "high"}
+  }'
+
+# 3) Search memories
+curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "machine learning healthcare",
+    "collection_ids": ["my_notes"],
+    "limit": 5
+  }'
 ```
 
 </CodeGroup>

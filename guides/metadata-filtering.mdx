@@ -51,6 +51,28 @@ const results2 = await nebula.search({
 });
 ```
 
+```bash cURL
+# Simple equality
+curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "machine learning",
+    "collection_ids": ["my-collection"],
+    "filters": {"metadata.category": "research"}
+  }'
+
+# Not equal
+curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "documents",
+    "collection_ids": ["docs"],
+    "filters": {"metadata.status": {"$ne": "archived"}}
+  }'
+```
+
 </CodeGroup>
 
 ### Numeric Comparisons
@@ -99,6 +121,33 @@ const results2 = await nebula.search({
 });
 ```
 
+```bash cURL
+# Greater than or equal
+curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "high priority tasks",
+    "collection_ids": ["tasks"],
+    "filters": {"metadata.priority": {"$gte": 7}}
+  }'
+
+# Range (between values)
+curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "quality content",
+    "collection_ids": ["content"],
+    "filters": {
+      "$and": [
+        {"metadata.score": {"$gte": 80}},
+        {"metadata.score": {"$lte": 95}}
+      ]
+    }
+  }'
+```
+
 </CodeGroup>
 
 **Operators**: `$gt`, `$gte`, `$lt`, `$lte`
@@ -137,6 +186,28 @@ const results2 = await nebula.search({
   collection_ids: ["docs"],
   filters: {"metadata.title": {"$like": "Important%"}}
 });
+```
+
+```bash cURL
+# Case-insensitive pattern matching
+curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "employees",
+    "collection_ids": ["team"],
+    "filters": {"metadata.email": {"$ilike": "%@company.com"}}
+  }'
+
+# Case-sensitive pattern matching
+curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "documents",
+    "collection_ids": ["docs"],
+    "filters": {"metadata.title": {"$like": "Important%"}}
+  }'
 ```
 
 </CodeGroup>
@@ -193,6 +264,38 @@ const results3 = await nebula.search({
   collection_ids: ["inventory"],
   filters: {"metadata.category": {"$in": ["electronics", "books"]}}
 });
+```
+
+```bash cURL
+# Has any of these tags
+curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "content",
+    "collection_ids": ["posts"],
+    "filters": {"metadata.tags": {"$overlap": ["urgent", "important"]}}
+  }'
+
+# Has all of these skills
+curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "candidates",
+    "collection_ids": ["hr"],
+    "filters": {"metadata.skills": {"$contains": ["python", "ml"]}}
+  }'
+
+# Exact value match
+curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "items",
+    "collection_ids": ["inventory"],
+    "filters": {"metadata.category": {"$in": ["electronics", "books"]}}
+  }'
 ```
 
 </CodeGroup>
@@ -259,6 +362,40 @@ const results2 = await nebula.search({
 });
 ```
 
+```bash cURL
+# AND: All conditions must match
+curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "research papers",
+    "collection_ids": ["academic"],
+    "filters": {
+      "$and": [
+        {"metadata.verified": true},
+        {"metadata.score": {"$gte": 85}},
+        {"metadata.department": "ai"}
+      ]
+    }
+  }'
+
+# OR: Any condition can match
+curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "urgent items",
+    "collection_ids": ["tasks"],
+    "filters": {
+      "$or": [
+        {"metadata.urgent": true},
+        {"metadata.priority": {"$gte": 9}},
+        {"metadata.deadline": {"$lte": "2024-12-31"}}
+      ]
+    }
+  }'
+```
+
 </CodeGroup>
 
 ### Nested Objects
@@ -289,6 +426,21 @@ const results = await nebula.search({
 });
 ```
 
+```bash cURL
+# Filter nested object properties
+curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "user profiles",
+    "collection_ids": ["users"],
+    "filters": {
+      "metadata.user.profile.age": {"$gte": 25},
+      "metadata.user.location.city": "San Francisco"
+    }
+  }'
+```
+
 </CodeGroup>
 
 ## Common Patterns
@@ -310,6 +462,31 @@ filters = {
 }
 ```
 
+```bash cURL
+# Last 30 days
+curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "recent activity",
+    "filters": {"metadata.created_at": {"$gte": "REPLACE_WITH_ISO_START"}}
+  }'
+
+# Specific date range
+curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "reports",
+    "filters": {
+      "$and": [
+        {"metadata.created_at": {"$gte": "2024-01-01"}},
+        {"metadata.created_at": {"$lte": "2024-12-31"}}
+      ]
+    }
+  }'
+```
+
 ### Multi-Status Filtering
 ```python
 # Include specific statuses
@@ -317,6 +494,26 @@ filters = {"metadata.status": {"$in": ["pending", "in_progress", "review"]}}
 
 # Exclude specific statuses
 filters = {"metadata.status": {"$nin": ["archived", "deleted"]}}
+```
+
+```bash cURL
+# Include specific statuses
+curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "tasks",
+    "filters": {"metadata.status": {"$in": ["pending", "in_progress", "review"]}}
+  }'
+
+# Exclude specific statuses
+curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "tasks",
+    "filters": {"metadata.status": {"$nin": ["archived", "deleted"]}}
+  }'
 ```
 
 ## Best Practices

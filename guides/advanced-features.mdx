@@ -80,6 +80,38 @@ const userMemory = await nebula.storeMemory({
 });
 ```
 
+```bash cURL
+# Store memory with authority score
+curl -X POST "https://api.nebulacloud.app/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "collection_ref": "support-collection",
+    "engram_type": "document",
+    "raw_text": "To reset password, go to Settings > Security > Reset Password",
+    "metadata": {
+      "type": "official_guide",
+      "verified": true
+    },
+    "authority": 0.95
+  }'
+
+# Lower authority for user-contributed content
+curl -X POST "https://api.nebulacloud.app/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "collection_ref": "support-collection",
+    "engram_type": "document",
+    "raw_text": "I think you can reset it in settings somewhere",
+    "metadata": {
+      "type": "user_comment",
+      "verified": false
+    },
+    "authority": 0.4
+  }'
+```
+
 </CodeGroup>
 
 ### Authority Guidelines
@@ -118,6 +150,44 @@ nebula.store_memory({
 })
 ```
 
+```bash cURL
+# High authority for assistant responses
+curl -X POST "https://api.nebulacloud.app/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "memory_id": "CONVERSATION_ID",
+    "collection_ref": "support-collection",
+    "engram_type": "conversation",
+    "messages": [
+      {
+        "content": "Based on your account, you'\''re on the Pro plan.",
+        "role": "assistant",
+        "metadata": {"verified": true}
+      }
+    ],
+    "authority": 0.85
+  }'
+
+# Lower authority for user messages
+curl -X POST "https://api.nebulacloud.app/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "memory_id": "CONVERSATION_ID",
+    "collection_ref": "support-collection",
+    "engram_type": "conversation",
+    "messages": [
+      {
+        "content": "I think I'\''m on the Pro plan",
+        "role": "user",
+        "metadata": {"verified": false}
+      }
+    ],
+    "authority": 0.5
+  }'
+```
+
 ### Updating Authority
 
 Update authority scores as content is verified or becomes outdated:
@@ -128,6 +198,13 @@ nebula.update_memory(
     memory_id=memory_id,
     authority=0.3  # Downgrade outdated information
 )
+```
+
+```bash cURL
+curl -X POST "https://api.nebulacloud.app/v1/engrams/YOUR_MEMORY_ID" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{"authority": 0.3}'
 ```
 
 ## Search Optimization Techniques

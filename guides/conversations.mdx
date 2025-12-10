@@ -57,6 +57,26 @@ const conversationId = await nebula.storeMemory({
 // This creates a conversation container
 ```
 
+```bash cURL
+curl -X POST "https://api.nebulacloud.app/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "collection_ref": "chat-collection",
+    "engram_type": "conversation",
+    "messages": [
+      {
+        "content": "Hello! How can I help you today?",
+        "role": "assistant",
+        "metadata": {
+          "conversation_name": "Support Chat",
+          "topic": "customer_support"
+        }
+      }
+    ]
+  }'
+```
+
 </CodeGroup>
 
 ## Adding Messages
@@ -119,6 +139,35 @@ await nebula.storeMemory({
 // The conversation now contains all 4 messages
 ```
 
+```bash cURL
+# Add single message to an existing conversation
+curl -X POST "https://api.nebulacloud.app/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "memory_id": "CONVERSATION_ID",
+    "collection_ref": "chat-collection",
+    "engram_type": "conversation",
+    "messages": [
+      {"content": "I need help with my account", "role": "user"}
+    ]
+  }'
+
+# Add multiple messages to the same conversation
+curl -X POST "https://api.nebulacloud.app/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "memory_id": "CONVERSATION_ID",
+    "collection_ref": "chat-collection",
+    "engram_type": "conversation",
+    "messages": [
+      {"content": "What specific issue are you having?", "role": "assistant"},
+      {"content": "I can'\''t log in to my account", "role": "user"}
+    ]
+  }'
+```
+
 </CodeGroup>
 
 
@@ -151,6 +200,16 @@ const batchResults = await nebula.getConversationMessages(conversationIds);
 for (const [conversationId, messages] of Object.entries(batchResults)) {
   console.log(`Conversation ${conversationId}: ${messages.length} messages`);
 }
+```
+
+```bash cURL
+# Get entire conversation
+curl -X GET "https://api.nebulacloud.app/v1/conversations/CONVERSATION_ID" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+# Get multiple conversations (use repeated collection_ids or IDs as needed)
+curl -X GET "https://api.nebulacloud.app/v1/conversations?limit=2&offset=0" \
+  -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
 </CodeGroup>
@@ -189,6 +248,18 @@ conversations.forEach(conv => {
 const filtered = await nebula.listConversations({
   collection_ids: ["chat-collection"]
 });
+```
+
+```bash cURL
+# List conversations
+curl -X GET "https://api.nebulacloud.app/v1/conversations?limit=50&offset=0" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+# Filter by collection
+curl -G "https://api.nebulacloud.app/v1/conversations" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  --data-urlencode "collection_ids=chat-collection" \
+  --data-urlencode "limit=50"
 ```
 
 </CodeGroup>

@@ -42,6 +42,18 @@ const memoryId = await nebula.storeMemory({
 console.log(`Stored memory: ${memoryId}`);
 ```
 
+```bash cURL
+curl -X POST "https://api.nebulacloud.app/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "collection_ref": "research-collection",
+    "engram_type": "document",
+    "raw_text": "Machine learning automates analytical model building",
+    "metadata": {"topic": "AI", "difficulty": "intermediate"}
+  }'
+```
+
 </CodeGroup>
 
 **Returns**: Memory ID - use this to reference the memory later.
@@ -88,6 +100,30 @@ const memoryIds = await nebula.storeMemories(memories);
 console.log(`Stored ${memoryIds.length} memories`);
 ```
 
+```bash cURL
+# Store first memory
+curl -X POST "https://api.nebulacloud.app/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "collection_ref": "research-collection",
+    "engram_type": "document",
+    "raw_text": "Supervised learning uses labeled training data",
+    "metadata": {"type": "definition"}
+  }'
+
+# Store second memory
+curl -X POST "https://api.nebulacloud.app/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "collection_ref": "research-collection",
+    "engram_type": "document",
+    "raw_text": "Neural networks are inspired by biological systems",
+    "metadata": {"type": "concept"}
+  }'
+```
+
 </CodeGroup>
 
 <Tip>Batch operations are more efficient than storing memories one at a time.</Tip>
@@ -132,6 +168,22 @@ await nebula.storeMemory({
   content: "I need help with my account",
   role: "user"
 });
+```
+
+```bash cURL
+# Create conversation with initial message
+curl -X POST "https://api.nebulacloud.app/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "collection_ref": "support-collection",
+    "engram_type": "conversation",
+    "messages": [
+      {"role": "assistant", "content": "Hello! How can I help you?"},
+      {"role": "user", "content": "I need help with my account"}
+    ],
+    "metadata": {"session_id": "session_123"}
+  }'
 ```
 
 </CodeGroup>
@@ -191,6 +243,30 @@ const docId = await nebula.createDocumentChunks({
 });
 ```
 
+```bash cURL
+# Upload text
+curl -X POST "https://api.nebulacloud.app/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "collection_ref": "my-collection",
+    "engram_type": "document",
+    "raw_text": "Machine learning is a subset of AI...",
+    "metadata": {"title": "ML Intro"}
+  }'
+
+# Upload pre-chunked
+curl -X POST "https://api.nebulacloud.app/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "collection_ref": "my-collection",
+    "engram_type": "document",
+    "chunks": ["Intro...", "Chapter 1...", "Chapter 2..."],
+    "metadata": {"title": "My Doc"}
+  }'
+```
+
 </CodeGroup>
 
 **Ingestion modes**: `fast` (default), `hi-res` (better quality), `custom`
@@ -217,6 +293,11 @@ const memory = await nebula.getMemory(memoryId);
 console.log(`Content: ${memory.content}`);
 console.log(`Metadata: ${memory.metadata}`);
 console.log(`Created: ${memory.created_at}`);
+```
+
+```bash cURL
+curl -X GET "https://api.nebulacloud.app/v1/engrams/YOUR_MEMORY_ID" \
+  -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
 </CodeGroup>
@@ -250,6 +331,11 @@ memories.forEach(memory => {
 });
 ```
 
+```bash cURL
+curl -X GET "https://api.nebulacloud.app/v1/engrams?limit=50&offset=0" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
 </CodeGroup>
 
 <Info>For semantic search (finding memories by meaning), see the [Search Guide](/guides/search).</Info>
@@ -270,6 +356,11 @@ const result = await nebula.delete(memoryId);
 console.log(`Deleted: ${result}`);
 ```
 
+```bash cURL
+curl -X DELETE "https://api.nebulacloud.app/v1/engrams/YOUR_MEMORY_ID" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
 </CodeGroup>
 
 ### Batch Delete
@@ -286,6 +377,15 @@ print(f"Deleted {result['deleted_count']} memories")
 // Delete multiple memories
 const result = await nebula.delete([memoryId1, memoryId2, memoryId3]);
 console.log(`Deleted ${result.deleted_count} memories`);
+```
+
+```bash cURL
+# Delete multiple memories (one at a time via API)
+curl -X DELETE "https://api.nebulacloud.app/v1/engrams/MEMORY_ID_1" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+curl -X DELETE "https://api.nebulacloud.app/v1/engrams/MEMORY_ID_2" \
+  -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
 </CodeGroup>
@@ -324,6 +424,16 @@ memory.chunks?.forEach(chunk => {
 });
 ```
 
+```bash cURL
+# Get memory with chunks
+curl -X GET "https://api.nebulacloud.app/v1/engrams/YOUR_MEMORY_ID" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+# List chunks directly
+curl -X GET "https://api.nebulacloud.app/v1/chunks?limit=100" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
 </CodeGroup>
 
 ### Delete Chunk
@@ -340,6 +450,11 @@ nebula.delete_chunk(chunk_id)
 ```javascript JavaScript
 // Delete a specific message in a conversation
 await nebula.deleteChunk(chunkId);
+```
+
+```bash cURL
+curl -X DELETE "https://api.nebulacloud.app/v1/chunks/YOUR_CHUNK_ID" \
+  -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
 </CodeGroup>
@@ -366,6 +481,17 @@ await nebula.updateChunk(
   "Updated content here",
   { edited: true }
 );
+```
+
+```bash cURL
+curl -X POST "https://api.nebulacloud.app/v1/chunks/YOUR_CHUNK_ID" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "id": "YOUR_CHUNK_ID",
+    "text": "Updated content here",
+    "metadata": {"edited": true}
+  }'
 ```
 
 </CodeGroup>
@@ -465,6 +591,53 @@ async function fullWorkflow() {
 }
 
 fullWorkflow();
+```
+
+```bash cURL
+# 1. Create collection
+curl -X POST "https://api.nebulacloud.app/v1/collections" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{"name": "demo", "description": "Example collection"}'
+
+# 2. Store memories
+curl -X POST "https://api.nebulacloud.app/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "collection_ref": "demo",
+    "engram_type": "document",
+    "raw_text": "Python is a high-level programming language",
+    "metadata": {"language": "python"}
+  }'
+
+curl -X POST "https://api.nebulacloud.app/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "collection_ref": "demo",
+    "engram_type": "document",
+    "raw_text": "JavaScript is used for web development",
+    "metadata": {"language": "javascript"}
+  }'
+
+# 3. Retrieve memory
+curl -X GET "https://api.nebulacloud.app/v1/engrams/MEMORY_ID" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+# 4. Search
+curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "programming languages",
+    "collection_ids": ["demo"],
+    "limit": 5
+  }'
+
+# 5. Delete
+curl -X DELETE "https://api.nebulacloud.app/v1/engrams/MEMORY_ID" \
+  -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
 </CodeGroup>

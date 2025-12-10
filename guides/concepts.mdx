@@ -42,6 +42,38 @@ client.store_memory({
 # The memory now contains 3 messages total
 ```
 
+```bash cURL
+# Create a conversation memory
+curl -X POST "https://api.nebulacloud.app/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "collection_ref": "support_chats",
+    "engram_type": "conversation",
+    "messages": [
+      {
+        "content": "Hello! How can I help you today?",
+        "role": "assistant",
+        "metadata": {"conversation_name": "Support Chat #123"}
+      }
+    ]
+  }'
+
+# Add more messages to the same conversation
+curl -X POST "https://api.nebulacloud.app/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "memory_id": "CONVERSATION_ID",
+    "collection_ref": "support_chats",
+    "engram_type": "conversation",
+    "messages": [
+      {"content": "I need help with billing", "role": "user"},
+      {"content": "I'\''ll help you with that", "role": "assistant"}
+    ]
+  }'
+```
+
 ## Types of Memories
 
 ### Document Memories
@@ -61,6 +93,30 @@ doc_id = client.create_document_chunks(
     chunks=["Chapter 1...", "Chapter 2..."],
     metadata={"title": "AI Research Paper"}
 )
+```
+
+```bash cURL
+# Store document
+curl -X POST "https://api.nebulacloud.app/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "collection_ref": "research_papers",
+    "engram_type": "document",
+    "raw_text": "Full document content here...",
+    "metadata": {"title": "AI Research Paper"}
+  }'
+
+# Pre-chunked documents
+curl -X POST "https://api.nebulacloud.app/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "collection_ref": "research_papers",
+    "engram_type": "document",
+    "chunks": ["Chapter 1...", "Chapter 2..."],
+    "metadata": {"title": "AI Research Paper"}
+  }'
 ```
 
 ### Conversation Memories
@@ -106,6 +162,21 @@ memory_id = client.store_memory({
 # Single piece of information
 ```
 
+```bash cURL
+curl -X POST "https://api.nebulacloud.app/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "collection_ref": "user_preferences",
+    "engram_type": "document",
+    "raw_text": "User prefers dark mode and email notifications",
+    "metadata": {
+      "user_id": "user_789",
+      "preference_type": "ui_settings"
+    }
+  }'
+```
+
 ## Memory Operations
 
 ### Creation
@@ -117,6 +188,17 @@ memory_id = client.store_memory({
     "content": "Initial document content"
 })
 # Creates new memory container
+```
+
+```bash cURL
+curl -X POST "https://api.nebulacloud.app/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "collection_ref": "documents",
+    "engram_type": "document",
+    "raw_text": "Initial document content"
+  }'
 ```
 
 ### Expanding (Adding Content)
@@ -142,6 +224,33 @@ client.store_memory({
 # Each call adds chunks/messages to the same memory
 ```
 
+```bash cURL
+# Add more content to document
+curl -X POST "https://api.nebulacloud.app/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "memory_id": "DOCUMENT_MEMORY_ID",
+    "collection_ref": "documents",
+    "engram_type": "document",
+    "raw_text": "Chapter 2: Advanced Topics..."
+  }'
+
+# Add more messages to conversation
+curl -X POST "https://api.nebulacloud.app/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "memory_id": "CONVERSATION_MEMORY_ID",
+    "collection_ref": "conversations",
+    "engram_type": "conversation",
+    "messages": [
+      {"content": "Thanks for the help!", "role": "user"},
+      {"content": "You'\''re welcome!", "role": "assistant"}
+    ]
+  }'
+```
+
 ### Retrieval
 Retrieve complete memories with all chunks:
 
@@ -161,6 +270,22 @@ results = client.search(
 # Returns matching chunks with their parent memory_id
 ```
 
+```bash cURL
+# Get entire memory
+curl -X GET "https://api.nebulacloud.app/v1/engrams/YOUR_MEMORY_ID" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+# Search across memories
+curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "machine learning",
+    "collection_ids": ["research_papers"],
+    "limit": 10
+  }'
+```
+
 ### Chunk Operations
 Work with individual pieces within memories:
 
@@ -170,6 +295,22 @@ client.delete_chunk(chunk_id)
 
 # Update a specific chunk
 client.update_chunk(chunk_id, "Updated content", metadata={"edited": True})
+```
+
+```bash cURL
+# Delete a specific message or chunk
+curl -X DELETE "https://api.nebulacloud.app/v1/chunks/YOUR_CHUNK_ID" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+# Update a specific chunk
+curl -X POST "https://api.nebulacloud.app/v1/chunks/YOUR_CHUNK_ID" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "id": "YOUR_CHUNK_ID",
+    "text": "Updated content",
+    "metadata": {"edited": true}
+  }'
 ```
 
 ## Memory Lifecycle
