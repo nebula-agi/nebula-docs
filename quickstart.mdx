@@ -31,7 +31,7 @@ go get github.com/nebula-ai/nebula-client-go
 
 <CodeGroup>
 
-```python client.py
+```python Python
 from nebula import Nebula
 
 # With API key
@@ -41,7 +41,7 @@ nebula = Nebula(api_key="your-api-key-here")
 # nebula = Nebula()
 ```
 
-```javascript client.js
+```javascript JavaScript
 const { Nebula } = require('@nebula-ai/sdk');
 
 const nebula = new Nebula({
@@ -62,7 +62,7 @@ curl -X GET "https://api.nebulacloud.app/v1/collections?limit=5" \
 
 <CodeGroup>
 
-```python store_and_search.py
+```python Python
 from nebula import Nebula
 
 nebula = Nebula(api_key="your-api-key-here")
@@ -89,7 +89,7 @@ for result in results:
     print(f"Content: {result.content}")
 ```
 
-```javascript store_and_search.js
+```javascript JavaScript
 const { Nebula } = require('@nebula-ai/sdk');
 
 const nebula = new Nebula({
