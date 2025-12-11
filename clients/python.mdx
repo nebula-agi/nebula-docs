@@ -21,7 +21,7 @@ export NEBULA_API_KEY="your_api_key_here"
 ```
 
 ```python
-from nebula_client import Nebula
+from nebula import Nebula
 
 # Automatically uses NEBULA_API_KEY environment variable
 nebula = Nebula()
@@ -30,7 +30,7 @@ nebula = Nebula()
 ## Basic Usage
 
 ```python
-from nebula_client import Nebula
+from nebula import Nebula
 
 nebula = Nebula()
 
@@ -115,7 +115,7 @@ The Python SDK includes a dedicated async client:
 
 ```python
 import asyncio
-from nebula_client import AsyncNebula
+from nebula import AsyncNebula
 
 async def main():
     # Create async client (uses NEBULA_API_KEY env var)
@@ -148,7 +148,7 @@ asyncio.run(main())
 
 ```python
 import asyncio
-from nebula_client import AsyncNebula
+from nebula import AsyncNebula
 
 async def main():
     # Automatically handles cleanup
