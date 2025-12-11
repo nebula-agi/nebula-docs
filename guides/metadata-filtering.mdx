@@ -7,6 +7,8 @@ description: 'Advanced filtering for search and retrieval'
 
 Filter search results by metadata attributes. Use logical operators and data type comparisons to find exactly what you need.
 
+> Metadata in responses: By default, Nebula returns whitelisted metadata in search and MemoryRecall results (`include_metadata` defaults to true). Set `include_metadata: false` to omit metadata entirely. The whitelist for recall includes common safe fields like `title`, `source`, `url`, `doc_type`, `mime_type`, `filename`, and `page`.
+
 ## Basic Filtering
 
 ### Equality & Not Equal

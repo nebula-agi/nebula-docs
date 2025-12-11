@@ -23,7 +23,7 @@ In Nebula, everything is stored as a **memory** - a container for related inform
 
 <CodeGroup>
 
-```python
+```python Python
 # Create a conversation memory
 conversation_id = client.store_memory({
     "collection_id": "support_chats",
@@ -44,7 +44,7 @@ client.store_memory({
 # The memory now contains 3 messages total
 ```
 
-```javascript
+```javascript JavaScript
 // Create a conversation memory
 const conversationId = await nebula.storeMemory({
   collection_id: 'support_chats',
@@ -106,7 +106,7 @@ Contain entire documents, split into chunks internally for processing.
 
 <CodeGroup>
 
-```python
+```python Python
 # Store document
 doc_id = client.create_document_text(
     collection_ref="research_papers",
@@ -122,7 +122,7 @@ doc_id = client.create_document_chunks(
 )
 ```
 
-```javascript
+```javascript JavaScript
 // Store document
 const docId = await nebula.storeMemory({
   collection_id: 'research_papers',
@@ -169,7 +169,7 @@ Contain entire conversations with all messages and context.
 
 <CodeGroup>
 
-```python
+```python Python
 # Create a conversation memory
 conv_id = client.store_memory({
     "collection_id": "customer_support",
@@ -193,7 +193,7 @@ client.store_memory({
 # The memory now contains the entire conversation history
 ```
 
-```javascript
+```javascript JavaScript
 // Create a conversation memory
 const convId = await nebula.storeMemory({
   collection_id: 'customer_support',
@@ -259,7 +259,7 @@ Contain standalone pieces of information.
 
 <CodeGroup>
 
-```python
+```python Python
 # Create a simple memory
 memory_id = client.store_memory({
     "collection_id": "user_preferences",
@@ -272,7 +272,7 @@ memory_id = client.store_memory({
 # Single piece of information
 ```
 
-```javascript
+```javascript JavaScript
 // Create a simple memory
 const memoryId = await nebula.storeMemory({
   collection_id: 'user_preferences',
@@ -309,7 +309,7 @@ Every `store_memory()` call without `memory_id` creates a new memory:
 
 <CodeGroup>
 
-```python
+```python Python
 memory_id = client.store_memory({
     "collection_id": "documents",
     "content": "Initial document content"
@@ -317,7 +317,7 @@ memory_id = client.store_memory({
 # Creates new memory container
 ```
 
-```javascript
+```javascript JavaScript
 const memoryId = await nebula.storeMemory({
   collection_id: 'documents',
   content: 'Initial document content'
@@ -343,7 +343,7 @@ Use `store_memory()` with `memory_id` to add content to existing memories:
 
 <CodeGroup>
 
-```python
+```python Python
 # Add more content to document
 client.store_memory({
     "memory_id": doc_id,
@@ -363,7 +363,7 @@ client.store_memory({
 # Each call adds chunks/messages to the same memory
 ```
 
-```javascript
+```javascript JavaScript
 // Add more content to document
 await nebula.storeMemory({
   memory_id: docId,
@@ -417,7 +417,7 @@ Retrieve complete memories with all chunks:
 
 <CodeGroup>
 
-```python
+```python Python
 # Get entire memory (complete document or conversation)
 memory = client.get_memory(memory_id)
 
@@ -433,7 +433,7 @@ results = client.search(
 # Returns matching chunks with their parent memory_id
 ```
 
-```javascript
+```javascript JavaScript
 // Get entire memory (complete document or conversation)
 const memory = await nebula.getMemory(memoryId);
 
@@ -473,7 +473,7 @@ Work with individual pieces within memories:
 
 <CodeGroup>
 
-```python
+```python Python
 # Delete a specific message or chunk
 client.delete_chunk(chunk_id)
 
@@ -481,7 +481,7 @@ client.delete_chunk(chunk_id)
 client.update_chunk(chunk_id, "Updated content", metadata={"edited": True})
 ```
 
-```javascript
+```javascript JavaScript
 // Delete a specific message or chunk
 await nebula.deleteChunk(chunkId);
 
