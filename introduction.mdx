@@ -14,6 +14,8 @@ Nebula is a persistent memory layer for AI applications. Store, search, and retr
 
 ## Quick Example
 
+<CodeGroup>
+
 ```python
 from nebula import Nebula
 
@@ -32,6 +34,36 @@ nebula.store_memory({
 # Search semantically
 results = nebula.search("How does user_123 want to be contacted?", collection_id=collection.id)
 print(results[0].content)  # Returns: "User prefers email notifications over SMS"
+```
+
+```javascript
+const { Nebula } = require('@nebula-ai/sdk');
+
+const nebula = new Nebula({
+  apiKey: 'your_api_key'
+});
+
+async function example() {
+  // Create a memory collection
+  const collection = await nebula.createCollection({
+    name: 'customer_support'
+  });
+
+  // Store information
+  await nebula.storeMemory({
+    collection_id: collection.id,
+    content: 'User prefers email notifications over SMS',
+    metadata: { user_id: 'user_123', preference: 'email' }
+  });
+
+  // Search semantically
+  const results = await nebula.search({
+    query: 'How does user_123 want to be contacted?',
+    collection_ids: [collection.id]
+  });
+
+  console.log(results[0].content); // Returns: "User prefers email notifications over SMS"
+}
 ```
 
 ```bash cURL
@@ -62,6 +94,8 @@ curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
     "limit": 3
   }'
 ```
+
+</CodeGroup>
 
 [Get your API key and start building →](/quickstart)
 
