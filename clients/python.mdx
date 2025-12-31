@@ -146,8 +146,7 @@ with open('report.pdf', 'rb') as f:
 nebula.store_memory(Memory(
     collection_id='my-collection',
     content=[DocumentContent(data=pdf_data, media_type='application/pdf')],
-    metadata={'type': 'report'},
-    fast_mode=True  # Use fast extraction (or False for VLM OCR)
+    metadata={'type': 'report'}
 ))
 ```
 

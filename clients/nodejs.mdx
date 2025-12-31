@@ -131,8 +131,7 @@ await nebula.storeMemory({
   content: [
     { type: 'document', data: pdfBuffer.toString('base64'), media_type: 'application/pdf' }
   ],
-  metadata: { type: 'report' },
-  fast_mode: true  // Use fast extraction (or false for VLM OCR)
+  metadata: { type: 'report' }
 });
 ```
 
