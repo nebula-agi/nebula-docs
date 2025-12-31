@@ -109,6 +109,53 @@ doc_id = nebula.create_document_chunks(
 )
 ```
 
+## Multimodal Content
+
+Store images, audio, and documents. Processing is automatic:
+
+```python
+import base64
+from nebula import Nebula, Memory, ImageContent, AudioContent, DocumentContent
+
+nebula = Nebula()
+
+# Store an image (analyzed by vision model)
+with open('photo.jpg', 'rb') as f:
+    image_data = base64.b64encode(f.read()).decode()
+
+nebula.store_memory(Memory(
+    collection_id='my-collection',
+    content=[ImageContent(data=image_data, media_type='image/jpeg')],
+    metadata={'type': 'photo'}
+))
+
+# Store audio (transcribed automatically)
+with open('meeting.mp3', 'rb') as f:
+    audio_data = base64.b64encode(f.read()).decode()
+
+nebula.store_memory(Memory(
+    collection_id='my-collection',
+    content=[AudioContent(data=audio_data, media_type='audio/mp3')],
+    metadata={'type': 'meeting'}
+))
+
+# Store a PDF (text extracted via OCR)
+with open('report.pdf', 'rb') as f:
+    pdf_data = base64.b64encode(f.read()).decode()
+
+nebula.store_memory(Memory(
+    collection_id='my-collection',
+    content=[DocumentContent(data=pdf_data, media_type='application/pdf')],
+    metadata={'type': 'report'},
+    fast_mode=True  # Use fast extraction (or False for VLM OCR)
+))
+```
+
+**Supported formats:**
+- Images: JPEG, PNG, GIF, WebP
+- Audio: MP3, WAV, M4A, OGG, FLAC
+- Documents: PDF, DOC, DOCX, TXT, CSV
+
 ## Async Support
 
 The Python SDK includes a dedicated async client:
