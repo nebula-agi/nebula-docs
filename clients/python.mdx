@@ -68,7 +68,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_ref": "my_notes",
+    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
     "engram_type": "document",
     "raw_text": "Python is great for data science",
     "metadata": {"topic": "programming", "language": "python"}
@@ -90,7 +90,7 @@ curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
 ```python
 # Upload text
 doc_id = nebula.create_document_text(
-    collection_ref="my-collection",
+    collection_id=collection.id,  # Get collection first: collection = nebula.get_collection_by_name("my-collection")
     raw_text="Machine learning is a subset of AI...",
     metadata={"title": "ML Intro"}
 )
@@ -98,13 +98,13 @@ doc_id = nebula.create_document_text(
 # Upload from file
 with open("doc.txt", "r") as f:
     doc_id = nebula.create_document_text(
-        collection_ref="my-collection",
+        collection_id=collection.id,  # Get collection first: collection = nebula.get_collection_by_name("my-collection")
         raw_text=f.read()
     )
 
 # Upload pre-chunked
 doc_id = nebula.create_document_chunks(
-    collection_ref="my-collection",
+    collection_id=collection.id,  # Get collection first: collection = nebula.get_collection_by_name("my-collection")
     chunks=["Chunk 1", "Chunk 2", "Chunk 3"]
 )
 ```

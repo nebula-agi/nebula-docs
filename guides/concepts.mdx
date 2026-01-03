@@ -71,7 +71,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_ref": "support_chats",
+    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
     "engram_type": "conversation",
     "messages": [
       {
@@ -88,7 +88,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "memory_id": "CONVERSATION_ID",
-    "collection_ref": "support_chats",
+    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
     "engram_type": "conversation",
     "messages": [
       {"content": "I need help with billing", "role": "user"},
@@ -109,14 +109,14 @@ Contain entire documents, split into chunks internally for processing.
 ```python Python
 # Store document
 doc_id = client.create_document_text(
-    collection_ref="research_papers",
+    collection_id=collection.id,  # Get collection first: collection = client.get_collection_by_name("research_papers")
     raw_text="Full document content here...",
     metadata={"title": "AI Research Paper"}
 )
 
 # Pre-chunked documents
 doc_id = client.create_document_chunks(
-    collection_ref="research_papers",
+    collection_id=collection.id,  # Get collection first: collection = client.get_collection_by_name("research_papers")
     chunks=["Chapter 1...", "Chapter 2..."],
     metadata={"title": "AI Research Paper"}
 )
@@ -144,7 +144,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_ref": "research_papers",
+    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
     "engram_type": "document",
     "raw_text": "Full document content here...",
     "metadata": {"title": "AI Research Paper"}
@@ -155,7 +155,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_ref": "research_papers",
+    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
     "engram_type": "document",
     "chunks": ["Chapter 1...", "Chapter 2..."],
     "metadata": {"title": "AI Research Paper"}
@@ -223,7 +223,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_ref": "customer_support",
+    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
     "engram_type": "conversation",
     "messages": [
       {
@@ -243,7 +243,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "memory_id": "CONVERSATION_ID",
-    "collection_ref": "customer_support",
+    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
     "engram_type": "conversation",
     "messages": [
       {"content": "I have a billing question", "role": "user"},
@@ -290,7 +290,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_ref": "user_preferences",
+    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
     "engram_type": "document",
     "raw_text": "User prefers dark mode and email notifications",
     "metadata": {
@@ -330,7 +330,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_ref": "documents",
+    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
     "engram_type": "document",
     "raw_text": "Initial document content"
   }'
@@ -390,7 +390,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "memory_id": "DOCUMENT_MEMORY_ID",
-    "collection_ref": "documents",
+    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
     "engram_type": "document",
     "raw_text": "Chapter 2: Advanced Topics..."
   }'
@@ -401,7 +401,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "memory_id": "CONVERSATION_MEMORY_ID",
-    "collection_ref": "conversations",
+    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
     "engram_type": "conversation",
     "messages": [
       {"content": "Thanks for the help!", "role": "user"},

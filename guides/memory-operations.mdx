@@ -47,7 +47,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_ref": "research-collection",
+    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
     "engram_type": "document",
     "raw_text": "Machine learning automates analytical model building",
     "metadata": {"topic": "AI", "difficulty": "intermediate"}
@@ -106,7 +106,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_ref": "research-collection",
+    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
     "engram_type": "document",
     "raw_text": "Supervised learning uses labeled training data",
     "metadata": {"type": "definition"}
@@ -117,7 +117,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_ref": "research-collection",
+    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
     "engram_type": "document",
     "raw_text": "Neural networks are inspired by biological systems",
     "metadata": {"type": "concept"}
@@ -176,7 +176,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_ref": "support-collection",
+    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
     "engram_type": "conversation",
     "messages": [
       {"role": "assistant", "content": "Hello! How can I help you?"},
@@ -195,9 +195,12 @@ See [Conversations Guide](/guides/conversations) for multi-turn conversation pat
 <CodeGroup>
 
 ```python Python
+# First, get collection ID
+collection = nebula.get_collection_by_name("my-collection")
+
 # Upload text
 doc_id = nebula.create_document_text(
-    collection_ref="my-collection",
+    collection_id=collection.id,
     raw_text="Machine learning is a subset of AI...",
     metadata={"title": "ML Intro"}
 )
@@ -205,42 +208,48 @@ doc_id = nebula.create_document_text(
 # Upload from file
 with open("doc.txt", "r") as f:
     doc_id = nebula.create_document_text(
-        collection_ref="my-collection",
+        collection_id=collection.id,
         raw_text=f.read(),
         metadata={"filename": "doc.txt"}
     )
 
 # Upload pre-chunked
 doc_id = nebula.create_document_chunks(
-    collection_ref="my-collection",
+    collection_id=collection.id,
     chunks=["Intro...", "Chapter 1...", "Chapter 2..."],
     metadata={"title": "My Doc"}
 )
 ```
 
 ```javascript JavaScript
-// Upload text
-const docId = await nebula.createDocumentText({
-  collection_ref: "my-collection",
-  raw_text: "Machine learning is a subset of AI...",
+// First, get collection ID
+const collection = await nebula.getCollectionByName("my-collection");
+
+// Upload text (using storeMemory for documents)
+const docId = await nebula.storeMemory({
+  collection_id: collection.id,
+  content: "Machine learning is a subset of AI...",
   metadata: { title: "ML Intro" }
 });
 
 // Upload from file
 const fs = require('fs').promises;
 const content = await fs.readFile('doc.txt', 'utf-8');
-const docId = await nebula.createDocumentText({
-  collection_ref: "my-collection",
-  raw_text: content,
+const docId = await nebula.storeMemory({
+  collection_id: collection.id,
+  content: content,
   metadata: { filename: "doc.txt" }
 });
 
-// Upload pre-chunked
-const docId = await nebula.createDocumentChunks({
-  collection_ref: "my-collection",
-  chunks: ["Intro...", "Chapter 1...", "Chapter 2..."],
-  metadata: { title: "My Doc" }
-});
+// Upload pre-chunked (store as separate memories)
+const chunks = ["Intro...", "Chapter 1...", "Chapter 2..."];
+const docIds = await nebula.storeMemories(
+  chunks.map(chunk => ({
+    collection_id: collection.id,
+    content: chunk,
+    metadata: { title: "My Doc" }
+  }))
+);
 ```
 
 ```bash cURL
@@ -249,7 +258,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_ref": "my-collection",
+    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
     "engram_type": "document",
     "raw_text": "Machine learning is a subset of AI...",
     "metadata": {"title": "ML Intro"}
@@ -260,7 +269,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_ref": "my-collection",
+    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
     "engram_type": "document",
     "chunks": ["Intro...", "Chapter 1...", "Chapter 2..."],
     "metadata": {"title": "My Doc"}
@@ -600,12 +609,12 @@ curl -X POST "https://api.nebulacloud.app/v1/collections" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{"name": "demo", "description": "Example collection"}'
 
-# 2. Store memories
+# 2. Store memories (using collection ID from step 1)
 curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_ref": "demo",
+    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
     "engram_type": "document",
     "raw_text": "Python is a high-level programming language",
     "metadata": {"language": "python"}
@@ -615,7 +624,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_ref": "demo",
+    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
     "engram_type": "document",
     "raw_text": "JavaScript is used for web development",
     "metadata": {"language": "javascript"}
