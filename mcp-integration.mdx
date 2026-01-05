@@ -181,11 +181,13 @@ Find and retrieve relevant memories semantically.
 
 **Parameters:**
 - `query` (required): Search text
-- `limit` (optional): Maximum results (default: 10)
+- `effort` (optional): Search effort level - auto/low/medium/high (defaults to auto if omitted)
 
 **Example:**
 ```
-search_memories(query="user preferences", limit=5)
+search_memories(query="user preferences")
+# Or explicitly set effort:
+search_memories(query="user preferences", effort="medium")
 ```
 
 ## Troubleshooting

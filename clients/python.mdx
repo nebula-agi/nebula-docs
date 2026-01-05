@@ -47,8 +47,7 @@ memory_id = nebula.store_memory({
 # Search memories
 results = nebula.search(
     query="data science",
-    collection_ids=[collection.id],
-    limit=10
+    collection_ids=[collection.id]
 )
 
 for result in results:
@@ -80,8 +79,7 @@ curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "query": "data science",
-    "collection_ids": ["my_notes"],
-    "limit": 10
+    "collection_ids": ["my_notes"]
   }'
 ```
 

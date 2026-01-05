@@ -189,28 +189,24 @@ Search within specific collections using IDs or names, or search across all your
 # Search by collection name
 work_results = nebula.search(
     query="project deadlines",
-    collection_ids=["Work"],
-    limit=10
+    collection_ids=["Work"]
 )
 
 # Search by collection ID
 work_results = nebula.search(
     query="project deadlines",
-    collection_ids=[work_collection.id],
-    limit=10
+    collection_ids=[work_collection.id]
 )
 
 # Search multiple collections (mix names and IDs)
 all_results = nebula.search(
     query="important notes",
-    collection_ids=["Work", personal_collection.id],
-    limit=20
+    collection_ids=["Work", personal_collection.id]
 )
 
 # Search all accessible collections
 global_results = nebula.search(
-    query="important notes",
-    limit=20
+    query="important notes"
 )
 
 # Display results
@@ -224,28 +220,24 @@ for result in work_results:
 // Search by collection name
 const workResults = await nebula.search({
   query: "project deadlines",
-  collection_ids: ["Work"],
-  limit: 10
+  collection_ids: ["Work"]
 });
 
 // Search by collection ID
 const workResults = await nebula.search({
   query: "project deadlines",
-  collection_ids: [workCollection.id],
-  limit: 10
+  collection_ids: [workCollection.id]
 });
 
 // Search multiple collections (mix names and IDs)
 const allResults = await nebula.search({
   query: "important notes",
-  collection_ids: ["Work", personalCollection.id],
-  limit: 20
+  collection_ids: ["Work", personalCollection.id]
 });
 
 // Search all accessible collections
 const globalResults = await nebula.search({
-  query: "important notes",
-  limit: 20
+  query: "important notes"
 });
 
 // Display results
@@ -263,8 +255,7 @@ curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "query": "project deadlines",
-    "collection_ids": ["Work"],
-    "limit": 10
+    "collection_ids": ["Work"]
   }'
 
 # Search multiple collections
@@ -273,8 +264,7 @@ curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "query": "important notes",
-    "collection_ids": ["Work", "Personal"],
-    "limit": 20
+    "collection_ids": ["Work", "Personal"]
   }'
 
 # Search all accessible collections
@@ -282,8 +272,7 @@ curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "query": "important notes",
-    "limit": 20
+    "query": "important notes"
   }'
 ```
 

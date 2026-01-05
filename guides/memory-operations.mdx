@@ -544,8 +544,7 @@ print(f"Retrieved: {memory.content}")
 # 4. Search
 results = nebula.search(
     query="programming languages",
-    collection_ids=[collection.id],
-    limit=5
+    collection_ids=[collection.id]
 )
 print(f"Found {len(results)} results")
 
@@ -589,8 +588,7 @@ async function fullWorkflow() {
   // 4. Search
   const results = await nebula.search({
     query: "programming languages",
-    collection_ids: [collection.id],
-    limit: 5
+    collection_ids: [collection.id]
   });
   console.log(`Found ${results.length} results`);
 
@@ -640,8 +638,7 @@ curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "query": "programming languages",
-    "collection_ids": ["demo"],
-    "limit": 5
+    "collection_ids": ["demo"]
   }'
 
 # 5. Delete

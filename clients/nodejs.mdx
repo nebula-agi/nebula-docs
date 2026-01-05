@@ -52,8 +52,7 @@ async function example() {
   // Search memories
   const results = await nebula.search({
     query: 'web development',
-    collection_ids: [collection.id],
-    limit: 10
+    collection_ids: [collection.id]
   });
 
   results.forEach(result => {
@@ -89,8 +88,7 @@ curl -X POST "https://api.nebulacloud.app/v1/retrieval/search" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "query": "web development",
-    "collection_ids": ["my_notes"],
-    "limit": 10
+    "collection_ids": ["my_notes"]
   }'
 ```
 

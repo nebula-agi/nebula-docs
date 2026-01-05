@@ -240,14 +240,14 @@ for item in items:
 nebula.store_memories(items)  # Fast!
 ```
 
-### 3. Smart Limits
+### 3. Search Effort
 
 ```python
 # User-facing search - need quick results
-results = nebula.search(query="test", collection_ids=[collection_id], limit=10)
+results = nebula.search(query="test", collection_ids=[collection_id], effort="low")
 
 # Background processing - need comprehensive results
-results = nebula.search(query="test", collection_ids=[collection_id], limit=100)
+results = nebula.search(query="test", collection_ids=[collection_id], effort="high")
 ```
 
 ## Bulk Operations
