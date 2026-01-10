@@ -27,85 +27,33 @@ from nebula import Nebula
 nebula = Nebula()
 ```
 
-## Basic Usage
+## Quick Start
 
 ```python
 from nebula import Nebula
 
+# Initialize client
 nebula = Nebula()
-
-# Create a collection
-collection = nebula.create_collection(name="my_notes", description="Personal notes")
 
 # Store a memory
 memory_id = nebula.store_memory({
-    "collection_id": collection.id,
-    "content": "Python is great for data science",
-    "metadata": {"topic": "programming", "language": "python"}
+    "collection_id": "my-collection",
+    "content": "Nebula makes memory management easy",
+    "metadata": {"topic": "nebula"}
 })
 
 # Search memories
 results = nebula.search(
-    query="data science",
-    collection_ids=[collection.id]
+    query="memory management",
+    collection_ids=["my-collection"]
 )
 
 for result in results:
-    print(f"Score: {result.score:.2f}")
     print(f"Content: {result.content}")
 ```
 
-```bash cURL
-# Create a collection
-curl -X POST "https://api.nebulacloud.app/v1/collections" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{"name": "my_notes", "description": "Personal notes"}'
+For more detailed examples, see [Memory Operations](/guides/memory-operations).
 
-# Store a memory
-curl -X POST "https://api.nebulacloud.app/v1/memories" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
-    "engram_type": "document",
-    "raw_text": "Python is great for data science",
-    "metadata": {"topic": "programming", "language": "python"}
-  }'
-
-# Search memories
-curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "query": "data science",
-    "collection_ids": ["my_notes"]
-  }'
-```
-
-## Document Upload
-
-```python
-# Upload text
-doc_id = nebula.create_document_text(
-    collection_id=collection.id,  # Get collection first: collection = nebula.get_collection_by_name("my-collection")
-    raw_text="Machine learning is a subset of AI...",
-    metadata={"title": "ML Intro"}
-)
-
-# Upload from file
-with open("doc.txt", "r") as f:
-    doc_id = nebula.create_document_text(
-        collection_id=collection.id,  # Get collection first: collection = nebula.get_collection_by_name("my-collection")
-        raw_text=f.read()
-    )
-
-# Upload pre-chunked
-doc_id = nebula.create_document_chunks(
-    collection_id=collection.id,  # Get collection first: collection = nebula.get_collection_by_name("my-collection")
-    chunks=["Chunk 1", "Chunk 2", "Chunk 3"]
-)
-```
 
 ## Async Support
 
