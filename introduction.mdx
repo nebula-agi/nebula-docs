@@ -78,7 +78,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_ref": "customer_support",
+    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
     "engram_type": "document",
     "raw_text": "User prefers email notifications over SMS",
     "metadata": {"user_id": "user_123", "preference": "email"}
@@ -90,8 +90,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "query": "How does user_123 want to be contacted?",
-    "collection_ids": ["customer_support"],
-    "limit": 3
+    "collection_ids": ["customer_support"]
   }'
 ```
 

@@ -28,7 +28,7 @@ import { Nebula } from '@nebula-ai/sdk';
 const nebula = new Nebula();
 ```
 
-## Basic Usage
+## Quick Start
 
 ```javascript
 import { Nebula } from '@nebula-ai/sdk';
@@ -36,28 +36,20 @@ import { Nebula } from '@nebula-ai/sdk';
 const nebula = new Nebula();
 
 async function example() {
-  // Create a collection
-  const collection = await nebula.createCollection({
-    name: 'my_notes',
-    description: 'Personal notes'
-  });
-
   // Store a memory
   const memoryId = await nebula.storeMemory({
-    collection_id: collection.id,
-    content: 'JavaScript is great for web development',
-    metadata: { topic: 'programming', language: 'javascript' }
+    collection_id: 'my-collection',
+    content: 'Nebula supports Node.js and TypeScript',
+    metadata: { topic: 'nebula', language: 'javascript' }
   });
 
   // Search memories
   const results = await nebula.search({
-    query: 'web development',
-    collection_ids: [collection.id],
-    limit: 10
+    query: 'Node.js support',
+    collection_ids: ['my-collection']
   });
 
   results.forEach(result => {
-    console.log(`Score: ${result.score.toFixed(2)}`);
     console.log(`Content: ${result.content}`);
   });
 }
@@ -65,82 +57,8 @@ async function example() {
 example();
 ```
 
-```bash cURL
-# Create a collection
-curl -X POST "https://api.nebulacloud.app/v1/collections" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{"name": "my_notes", "description": "Personal notes"}'
+For more detailed examples, see [Memory Operations](/guides/memory-operations).
 
-# Store a memory
-curl -X POST "https://api.nebulacloud.app/v1/memories" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "collection_ref": "my_notes",
-    "engram_type": "document",
-    "raw_text": "JavaScript is great for web development",
-    "metadata": {"topic": "programming", "language": "javascript"}
-  }'
-
-# Search memories
-curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "query": "web development",
-    "collection_ids": ["my_notes"],
-    "limit": 10
-  }'
-```
-
-## Multimodal Content
-
-Store images, audio, and documents. Processing is automatic:
-
-```javascript
-import { Nebula } from '@nebula-ai/sdk';
-import fs from 'fs';
-
-const nebula = new Nebula();
-
-// Store an image (analyzed by vision model)
-const imageBuffer = fs.readFileSync('photo.jpg');
-await nebula.storeMemory({
-  collection_id: 'my-collection',
-  content: [
-    { type: 'image', data: imageBuffer.toString('base64'), media_type: 'image/jpeg' }
-  ],
-  metadata: { type: 'photo' }
-});
-
-// Store audio (transcribed automatically)
-const audioBuffer = fs.readFileSync('meeting.mp3');
-await nebula.storeMemory({
-  collection_id: 'my-collection',
-  content: [
-    { type: 'audio', data: audioBuffer.toString('base64'), media_type: 'audio/mp3' }
-  ],
-  metadata: { type: 'meeting' }
-});
-
-// Store a PDF (text extracted via OCR)
-const pdfBuffer = fs.readFileSync('report.pdf');
-await nebula.storeMemory({
-  collection_id: 'my-collection',
-  content: [
-    { type: 'document', data: pdfBuffer.toString('base64'), media_type: 'application/pdf' }
-  ],
-  metadata: { type: 'report' }
-});
-```
-
-**Supported formats:**
-- Images: JPEG, PNG, GIF, WebP
-- Audio: MP3, WAV, M4A, OGG, FLAC
-- Documents: PDF, DOC, DOCX, TXT, CSV
-
-> **Note:** Large files (>5MB) are automatically uploaded to cloud storage. Just use `storeMemory()` as usual.
 
 ## Next Steps
 

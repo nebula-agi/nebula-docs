@@ -86,7 +86,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_ref": "support-collection",
+    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
     "engram_type": "document",
     "raw_text": "To reset password, go to Settings > Security > Reset Password",
     "metadata": {
@@ -101,7 +101,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_ref": "support-collection",
+    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
     "engram_type": "document",
     "raw_text": "I think you can reset it in settings somewhere",
     "metadata": {
@@ -157,7 +157,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "memory_id": "CONVERSATION_ID",
-    "collection_ref": "support-collection",
+    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
     "engram_type": "conversation",
     "messages": [
       {
@@ -175,7 +175,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "memory_id": "CONVERSATION_ID",
-    "collection_ref": "support-collection",
+    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
     "engram_type": "conversation",
     "messages": [
       {
@@ -240,14 +240,14 @@ for item in items:
 nebula.store_memories(items)  # Fast!
 ```
 
-### 3. Smart Limits
+### 3. Search Effort
 
 ```python
 # User-facing search - need quick results
-results = nebula.search(query="test", collection_ids=[collection_id], limit=10)
+results = nebula.search(query="test", collection_ids=[collection_id], effort="low")
 
 # Background processing - need comprehensive results
-results = nebula.search(query="test", collection_ids=[collection_id], limit=100)
+results = nebula.search(query="test", collection_ids=[collection_id], effort="high")
 ```
 
 ## Bulk Operations

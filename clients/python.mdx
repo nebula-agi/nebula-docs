@@ -27,135 +27,33 @@ from nebula import Nebula
 nebula = Nebula()
 ```
 
-## Basic Usage
+## Quick Start
 
 ```python
 from nebula import Nebula
 
+# Initialize client
 nebula = Nebula()
-
-# Create a collection
-collection = nebula.create_collection(name="my_notes", description="Personal notes")
 
 # Store a memory
 memory_id = nebula.store_memory({
-    "collection_id": collection.id,
-    "content": "Python is great for data science",
-    "metadata": {"topic": "programming", "language": "python"}
+    "collection_id": "my-collection",
+    "content": "Nebula makes memory management easy",
+    "metadata": {"topic": "nebula"}
 })
 
 # Search memories
 results = nebula.search(
-    query="data science",
-    collection_ids=[collection.id],
-    limit=10
+    query="memory management",
+    collection_ids=["my-collection"]
 )
 
 for result in results:
-    print(f"Score: {result.score:.2f}")
     print(f"Content: {result.content}")
 ```
 
-```bash cURL
-# Create a collection
-curl -X POST "https://api.nebulacloud.app/v1/collections" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{"name": "my_notes", "description": "Personal notes"}'
+For more detailed examples, see [Memory Operations](/guides/memory-operations).
 
-# Store a memory
-curl -X POST "https://api.nebulacloud.app/v1/memories" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "collection_ref": "my_notes",
-    "engram_type": "document",
-    "raw_text": "Python is great for data science",
-    "metadata": {"topic": "programming", "language": "python"}
-  }'
-
-# Search memories
-curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "query": "data science",
-    "collection_ids": ["my_notes"],
-    "limit": 10
-  }'
-```
-
-## Document Upload
-
-```python
-# Upload text
-doc_id = nebula.create_document_text(
-    collection_ref="my-collection",
-    raw_text="Machine learning is a subset of AI...",
-    metadata={"title": "ML Intro"}
-)
-
-# Upload from file
-with open("doc.txt", "r") as f:
-    doc_id = nebula.create_document_text(
-        collection_ref="my-collection",
-        raw_text=f.read()
-    )
-
-# Upload pre-chunked
-doc_id = nebula.create_document_chunks(
-    collection_ref="my-collection",
-    chunks=["Chunk 1", "Chunk 2", "Chunk 3"]
-)
-```
-
-## Multimodal Content
-
-Store images, audio, and documents. Processing is automatic:
-
-```python
-import base64
-from nebula import Nebula, Memory, ImageContent, AudioContent, DocumentContent
-
-nebula = Nebula()
-
-# Store an image (analyzed by vision model)
-with open('photo.jpg', 'rb') as f:
-    image_data = base64.b64encode(f.read()).decode()
-
-nebula.store_memory(Memory(
-    collection_id='my-collection',
-    content=[ImageContent(data=image_data, media_type='image/jpeg')],
-    metadata={'type': 'photo'}
-))
-
-# Store audio (transcribed automatically)
-with open('meeting.mp3', 'rb') as f:
-    audio_data = base64.b64encode(f.read()).decode()
-
-nebula.store_memory(Memory(
-    collection_id='my-collection',
-    content=[AudioContent(data=audio_data, media_type='audio/mp3')],
-    metadata={'type': 'meeting'}
-))
-
-# Store a PDF (text extracted via OCR)
-with open('report.pdf', 'rb') as f:
-    pdf_data = base64.b64encode(f.read()).decode()
-
-nebula.store_memory(Memory(
-    collection_id='my-collection',
-    content=[DocumentContent(data=pdf_data, media_type='application/pdf')],
-    metadata={'type': 'report'}
-))
-```
-
-**Supported formats:**
-- Images: JPEG, PNG, GIF, WebP
-- Audio: MP3, WAV, M4A, OGG, FLAC
-- Documents: PDF, DOC, DOCX, TXT, CSV
-
-> **Note:** Large files (>5MB) are automatically uploaded to cloud storage. Just use `store_memory()` as usual.
 
 ## Async Support
 

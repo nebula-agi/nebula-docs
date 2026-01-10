@@ -18,6 +18,8 @@ Collections are organizational containers for your memories. Think of them like 
 
 ## Creating Collections
 
+<Note>Collection names are case-insensitive and trimmed. You cannot create two collections with the same name (e.g., "Work" and "work" are treated as duplicates).</Note>
+
 <CodeGroup>
 
 ```python Python
@@ -38,6 +40,12 @@ collections = [
     nebula.create_collection(name="Work", description="Work-related notes"),
     nebula.create_collection(name="Personal", description="Personal memories")
 ]
+
+# Attempting to create "work" (lowercase) will fail if "Work" already exists
+try:
+    nebula.create_collection(name="work", description="Duplicate")
+except Exception as e:
+    print(f"Error: {e}")  # Collection with name 'work' already exists
 ```
 
 ```javascript JavaScript
@@ -138,27 +146,35 @@ const memoryIds = await nebula.storeMemories(memories);
 ```
 
 ```bash cURL
-# Store in specific collection
+# First, get collection ID by name
+WORK_COLLECTION_ID=$(curl -X GET "https://api.nebulacloud.app/v1/collections?name=Work" \
+  -H "Authorization: Bearer YOUR_API_KEY" | jq -r '.results[0].id')
+
+# Store in specific collection using collection_id
 curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "collection_ref": "Work",
-    "engram_type": "document",
-    "raw_text": "Q4 planning meeting notes",
-    "metadata": {"type": "meeting", "date": "2024-01-15"}
-  }'
+  -d "{
+    \"collection_id\": \"$WORK_COLLECTION_ID\",
+    \"engram_type\": \"document\",
+    \"raw_text\": \"Q4 planning meeting notes\",
+    \"metadata\": {\"type\": \"meeting\", \"date\": \"2024-01-15\"}
+  }"
+
+# Get Personal collection ID
+PERSONAL_COLLECTION_ID=$(curl -X GET "https://api.nebulacloud.app/v1/collections?name=Personal" \
+  -H "Authorization: Bearer YOUR_API_KEY" | jq -r '.results[0].id')
 
 # Store in another collection
 curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "collection_ref": "Personal",
-    "engram_type": "document",
-    "raw_text": "Book recommendation: Clean Code",
-    "metadata": {"category": "books"}
-  }'
+  -d "{
+    \"collection_id\": \"$PERSONAL_COLLECTION_ID\",
+    \"engram_type\": \"document\",
+    \"raw_text\": \"Book recommendation: Clean Code\",
+    \"metadata\": {\"category\": \"books\"}
+  }"
 ```
 
 </CodeGroup>
@@ -173,28 +189,24 @@ Search within specific collections using IDs or names, or search across all your
 # Search by collection name
 work_results = nebula.search(
     query="project deadlines",
-    collection_ids=["Work"],
-    limit=10
+    collection_ids=["Work"]
 )
 
 # Search by collection ID
 work_results = nebula.search(
     query="project deadlines",
-    collection_ids=[work_collection.id],
-    limit=10
+    collection_ids=[work_collection.id]
 )
 
 # Search multiple collections (mix names and IDs)
 all_results = nebula.search(
     query="important notes",
-    collection_ids=["Work", personal_collection.id],
-    limit=20
+    collection_ids=["Work", personal_collection.id]
 )
 
 # Search all accessible collections
 global_results = nebula.search(
-    query="important notes",
-    limit=20
+    query="important notes"
 )
 
 # Display results
@@ -208,28 +220,24 @@ for result in work_results:
 // Search by collection name
 const workResults = await nebula.search({
   query: "project deadlines",
-  collection_ids: ["Work"],
-  limit: 10
+  collection_ids: ["Work"]
 });
 
 // Search by collection ID
 const workResults = await nebula.search({
   query: "project deadlines",
-  collection_ids: [workCollection.id],
-  limit: 10
+  collection_ids: [workCollection.id]
 });
 
 // Search multiple collections (mix names and IDs)
 const allResults = await nebula.search({
   query: "important notes",
-  collection_ids: ["Work", personalCollection.id],
-  limit: 20
+  collection_ids: ["Work", personalCollection.id]
 });
 
 // Search all accessible collections
 const globalResults = await nebula.search({
-  query: "important notes",
-  limit: 20
+  query: "important notes"
 });
 
 // Display results
@@ -247,8 +255,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "query": "project deadlines",
-    "collection_ids": ["Work"],
-    "limit": 10
+    "collection_ids": ["Work"]
   }'
 
 # Search multiple collections
@@ -257,8 +264,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "query": "important notes",
-    "collection_ids": ["Work", "Personal"],
-    "limit": 20
+    "collection_ids": ["Work", "Personal"]
   }'
 
 # Search all accessible collections
@@ -266,8 +272,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "query": "important notes",
-    "limit": 20
+    "query": "important notes"
   }'
 ```
 
@@ -284,6 +289,9 @@ curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
       # List all collections
       collections = nebula.list_collections(limit=50)
 
+      # Filter by name (case-insensitive)
+      work_collections = nebula.list_collections(name="Work")
+
       for collection in collections:
           print(f"{collection.name} - {collection.memory_count} memories")
           print(f"  ID: {collection.id}")
@@ -294,6 +302,9 @@ curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
       // List all collections
       const collections = await nebula.listCollections({ limit: 50 });
 
+      // Filter by name (case-insensitive)
+      const workCollections = await nebula.listCollections({ name: "Work" });
+
       collections.forEach(collection => {
         console.log(`${collection.name} - ${collection.memory_count || 0} memories`);
         console.log(`  ID: ${collection.id}`);
@@ -302,7 +313,12 @@ curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
       ```
 
       ```bash cURL
+      # List all collections
       curl -X GET "https://api.nebulacloud.app/v1/collections?limit=50" \
+        -H "Authorization: Bearer YOUR_API_KEY"
+
+      # Filter by name (case-insensitive)
+      curl -X GET "https://api.nebulacloud.app/v1/collections?name=Work" \
         -H "Authorization: Bearer YOUR_API_KEY"
       ```
     </CodeGroup>

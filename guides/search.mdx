@@ -19,8 +19,7 @@ nebula = Nebula(api_key="your-api-key")
 # Simple search
 results = nebula.search(
     query="machine learning algorithms",
-    collection_ids=["research-collection"],
-    limit=10
+    collection_ids=["research-collection"]
 )
 
 for result in results:
@@ -35,8 +34,7 @@ const nebula = new Nebula({ apiKey: 'your-api-key' });
 
 const results = await nebula.search({
   query: "machine learning algorithms",
-  collection_ids: ["research-collection"],
-  limit: 10
+  collection_ids: ["research-collection"]
 });
 
 results.forEach(result => {
@@ -52,8 +50,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "query": "machine learning algorithms",
-    "collection_ids": ["research-collection"],
-    "limit": 10
+    "collection_ids": ["research-collection"]
   }'
 ```
 
@@ -83,7 +80,7 @@ results = nebula.search(
         "status": "active",
         "team": "engineering"
     },
-    limit=20
+    effort="medium"
 )
 ```
 
@@ -97,7 +94,7 @@ const results = await nebula.search({
     status: "active",
     team: "engineering"
   },
-  limit: 20
+  effort: "medium"
 });
 ```
 
@@ -113,7 +110,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
       "metadata.status": {"$eq": "active"},
       "metadata.team": {"$eq": "engineering"}
     },
-    "limit": 20
+    "effort": "medium"
   }'
 ```
 
@@ -134,8 +131,7 @@ results = nebula.search(
     search_settings={
         "semantic_weight": 0.7,    # Semantic search weight
         "fulltext_weight": 0.3  # Keyword search weight
-    },
-    limit=10
+    }
 )
 ```
 
@@ -146,8 +142,7 @@ const results = await nebula.search({
   searchSettings: {
     semanticWeight: 0.7,    // Semantic search weight
     fulltextWeight: 0.3  // Keyword search weight
-  },
-  limit: 10
+  }
 });
 ```
 
@@ -161,8 +156,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
     "search_settings": {
       "semantic_weight": 0.7,
       "fulltext_weight": 0.3
-    },
-    "limit": 10
+    }
   }'
 ```
 
@@ -175,9 +169,9 @@ curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
 
 <Tip>Default weights (0.8 semantic, 0.2 fulltext) work well for most use cases. Adjust only if needed.</Tip>
 
-## Limits
+## Search Effort
 
-Nebula always performs hybrid search. Per-type limits (semantic vs. keyword) are managed internally for optimal performance. Control the overall number of results with `limit` and adjust the balance using `semantic_weight` and `fulltext_weight`.
+Nebula always performs hybrid search. By default, effort is set to `auto` which adapts based on query complexity. You can optionally control the computational budget using `effort` (auto/low/medium/high) - this controls traversal compute and exploration depth, not the exact number of results. Adjust the balance between semantic and keyword search using `semantic_weight` and `fulltext_weight`.
 
 ## Advanced Search Options
 
@@ -190,7 +184,7 @@ Nebula always performs hybrid search. Per-type limits (semantic vs. keyword) are
 results = nebula.search(
     query="customer feedback",
     collection_ids=["support-2024", "support-2023", "surveys"],
-    limit=30
+    effort="medium"
 )
 ```
 
@@ -199,7 +193,7 @@ results = nebula.search(
 const results = await nebula.search({
   query: "customer feedback",
   collection_ids: ["support-2024", "support-2023", "surveys"],
-  limit: 30
+  effort: "medium"
 });
 ```
 
@@ -210,7 +204,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
   -d '{
     "query": "customer feedback",
     "collection_ids": ["support-2024", "support-2023", "surveys"],
-    "limit": 30
+    "effort": "medium"
   }'
 ```
 
@@ -226,7 +220,7 @@ Omit `collection_ids` to search across all accessible collections:
 # Search everything
 results = nebula.search(
     query="product roadmap",
-    limit=50
+    effort="high"
 )
 ```
 
@@ -234,7 +228,7 @@ results = nebula.search(
 // Search everything
 const results = await nebula.search({
   query: "product roadmap",
-  limit: 50
+  effort: "high"
 });
 ```
 
@@ -244,7 +238,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "query": "product roadmap",
-    "limit": 50
+    "effort": "high"
   }'
 ```
 
@@ -266,7 +260,7 @@ results = nebula.search(
         "status": {"$ne": "closed"},
         "created_date": {"$gte": "2024-01-01"}
     },
-    limit=50
+    effort="high"
 )
 ```
 
@@ -280,7 +274,7 @@ const results = await nebula.search({
     status: { $ne: "closed" },
     created_date: { $gte: "2024-01-01" }
   },
-  limit: 50
+  effort: "high"
 });
 ```
 
@@ -296,7 +290,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
       "metadata.status": {"$ne": "closed"},
       "metadata.created_date": {"$gte": "2024-01-01"}
     },
-    "limit": 50
+    "effort": "high"
   }'
 ```
 
@@ -319,7 +313,7 @@ Full details in [Metadata Filtering](/guides/metadata-filtering).
 2. **Target specific collections** - Faster and more relevant results
 3. **Start with defaults** - Only adjust weights if results aren't good
 4. **Leverage metadata filters** - Narrow results by structured fields
-5. **Set appropriate limits** - Balance between coverage and performance
+5. **Choose appropriate effort** - Balance between coverage and performance (auto/low/medium/high)
 6. **Cache frequent queries** - Store common search results
 
 ## Next Steps
