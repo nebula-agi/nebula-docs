@@ -190,6 +190,84 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
 
 See [Conversations Guide](/guides/conversations) for multi-turn conversation patterns.
 
+## Multimodal Content
+
+Store images, audio, and documents. Nebula automatically processes them using state-of-the-art multimodal models.
+
+<CodeGroup>
+
+```python Python
+from nebula import Nebula, Memory
+
+nebula = Nebula()
+
+# 1. Store a single file (Simplest)
+nebula.store_memory(Memory.from_file(
+    "paris.jpg", 
+    collection_id='my-collection',
+    metadata={'type': 'photo'}
+))
+
+# 2. Mixed content (Text + Image)
+nebula.store_memory(Memory(
+    collection_id='my-collection',
+    content=[
+        'Photo from my trip',
+        Memory.File('paris.jpg')
+    ],
+    metadata={'type': 'photo'}
+))
+```
+
+```javascript JavaScript
+import { Nebula, Memory } from '@nebula-ai/sdk';
+
+const nebula = new Nebula();
+
+// 1. Store a single file (Simplest)
+await nebula.storeMemory(await Memory.fromFile(
+  'paris.jpg', 
+  'my-collection',
+  { type: 'photo' }
+));
+
+// 2. Mixed content (Text + Image)
+await nebula.storeMemory({
+  collection_id: 'my-collection',
+  content: [
+    'Photo from my trip',
+    await Memory.File('paris.jpg')
+  ],
+  metadata: { type: 'photo' }
+});
+```
+
+```bash cURL
+# Store a PDF document
+curl -X POST "https://api.nebulacloud.app/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "collection_ref": "my-collection",
+    "engram_type": "document",
+    "content_parts": [
+      {"type": "file", "data": "BASE64_PDF_DATA", "media_type": "application/pdf"}
+    ],
+    "metadata": {"type": "report"}
+  }'
+```
+
+</CodeGroup>
+
+
+### Supported Formats
+
+- **Images**: JPEG, PNG, GIF, WebP
+- **Audio**: MP3, WAV, M4A, OGG, FLAC, AAC
+- **Documents**: PDF, DOC, DOCX, TXT, CSV, RTF
+
+<Tip>Large files (>5MB) are automatically uploaded to cloud storage. Just use `store_memory()` as usual - no extra steps needed.</Tip>
+
 ## Document Upload
 
 <CodeGroup>
