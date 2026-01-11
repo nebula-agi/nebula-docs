@@ -284,52 +284,6 @@ for memory in memories:
     )
 ```
 
-## Multimodal Processing Options
-
-Control how images, audio, and documents are processed:
-
-<CodeGroup>
-
-```python Python
-from nebula import Nebula, Memory, DocumentContent
-import base64
-
-nebula = Nebula()
-
-with open('report.pdf', 'rb') as f:
-    pdf_data = base64.b64encode(f.read()).decode()
-
-# VLM OCR with custom vision model
-nebula.store_memory(Memory(
-    collection_id='my-collection',
-    content=[DocumentContent(data=pdf_data, media_type='application/pdf')],
-    vision_model='gpt-4o',  # Custom vision model
-))
-```
-
-```javascript JavaScript
-import { Nebula } from '@nebula-ai/sdk';
-import fs from 'fs';
-
-const nebula = new Nebula();
-const pdfBuffer = fs.readFileSync('report.pdf');
-
-// VLM OCR with custom vision model
-await nebula.storeMemory({
-  collection_id: 'my-collection',
-  content: [
-    { type: 'document', data: pdfBuffer.toString('base64'), media_type: 'application/pdf' }
-  ],
-  vision_model: 'gpt-4o',  // Custom vision model
-});
-```
-
-</CodeGroup>
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `vision_model` | auto | Vision model for images/documents (e.g., `gpt-4o`, `claude-3-5-sonnet`) |
-| `audio_model` | `whisper-1` | Audio transcription model |
 
 ## Best Practices Summary
 
