@@ -2,6 +2,14 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
   "name": "Nebula",
+  "font": {
+    "headings": {
+      "family": "Plus Jakarta Sans"
+    },
+    "body": {
+      "family": "IBM Plex Sans"
+    }
+  },
   "colors": {
     "primary": "#5040ff",
     "light": "#9373ff",
