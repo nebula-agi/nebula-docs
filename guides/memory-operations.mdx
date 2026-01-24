@@ -119,9 +119,14 @@ See [Conversations Guide](/guides/conversations) for multi-turn patterns.
 
 ### Document Upload
 
+Upload a document as raw text, pre-chunked text, or a file. File processing (OCR/transcription/text extraction) happens automatically.
+
 <CodeGroup>
 
 ```python Python
+from nebula import Nebula, Memory
+
+nebula = Nebula(api_key="your-api-key")
 collection = nebula.get_collection_by_name("my-collection")
 
 # Upload text
@@ -137,43 +142,59 @@ doc_id = nebula.create_document_chunks(
     chunks=["Chapter 1...", "Chapter 2..."],
     metadata={"title": "My Doc"}
 )
+
+# Upload a file
+doc_id = nebula.store_memory(
+    Memory.from_file("document.pdf", collection_id=collection.id, metadata={"title": "Research Paper"})
+)
 ```
 
 ```javascript JavaScript
-const collection = await nebula.getCollectionByName("my-collection");
+import Nebula, { Memory } from '@nebula-ai/sdk';
 
+const nebula = new Nebula({ apiKey: 'your-api-key' });
+const collection = await nebula.getCollectionByName('my-collection');
+
+// Upload text
 const docId = await nebula.storeMemory({
   collection_id: collection.id,
   content: "Machine learning is a subset of AI...",
   metadata: { title: "ML Intro" }
 });
+
+// Upload pre-chunked
+const chunkedDocId = await nebula.storeMemory({
+  collection_id: collection.id,
+  content: ["Chapter 1...", "Chapter 2..."],
+  metadata: { title: "My Doc" }
+});
+
+// Upload a file (Node.js only)
+const fileDocId = await nebula.storeMemory(
+  await Memory.fromFile('document.pdf', collection.id, { title: 'Research Paper' })
+);
 ```
 
 ```bash cURL
-# Upload text
+# Upload file (base64 encoded)
 curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "collection_id": "COLLECTION_ID",
-    "engram_type": "document",
-    "raw_text": "Machine learning is a subset of AI...",
-    "metadata": {"title": "ML Intro"}
-  }'
-
-# Upload pre-chunked
-curl -X POST "https://api.nebulacloud.app/v1/memories" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "collection_id": "COLLECTION_ID",
-    "engram_type": "document",
-    "chunks": ["Chapter 1...", "Chapter 2..."],
-    "metadata": {"title": "My Doc"}
+    "content_parts": [{
+      "type": "document",
+      "data": "BASE64_ENCODED_FILE_DATA",
+      "media_type": "application/pdf",
+      "filename": "document.pdf"
+    }],
+    "metadata": {"title": "Research Paper"}
   }'
 ```
 
 </CodeGroup>
+
+<Tip>Inline base64 uploads are limited to ~5MB per file part; larger files use a presigned upload flow (max 100MB).</Tip>
 
 ## Retrieving Memories
 

@@ -92,11 +92,13 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
 ## Types of Memories
 
 ### Document Memories
-Contain entire documents, split into chunks internally for processing.
+Contain entire documents, split into chunks internally for processing. You can upload text, pre-chunked text, or a file.
 
 <CodeGroup>
 
 ```python Python
+from nebula import Memory
+
 # Store document text
 doc_id = client.create_document_text(
     collection_id=collection.id,
@@ -104,30 +106,43 @@ doc_id = client.create_document_text(
     metadata={"title": "Research Paper"}
 )
 
-# Store pre-chunked document
-doc_id = client.create_document_chunks(
-    collection_id=collection.id,
-    chunks=["Chapter 1...", "Chapter 2..."],
-    metadata={"title": "Research Paper"}
+# Upload a file
+doc_id = client.store_memory(
+    Memory.from_file("document.pdf", collection_id=collection.id, metadata={"title": "Research Paper"})
 )
 ```
 
 ```javascript JavaScript
+import Nebula, { Memory } from '@nebula-ai/sdk';
+
+const nebula = new Nebula({ apiKey: 'your-api-key' });
+
+// Store document text
 const docId = await nebula.storeMemory({
   collection_id: 'research_papers',
   content: 'Full document content...',
   metadata: { title: 'Research Paper' }
 });
+
+// Upload a file (Node.js only)
+const fileDocId = await nebula.storeMemory(
+  await Memory.fromFile('document.pdf', 'research_papers', { title: 'Research Paper' })
+);
 ```
 
 ```bash cURL
+# Upload file (base64 encoded)
 curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "collection_id": "COLLECTION_ID",
-    "engram_type": "document",
-    "raw_text": "Full document content...",
+    "content_parts": [{
+      "type": "document",
+      "data": "BASE64_ENCODED_FILE_DATA",
+      "media_type": "application/pdf",
+      "filename": "document.pdf"
+    }],
     "metadata": {"title": "Research Paper"}
   }'
 ```
