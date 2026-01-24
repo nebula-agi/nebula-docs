@@ -5,9 +5,9 @@ description: 'Organize memories into logical collections'
 
 # Collections
 
-Collections are organizational containers for your memories. Think of them like projects or workspaces—a way to keep related information grouped together.
+Collections are organizational containers for your memories - like projects or workspaces.
 
-<Note>Collections are manual organizational units, not automatic similarity groupings. You control what goes where.</Note>
+<Note>Collections are manual organizational units. You control what goes where.</Note>
 
 ## Why Use Collections?
 
@@ -18,330 +18,144 @@ Collections are organizational containers for your memories. Think of them like 
 
 ## Creating Collections
 
-<Note>Collection names are case-insensitive and trimmed. You cannot create two collections with the same name (e.g., "Work" and "work" are treated as duplicates).</Note>
+<Note>Collection names are case-insensitive. "Work" and "work" are treated as duplicates.</Note>
 
 <CodeGroup>
 
 ```python Python
 from nebula import Nebula
-
 nebula = Nebula(api_key="your-api-key")
 
-# Create a single collection
 collection = nebula.create_collection(
     name="Research Papers",
     description="Academic research documents",
     metadata={"category": "academic"}
 )
-print(f"Created: {collection.name} (ID: {collection.id})")
-
-# Create multiple collections
-collections = [
-    nebula.create_collection(name="Work", description="Work-related notes"),
-    nebula.create_collection(name="Personal", description="Personal memories")
-]
-
-# Attempting to create "work" (lowercase) will fail if "Work" already exists
-try:
-    nebula.create_collection(name="work", description="Duplicate")
-except Exception as e:
-    print(f"Error: {e}")  # Collection with name 'work' already exists
 ```
 
 ```javascript JavaScript
 const { Nebula } = require('@nebula-ai/sdk');
 const nebula = new Nebula({ apiKey: 'your-api-key' });
 
-async function createCollections() {
-  // Create a single collection
-  const collection = await nebula.createCollection({
-    name: "Research Papers",
-    description: "Academic research documents",
-    metadata: { category: "academic" }
-  });
-  console.log(`Created: ${collection.name} (ID: ${collection.id})`);
-
-  // Create multiple collections
-  const collections = await Promise.all([
-    nebula.createCollection({ name: "Work", description: "Work-related notes" }),
-    nebula.createCollection({ name: "Personal", description: "Personal memories" })
-  ]);
-}
+const collection = await nebula.createCollection({
+  name: "Research Papers",
+  description: "Academic research documents",
+  metadata: { category: "academic" }
+});
 ```
 
 ```bash cURL
-# Create a single collection
 curl -X POST "https://api.nebulacloud.app/v1/collections" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "name": "Research Papers",
-    "description": "Academic research documents"
-  }'
-
-# Create another collection
-curl -X POST "https://api.nebulacloud.app/v1/collections" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "name": "Work",
-    "description": "Work-related notes"
-  }'
+  -d '{"name": "Research Papers", "description": "Academic research documents"}'
 ```
 
 </CodeGroup>
 
 ## Storing Memories in Collections
 
-Always specify the `collection_id` when storing memories:
+Always specify `collection_id` when storing memories:
 
 <CodeGroup>
 
 ```python Python
-# Store in specific collection
-work_memory = nebula.store_memory({
-    "collection_id": work_collection.id,
+nebula.store_memory({
+    "collection_id": collection.id,
     "content": "Q4 planning meeting notes",
-    "metadata": {"type": "meeting", "date": "2024-01-15"}
+    "metadata": {"type": "meeting"}
 })
-
-# Batch store to different collections
-memories = [
-    {
-        "collection_id": work_collection.id,
-        "content": "Project deadline is Friday",
-        "metadata": {"priority": "high"}
-    },
-    {
-        "collection_id": personal_collection.id,
-        "content": "Book recommendation: Clean Code",
-        "metadata": {"category": "books"}
-    }
-]
-memory_ids = nebula.store_memories(memories)
 ```
 
 ```javascript JavaScript
-// Store in specific collection
-const workMemory = await nebula.storeMemory({
-  collection_id: workCollection.id,
+await nebula.storeMemory({
+  collection_id: collection.id,
   content: "Q4 planning meeting notes",
-  metadata: { type: "meeting", date: "2024-01-15" }
+  metadata: { type: "meeting" }
 });
-
-// Batch store to different collections
-const memories = [
-  {
-    collection_id: workCollection.id,
-    content: "Project deadline is Friday",
-    metadata: { priority: "high" }
-  },
-  {
-    collection_id: personalCollection.id,
-    content: "Book recommendation: Clean Code",
-    metadata: { category: "books" }
-  }
-];
-const memoryIds = await nebula.storeMemories(memories);
 ```
 
 ```bash cURL
-# First, get collection ID by name
-WORK_COLLECTION_ID=$(curl -X GET "https://api.nebulacloud.app/v1/collections?name=Work" \
-  -H "Authorization: Bearer YOUR_API_KEY" | jq -r '.results[0].id')
-
-# Store in specific collection using collection_id
 curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
-  -d "{
-    \"collection_id\": \"$WORK_COLLECTION_ID\",
-    \"engram_type\": \"document\",
-    \"raw_text\": \"Q4 planning meeting notes\",
-    \"metadata\": {\"type\": \"meeting\", \"date\": \"2024-01-15\"}
-  }"
-
-# Get Personal collection ID
-PERSONAL_COLLECTION_ID=$(curl -X GET "https://api.nebulacloud.app/v1/collections?name=Personal" \
-  -H "Authorization: Bearer YOUR_API_KEY" | jq -r '.results[0].id')
-
-# Store in another collection
-curl -X POST "https://api.nebulacloud.app/v1/memories" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d "{
-    \"collection_id\": \"$PERSONAL_COLLECTION_ID\",
-    \"engram_type\": \"document\",
-    \"raw_text\": \"Book recommendation: Clean Code\",
-    \"metadata\": {\"category\": \"books\"}
-  }"
+  -d '{
+    "collection_id": "COLLECTION_ID",
+    "engram_type": "document",
+    "raw_text": "Q4 planning meeting notes",
+    "metadata": {"type": "meeting"}
+  }'
 ```
 
 </CodeGroup>
 
 ## Searching Within Collections
 
-Search within specific collections using IDs or names, or search across all your collections:
-
 <CodeGroup>
 
 ```python Python
-# Search by collection name
-work_results = nebula.search(
-    query="project deadlines",
-    collection_ids=["Work"]
-)
+# Search specific collection
+results = nebula.search(query="deadlines", collection_ids=["Work"])
 
-# Search by collection ID
-work_results = nebula.search(
-    query="project deadlines",
-    collection_ids=[work_collection.id]
-)
-
-# Search multiple collections (mix names and IDs)
-all_results = nebula.search(
-    query="important notes",
-    collection_ids=["Work", personal_collection.id]
-)
+# Search multiple collections
+results = nebula.search(query="notes", collection_ids=["Work", "Personal"])
 
 # Search all accessible collections
-global_results = nebula.search(
-    query="important notes"
-)
-
-# Display results
-for result in work_results:
-    print(f"Score: {result.score:.2f}")
-    print(f"Content: {result.content}")
-    print(f"Cluster: {result.collection_id}")
+results = nebula.search(query="important")
 ```
 
 ```javascript JavaScript
-// Search by collection name
-const workResults = await nebula.search({
-  query: "project deadlines",
-  collection_ids: ["Work"]
-});
+// Search specific collection
+const results = await nebula.search({ query: "deadlines", collection_ids: ["Work"] });
 
-// Search by collection ID
-const workResults = await nebula.search({
-  query: "project deadlines",
-  collection_ids: [workCollection.id]
-});
-
-// Search multiple collections (mix names and IDs)
-const allResults = await nebula.search({
-  query: "important notes",
-  collection_ids: ["Work", personalCollection.id]
-});
+// Search multiple collections
+const results2 = await nebula.search({ query: "notes", collection_ids: ["Work", "Personal"] });
 
 // Search all accessible collections
-const globalResults = await nebula.search({
-  query: "important notes"
-});
-
-// Display results
-workResults.forEach(result => {
-  console.log(`Score: ${result.score?.toFixed(2)}`);
-  console.log(`Content: ${result.content}`);
-  console.log(`Collection: ${result.collection_id}`);
-});
+const results3 = await nebula.search({ query: "important" });
 ```
 
 ```bash cURL
-# Search by collection name
 curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "query": "project deadlines",
-    "collection_ids": ["Work"]
-  }'
-
-# Search multiple collections
-curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "query": "important notes",
-    "collection_ids": ["Work", "Personal"]
-  }'
-
-# Search all accessible collections
-curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "query": "important notes"
-  }'
+  -d '{"query": "deadlines", "collection_ids": ["Work"]}'
 ```
 
 </CodeGroup>
 
-<Tip>Use collection names for convenience or UUIDs for precision. Omit `collection_ids` entirely to search across all your collections.</Tip>
+<Tip>Use collection names for convenience or UUIDs for precision.</Tip>
 
 ## Managing Collections
 
 <Tabs>
-  <Tab title="List Collections">
+  <Tab title="List">
     <CodeGroup>
       ```python Python
-      # List all collections
       collections = nebula.list_collections(limit=50)
-
-      # Filter by name (case-insensitive)
       work_collections = nebula.list_collections(name="Work")
-
-      for collection in collections:
-          print(f"{collection.name} - {collection.memory_count} memories")
-          print(f"  ID: {collection.id}")
-          print(f"  Created: {collection.created_at}")
       ```
 
       ```javascript JavaScript
-      // List all collections
       const collections = await nebula.listCollections({ limit: 50 });
-
-      // Filter by name (case-insensitive)
       const workCollections = await nebula.listCollections({ name: "Work" });
-
-      collections.forEach(collection => {
-        console.log(`${collection.name} - ${collection.memory_count || 0} memories`);
-        console.log(`  ID: ${collection.id}`);
-        console.log(`  Created: ${collection.created_at}`);
-      });
       ```
 
       ```bash cURL
-      # List all collections
       curl -X GET "https://api.nebulacloud.app/v1/collections?limit=50" \
-        -H "Authorization: Bearer YOUR_API_KEY"
-
-      # Filter by name (case-insensitive)
-      curl -X GET "https://api.nebulacloud.app/v1/collections?name=Work" \
         -H "Authorization: Bearer YOUR_API_KEY"
       ```
     </CodeGroup>
   </Tab>
 
-  <Tab title="Get Collection">
+  <Tab title="Get">
     <CodeGroup>
       ```python Python
-      # Get collection details
       collection = nebula.get_collection(collection_id)
-
-      print(f"Name: {collection.name}")
-      print(f"Description: {collection.description}")
-      print(f"Memory count: {collection.memory_count}")
       ```
 
       ```javascript JavaScript
-      // Get collection details
       const collection = await nebula.getCollection(collectionId);
-
-      console.log(`Name: ${collection.name}`);
-      console.log(`Description: ${collection.description}`);
-      console.log(`Memory count: ${collection.memory_count}`);
       ```
 
       ```bash cURL
@@ -351,25 +165,21 @@ curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
     </CodeGroup>
   </Tab>
 
-  <Tab title="Update Collection">
+  <Tab title="Update">
     <CodeGroup>
       ```python Python
-      # Update collection
-      updated = nebula.update_collection(
+      nebula.update_collection(
           collection_id=collection.id,
           name="Updated Name",
-          description="New description",
-          metadata={"updated": "2024-01-15"}
+          description="New description"
       )
       ```
 
       ```javascript JavaScript
-      // Update collection
-      const updated = await nebula.updateCollection({
+      await nebula.updateCollection({
         collectionId: collection.id,
         name: "Updated Name",
-        description: "New description",
-        metadata: { updated: "2024-01-15" }
+        description: "New description"
       });
       ```
 
@@ -377,23 +187,18 @@ curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
       curl -X POST "https://api.nebulacloud.app/v1/collections/YOUR_COLLECTION_ID" \
         -H "Content-Type: application/json" \
         -H "Authorization: Bearer YOUR_API_KEY" \
-        -d '{
-          "name": "Updated Name",
-          "description": "New description"
-        }'
+        -d '{"name": "Updated Name", "description": "New description"}'
       ```
     </CodeGroup>
   </Tab>
 
-  <Tab title="Delete Collection">
+  <Tab title="Delete">
     <CodeGroup>
       ```python Python
-      # Delete collection and all its memories
       nebula.delete_collection(collection_id)
       ```
 
       ```javascript JavaScript
-      // Delete collection and all its memories
       await nebula.deleteCollection(collectionId);
       ```
 
@@ -406,59 +211,6 @@ curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
   </Tab>
 </Tabs>
 
-## Use Cases
-
-### Multi-Tenancy
-```python
-# Create collection per customer
-customer_collection = nebula.create_collection(
-    name=f"customer_{customer_id}",
-    description=f"Data for customer {customer_id}",
-    metadata={"customer_id": customer_id, "plan": "enterprise"}
-)
-
-# Store customer-specific data
-nebula.store_memory({
-    "collection_id": customer_collection.id,
-    "content": "Customer support conversation...",
-    "metadata": {"customer_id": customer_id}
-})
-```
-
-### Project Organization
-```python
-# Separate collections for each project
-projects = ["project_alpha", "project_beta", "project_gamma"]
-project_collections = {
-    name: nebula.create_collection(name=name, description=f"Project {name} documentation")
-    for name in projects
-}
-
-# Search within specific project (by name)
-results = nebula.search(
-    query="API documentation",
-    collection_ids=["project_alpha"]
-)
-```
-
-### Environment Separation
-```python
-# Development vs Production
-dev_collection = nebula.create_collection(name="dev", description="Development environment")
-prod_collection = nebula.create_collection(name="prod", description="Production environment")
-
-# Different API keys can have access to different collections
-```
-
-## Best Practices
-
-1. **Use descriptive names** - `customer_support` not `collection_1`
-2. **Leverage metadata** - Store organizational info in collection metadata
-3. **Specify collection_ids for targeted searches** - Use collection names or UUIDs for faster, scoped searches
-4. **Plan for scale** - Consider collectioning strategy early
-5. **Monitor collection sizes** - Keep collections focused and manageable
-6. **Implement soft deletes** - Mark collections as archived instead of deleting
-
 ## Common Patterns
 
 | Pattern | When to Use |
@@ -466,10 +218,15 @@ prod_collection = nebula.create_collection(name="prod", description="Production 
 | **One collection per user** | User-specific memory/context |
 | **One collection per project** | Project-scoped documentation |
 | **One collection per data type** | Different content types (docs, chats, notes) |
-| **Hierarchical collections** | Use metadata to create virtual hierarchies |
+
+## Best Practices
+
+1. **Use descriptive names** - `customer_support` not `collection_1`
+2. **Leverage metadata** - Store organizational info in collection metadata
+3. **Specify collection_ids for targeted searches** - Faster, scoped searches
+4. **Plan for scale** - Consider collection strategy early
 
 ## Next Steps
 
-- [Memory Operations](/guides/memory-operations) - Learn to store and search
-- [Metadata Filtering](/guides/metadata-filtering) - Advanced filtering within collections
-- [Conversations](/guides/conversations) - Build conversational AI with collections
+- [Memory Operations](/guides/memory-operations) - Store and search memories
+- [Metadata Filtering](/guides/metadata-filtering) - Advanced filtering

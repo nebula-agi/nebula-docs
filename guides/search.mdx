@@ -248,10 +248,8 @@ curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
 
 ### Complex Metadata Filters
 
-<CodeGroup>
-
-```python Python
-# Advanced filtering
+```python
+# Advanced filtering with multiple operators
 results = nebula.search(
     query="bug reports",
     collection_ids=["issues-collection"],
@@ -259,52 +257,64 @@ results = nebula.search(
         "severity": {"$in": ["critical", "high"]},
         "status": {"$ne": "closed"},
         "created_date": {"$gte": "2024-01-01"}
-    },
-    effort="high"
+    }
 )
 ```
 
-```javascript JavaScript
-// Advanced filtering
-const results = await nebula.search({
-  query: "bug reports",
-  collection_ids: ["issues-collection"],
-  filters: {
-    severity: { $in: ["critical", "high"] },
-    status: { $ne: "closed" },
-    created_date: { $gte: "2024-01-01" }
-  },
-  effort: "high"
-});
-```
-
-```bash cURL
-curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "query": "bug reports",
-    "collection_ids": ["issues-collection"],
-    "filters": {
-      "metadata.severity": {"$in": ["critical", "high"]},
-      "metadata.status": {"$ne": "closed"},
-      "metadata.created_date": {"$gte": "2024-01-01"}
-    },
-    "effort": "high"
-  }'
-```
-
-</CodeGroup>
-
-**Available operators:**
-- `$eq`: Equals
-- `$ne`: Not equals
-- `$in`: Value in array
-- `$nin`: Value not in array
-- `$gt`, `$gte`: Greater than (or equal)
-- `$lt`, `$lte`: Less than (or equal)
+**Available operators:** `$eq`, `$ne`, `$in`, `$nin`, `$gt`, `$gte`, `$lt`, `$lte`, `$like`, `$ilike`, `$overlap`, `$contains`, `$and`, `$or`
 
 Full details in [Metadata Filtering](/guides/metadata-filtering).
+
+## Authority Scores
+
+Control which content should be prioritized in search results using authority scores (0-1).
+
+```python
+# High authority for verified content
+nebula.store_memory({
+    "collection_id": "docs",
+    "content": "Official API documentation...",
+    "authority": 0.95,
+    "metadata": {"verified": True}
+})
+
+# Lower authority for user-contributed content
+nebula.store_memory({
+    "collection_id": "docs",
+    "content": "I think you do it this way...",
+    "authority": 0.4,
+    "metadata": {"verified": False}
+})
+```
+
+| Score | Use Case |
+|-------|----------|
+| `0.9-1.0` | Verified facts, official docs |
+| `0.7-0.9` | Reliable sources, quality content |
+| `0.5-0.7` | General content (default) |
+| `0.3-0.5` | Uncertain information |
+| `0.0-0.3` | Low-quality or spam |
+
+You can also set authority per message in conversations to prioritize specific chunks:
+
+```python
+conv_id = nebula.store_memory({
+    "collection_id": "support",
+    "content": "Here is the verified answer...",
+    "role": "assistant",
+    "authority": 0.9
+})
+
+nebula.store_memory({
+    "memory_id": conv_id,
+    "collection_id": "support",
+    "content": "I'm not sure, maybe try this?",
+    "role": "user",
+    "authority": 0.4
+})
+```
+
+<Tip>Default authority is 0.5. Higher authority content ranks higher in search results.</Tip>
 
 
 ## Search Best Practices
@@ -319,6 +329,4 @@ Full details in [Metadata Filtering](/guides/metadata-filtering).
 ## Next Steps
 
 - [Metadata Filtering](/guides/metadata-filtering) - Advanced filter operators
-- [Advanced Features](/guides/advanced-features) - Chunk-level authority and optimization
 - [Memory Operations](/guides/memory-operations) - Store and manage memories
-- [Conversations](/guides/conversations) - Build chat applications

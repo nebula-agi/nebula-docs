@@ -1,17 +1,37 @@
 ---
 title: 'Metadata Filtering'
-description: 'Advanced filtering for search and retrieval'
+description: 'Filter reference for search and retrieval'
 ---
 
 # Metadata Filtering
 
-Filter search results by metadata attributes. Use logical operators and data type comparisons to find exactly what you need.
+Filter search results by metadata attributes using comparison and logical operators.
 
-> Metadata in responses: By default, Nebula returns whitelisted metadata (`include_metadata` defaults to true). Set `include_metadata: false` to omit metadata entirely. The whitelist for recall includes common safe fields like `title`, `source`, `url`, `doc_type`, `mime_type`, `filename`, and `page`.
+## Operators Reference
 
-## Basic Filtering
+| Operator | Description | Example |
+|----------|-------------|---------|
+| `$eq` | Equals (default) | `{"status": "active"}` |
+| `$ne` | Not equals | `{"status": {"$ne": "archived"}}` |
+| `$gt` | Greater than | `{"score": {"$gt": 80}}` |
+| `$gte` | Greater than or equal | `{"priority": {"$gte": 7}}` |
+| `$lt` | Less than | `{"age": {"$lt": 30}}` |
+| `$lte` | Less than or equal | `{"count": {"$lte": 100}}` |
+| `$in` | Value in list | `{"status": {"$in": ["a", "b"]}}` |
+| `$nin` | Not in list | `{"status": {"$nin": ["x", "y"]}}` |
+| `$like` | Pattern match (case-sensitive) | `{"title": {"$like": "Important%"}}` |
+| `$ilike` | Pattern match (case-insensitive) | `{"email": {"$ilike": "%@company.com"}}` |
+| `$overlap` | Array has any | `{"tags": {"$overlap": ["urgent", "important"]}}` |
+| `$contains` | Array has all | `{"skills": {"$contains": ["python", "ml"]}}` |
+| `$and` | All conditions match | `{"$and": [{...}, {...}]}` |
+| `$or` | Any condition matches | `{"$or": [{...}, {...}]}` |
 
-### Equality & Not Equal
+<Tip>Use `%` as wildcard in `$like` and `$ilike` patterns.</Tip>
+<Tip>Target metadata fields with the `metadata.` prefix (e.g., `metadata.status`). Nested fields are supported.</Tip>
+
+<Info>Search responses can optionally include metadata via `search_settings.include_metadata`. When included, Nebula returns a whitelisted subset (e.g., `title`, `source`, `url`, `doc_type`, `mime_type`, `filename`, `page`) to keep results compact.</Info>
+
+## Examples
 
 <CodeGroup>
 
@@ -22,15 +42,28 @@ nebula = Nebula(api_key="your-api-key")
 # Simple equality
 results = nebula.search(
     query="machine learning",
-    collection_ids=["my-collection"],
+    collection_ids=["docs"],
     filters={"metadata.category": "research"}
 )
 
-# Not equal
+# Multiple conditions with $and
 results = nebula.search(
-    query="documents",
-    collection_ids=["docs"],
-    filters={"metadata.status": {"$ne": "archived"}}
+    query="reports",
+    collection_ids=["tasks"],
+    filters={
+        "$and": [
+            {"metadata.priority": {"$gte": 7}},
+            {"metadata.status": {"$in": ["pending", "active"]}},
+            {"metadata.created_at": {"$gte": "2024-01-01"}}
+        ]
+    }
+)
+
+# Array operations
+results = nebula.search(
+    query="candidates",
+    collection_ids=["hr"],
+    filters={"metadata.skills": {"$contains": ["python", "ml"]}}
 )
 ```
 
@@ -41,15 +74,28 @@ const nebula = new Nebula({ apiKey: 'your-api-key' });
 // Simple equality
 const results = await nebula.search({
   query: "machine learning",
-  collection_ids: ["my-collection"],
+  collection_ids: ["docs"],
   filters: {"metadata.category": "research"}
 });
 
-// Not equal
+// Multiple conditions with $and
 const results2 = await nebula.search({
-  query: "documents",
-  collection_ids: ["docs"],
-  filters: {"metadata.status": {"$ne": "archived"}}
+  query: "reports",
+  collection_ids: ["tasks"],
+  filters: {
+    "$and": [
+      {"metadata.priority": {"$gte": 7}},
+      {"metadata.status": {"$in": ["pending", "active"]}},
+      {"metadata.created_at": {"$gte": "2024-01-01"}}
+    ]
+  }
+});
+
+// Array operations
+const results3 = await nebula.search({
+  query: "candidates",
+  collection_ids: ["hr"],
+  filters: {"metadata.skills": {"$contains": ["python", "ml"]}}
 });
 ```
 
@@ -60,385 +106,23 @@ curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "query": "machine learning",
-    "collection_ids": ["my-collection"],
+    "collection_ids": ["docs"],
     "filters": {"metadata.category": "research"}
   }'
 
-# Not equal
+# Multiple conditions with $and
 curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "query": "documents",
-    "collection_ids": ["docs"],
-    "filters": {"metadata.status": {"$ne": "archived"}}
-  }'
-```
-
-</CodeGroup>
-
-### Numeric Comparisons
-
-<CodeGroup>
-
-```python Python
-# Greater than or equal
-results = nebula.search(
-    query="high priority tasks",
-    collection_ids=["tasks"],
-    filters={"metadata.priority": {"$gte": 7}}
-)
-
-# Range (between values)
-results = nebula.search(
-    query="quality content",
-    collection_ids=["content"],
-    filters={
-        "$and": [
-            {"metadata.score": {"$gte": 80}},
-            {"metadata.score": {"$lte": 95}}
-        ]
-    }
-)
-```
-
-```javascript JavaScript
-// Greater than or equal
-const results = await nebula.search({
-  query: "high priority tasks",
-  collection_ids: ["tasks"],
-  filters: {"metadata.priority": {"$gte": 7}}
-});
-
-// Range (between values)
-const results2 = await nebula.search({
-  query: "quality content",
-  collection_ids: ["content"],
-  filters: {
-    "$and": [
-      {"metadata.score": {"$gte": 80}},
-      {"metadata.score": {"$lte": 95}}
-    ]
-  }
-});
-```
-
-```bash cURL
-# Greater than or equal
-curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "query": "high priority tasks",
-    "collection_ids": ["tasks"],
-    "filters": {"metadata.priority": {"$gte": 7}}
-  }'
-
-# Range (between values)
-curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "query": "quality content",
-    "collection_ids": ["content"],
-    "filters": {
-      "$and": [
-        {"metadata.score": {"$gte": 80}},
-        {"metadata.score": {"$lte": 95}}
-      ]
-    }
-  }'
-```
-
-</CodeGroup>
-
-**Operators**: `$gt`, `$gte`, `$lt`, `$lte`
-
-### String Matching
-
-<CodeGroup>
-
-```python Python
-# Case-insensitive pattern matching
-results = nebula.search(
-    query="employees",
-    collection_ids=["team"],
-    filters={"metadata.email": {"$ilike": "%@company.com"}}
-)
-
-# Case-sensitive pattern matching
-results = nebula.search(
-    query="documents",
-    collection_ids=["docs"],
-    filters={"metadata.title": {"$like": "Important%"}}
-)
-```
-
-```javascript JavaScript
-// Case-insensitive pattern matching
-const results = await nebula.search({
-  query: "employees",
-  collection_ids: ["team"],
-  filters: {"metadata.email": {"$ilike": "%@company.com"}}
-});
-
-// Case-sensitive pattern matching
-const results2 = await nebula.search({
-  query: "documents",
-  collection_ids: ["docs"],
-  filters: {"metadata.title": {"$like": "Important%"}}
-});
-```
-
-```bash cURL
-# Case-insensitive pattern matching
-curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "query": "employees",
-    "collection_ids": ["team"],
-    "filters": {"metadata.email": {"$ilike": "%@company.com"}}
-  }'
-
-# Case-sensitive pattern matching
-curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "query": "documents",
-    "collection_ids": ["docs"],
-    "filters": {"metadata.title": {"$like": "Important%"}}
-  }'
-```
-
-</CodeGroup>
-
-**Operators**: `$like` (case-sensitive), `$ilike` (case-insensitive). Use `%` as wildcard.
-
-## Advanced Filtering
-
-### Array Operations
-
-<CodeGroup>
-
-```python Python
-# Has any of these tags
-results = nebula.search(
-    query="content",
-    collection_ids=["posts"],
-    filters={"metadata.tags": {"$overlap": ["urgent", "important"]}}
-)
-
-# Has all of these skills
-results = nebula.search(
-    query="candidates",
-    collection_ids=["hr"],
-    filters={"metadata.skills": {"$contains": ["python", "ml"]}}
-)
-
-# Exact value match
-results = nebula.search(
-    query="items",
-    collection_ids=["inventory"],
-    filters={"metadata.category": {"$in": ["electronics", "books"]}}
-)
-```
-
-```javascript JavaScript
-// Has any of these tags
-const results = await nebula.search({
-  query: "content",
-  collection_ids: ["posts"],
-  filters: {"metadata.tags": {"$overlap": ["urgent", "important"]}}
-});
-
-// Has all of these skills
-const results2 = await nebula.search({
-  query: "candidates",
-  collection_ids: ["hr"],
-  filters: {"metadata.skills": {"$contains": ["python", "ml"]}}
-});
-
-// Exact value match
-const results3 = await nebula.search({
-  query: "items",
-  collection_ids: ["inventory"],
-  filters: {"metadata.category": {"$in": ["electronics", "books"]}}
-});
-```
-
-```bash cURL
-# Has any of these tags
-curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "query": "content",
-    "collection_ids": ["posts"],
-    "filters": {"metadata.tags": {"$overlap": ["urgent", "important"]}}
-  }'
-
-# Has all of these skills
-curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "query": "candidates",
-    "collection_ids": ["hr"],
-    "filters": {"metadata.skills": {"$contains": ["python", "ml"]}}
-  }'
-
-# Exact value match
-curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "query": "items",
-    "collection_ids": ["inventory"],
-    "filters": {"metadata.category": {"$in": ["electronics", "books"]}}
-  }'
-```
-
-</CodeGroup>
-
-**Operators**: `$overlap` (has any), `$contains` (has all), `$in` (value in list), `$nin` (not in list)
-
-### Logical Operations
-
-<CodeGroup>
-
-```python Python
-# AND: All conditions must match
-results = nebula.search(
-    query="research papers",
-    collection_ids=["academic"],
-    filters={
-        "$and": [
-            {"metadata.verified": True},
-            {"metadata.score": {"$gte": 85}},
-            {"metadata.department": "ai"}
-        ]
-    }
-)
-
-# OR: Any condition can match
-results = nebula.search(
-    query="urgent items",
-    collection_ids=["tasks"],
-    filters={
-        "$or": [
-            {"metadata.urgent": True},
-            {"metadata.priority": {"$gte": 9}},
-            {"metadata.deadline": {"$lte": "2024-12-31"}}
-        ]
-    }
-)
-```
-
-```javascript JavaScript
-// AND: All conditions must match
-const results = await nebula.search({
-  query: "research papers",
-  collection_ids: ["academic"],
-  filters: {
-    "$and": [
-      {"metadata.verified": true},
-      {"metadata.score": {"$gte": 85}},
-      {"metadata.department": "ai"}
-    ]
-  }
-});
-
-// OR: Any condition can match
-const results2 = await nebula.search({
-  query: "urgent items",
-  collection_ids: ["tasks"],
-  filters: {
-    "$or": [
-      {"metadata.urgent": true},
-      {"metadata.priority": {"$gte": 9}},
-      {"metadata.deadline": {"$lte": "2024-12-31"}}
-    ]
-  }
-});
-```
-
-```bash cURL
-# AND: All conditions must match
-curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "query": "research papers",
-    "collection_ids": ["academic"],
-    "filters": {
-      "$and": [
-        {"metadata.verified": true},
-        {"metadata.score": {"$gte": 85}},
-        {"metadata.department": "ai"}
-      ]
-    }
-  }'
-
-# OR: Any condition can match
-curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "query": "urgent items",
+    "query": "reports",
     "collection_ids": ["tasks"],
     "filters": {
-      "$or": [
-        {"metadata.urgent": true},
-        {"metadata.priority": {"$gte": 9}},
-        {"metadata.deadline": {"$lte": "2024-12-31"}}
+      "$and": [
+        {"metadata.priority": {"$gte": 7}},
+        {"metadata.status": {"$in": ["pending", "active"]}},
+        {"metadata.created_at": {"$gte": "2024-01-01"}}
       ]
-    }
-  }'
-```
-
-</CodeGroup>
-
-### Nested Objects
-
-<CodeGroup>
-
-```python Python
-# Filter nested object properties
-results = nebula.search(
-    query="user profiles",
-    collection_ids=["users"],
-    filters={
-        "metadata.user.profile.age": {"$gte": 25},
-        "metadata.user.location.city": "San Francisco"
-    }
-)
-```
-
-```javascript JavaScript
-// Filter nested object properties
-const results = await nebula.search({
-  query: "user profiles",
-  collection_ids: ["users"],
-  filters: {
-    "metadata.user.profile.age": {"$gte": 25},
-    "metadata.user.location.city": "San Francisco"
-  }
-});
-```
-
-```bash cURL
-# Filter nested object properties
-curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "query": "user profiles",
-    "collection_ids": ["users"],
-    "filters": {
-      "metadata.user.profile.age": {"$gte": 25},
-      "metadata.user.location.city": "San Francisco"
     }
   }'
 ```
@@ -452,10 +136,10 @@ curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
 from datetime import datetime, timedelta
 
 # Last 30 days
-start_date = (datetime.now() - timedelta(days=30)).isoformat()
-filters = {"metadata.created_at": {"$gte": start_date}}
+start = (datetime.now() - timedelta(days=30)).isoformat()
+filters = {"metadata.created_at": {"$gte": start}}
 
-# Specific date range
+# Date range
 filters = {
     "$and": [
         {"metadata.created_at": {"$gte": "2024-01-01"}},
@@ -464,32 +148,7 @@ filters = {
 }
 ```
 
-```bash cURL
-# Last 30 days
-curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "query": "recent activity",
-    "filters": {"metadata.created_at": {"$gte": "REPLACE_WITH_ISO_START"}}
-  }'
-
-# Specific date range
-curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "query": "reports",
-    "filters": {
-      "$and": [
-        {"metadata.created_at": {"$gte": "2024-01-01"}},
-        {"metadata.created_at": {"$lte": "2024-12-31"}}
-      ]
-    }
-  }'
-```
-
-### Multi-Status Filtering
+### Multi-Status
 ```python
 # Include specific statuses
 filters = {"metadata.status": {"$in": ["pending", "in_progress", "review"]}}
@@ -498,36 +157,22 @@ filters = {"metadata.status": {"$in": ["pending", "in_progress", "review"]}}
 filters = {"metadata.status": {"$nin": ["archived", "deleted"]}}
 ```
 
-```bash cURL
-# Include specific statuses
-curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "query": "tasks",
-    "filters": {"metadata.status": {"$in": ["pending", "in_progress", "review"]}}
-  }'
-
-# Exclude specific statuses
-curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "query": "tasks",
-    "filters": {"metadata.status": {"$nin": ["archived", "deleted"]}}
-  }'
+### Nested Properties
+```python
+# Filter nested object properties
+filters = {
+    "metadata.user.profile.age": {"$gte": 25},
+    "metadata.user.location.city": "San Francisco"
+}
 ```
 
 ## Best Practices
 
 - **Use proper data types**: Store numbers as numbers, booleans as booleans
 - **Start simple**: Begin with basic equality, add complexity as needed
-- **Test incrementally**: Build complex queries step by step
 - **Use appropriate array operators**: `$overlap` for "any of", `$contains` for "all of"
 
 ## Next Steps
 
-- [Core Concepts](/guides/concepts) - Understanding memories and Nebula's architecture
-- [Memory Operations Guide](/guides/memory-operations) - Search strategies and examples
-- [Collections Guide](/guides/collections) - Organizing your memories  
-- [Advanced Features](/guides/advanced-features) - Chunk-level authority and optimization
+- [Search Guide](/guides/search) - Semantic search strategies
+- [Memory Operations](/guides/memory-operations) - Core CRUD operations

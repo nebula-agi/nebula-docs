@@ -5,41 +5,48 @@ description: 'Store, retrieve, and manage memories in Nebula'
 
 # Memory Operations
 
-Learn the core operations for working with memories in Nebula: storing, retrieving, and deleting.
+Core operations for working with memories: storing, retrieving, and deleting.
 
 <Info>New to Nebula? Start with [Core Concepts](/guides/concepts) to understand the architecture.</Info>
 
 ## Storing Memories
 
-### Single Memory
-
 <CodeGroup>
 
 ```python Python
 from nebula import Nebula
-
 nebula = Nebula(api_key="your-api-key")
 
+# Single memory
 memory_id = nebula.store_memory({
-    "collection_id": "research-collection",
-    "content": "Machine learning automates analytical model building",
-    "metadata": {"topic": "AI", "difficulty": "intermediate"}
+    "collection_id": "research",
+    "content": "Machine learning automates model building",
+    "metadata": {"topic": "AI"}
 })
 
-print(f"Stored memory: {memory_id}")
+# Batch storage (more efficient)
+memory_ids = nebula.store_memories([
+    {"collection_id": "research", "content": "Neural networks...", "metadata": {"type": "concept"}},
+    {"collection_id": "research", "content": "Deep learning...", "metadata": {"type": "concept"}}
+])
 ```
 
 ```javascript JavaScript
 const { Nebula } = require('@nebula-ai/sdk');
 const nebula = new Nebula({ apiKey: 'your-api-key' });
 
+// Single memory
 const memoryId = await nebula.storeMemory({
-  collection_id: "research-collection",
-  content: "Machine learning automates analytical model building",
-  metadata: { topic: "AI", difficulty: "intermediate" }
+  collection_id: "research",
+  content: "Machine learning automates model building",
+  metadata: { topic: "AI" }
 });
 
-console.log(`Stored memory: ${memoryId}`);
+// Batch storage (more efficient)
+const memoryIds = await nebula.storeMemories([
+  { collection_id: "research", content: "Neural networks...", metadata: { type: "concept" } },
+  { collection_id: "research", content: "Deep learning...", metadata: { type: "concept" } }
+]);
 ```
 
 ```bash cURL
@@ -47,155 +54,74 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
+    "collection_id": "COLLECTION_ID",
     "engram_type": "document",
-    "raw_text": "Machine learning automates analytical model building",
-    "metadata": {"topic": "AI", "difficulty": "intermediate"}
+    "raw_text": "Machine learning automates model building",
+    "metadata": {"topic": "AI"}
   }'
 ```
 
 </CodeGroup>
-
-**Returns**: Memory ID - use this to reference the memory later.
-
-### Batch Storage
-
-Store multiple memories at once for better performance:
-
-<CodeGroup>
-
-```python Python
-memories = [
-    {
-        "collection_id": "research-collection",
-        "content": "Supervised learning uses labeled training data",
-        "metadata": {"type": "definition"}
-    },
-    {
-        "collection_id": "research-collection",
-        "content": "Neural networks are inspired by biological systems",
-        "metadata": {"type": "concept"}
-    }
-]
-
-memory_ids = nebula.store_memories(memories)
-print(f"Stored {len(memory_ids)} memories")
-```
-
-```javascript JavaScript
-const memories = [
-  {
-    collection_id: "research-collection",
-    content: "Supervised learning uses labeled training data",
-    metadata: { type: "definition" }
-  },
-  {
-    collection_id: "research-collection",
-    content: "Neural networks are inspired by biological systems",
-    metadata: { type: "concept" }
-  }
-];
-
-const memoryIds = await nebula.storeMemories(memories);
-console.log(`Stored ${memoryIds.length} memories`);
-```
-
-```bash cURL
-# Store first memory
-curl -X POST "https://api.nebulacloud.app/v1/memories" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
-    "engram_type": "document",
-    "raw_text": "Supervised learning uses labeled training data",
-    "metadata": {"type": "definition"}
-  }'
-
-# Store second memory
-curl -X POST "https://api.nebulacloud.app/v1/memories" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
-    "engram_type": "document",
-    "raw_text": "Neural networks are inspired by biological systems",
-    "metadata": {"type": "concept"}
-  }'
-```
-
-</CodeGroup>
-
-<Tip>Batch operations are more efficient than storing memories one at a time.</Tip>
 
 ### Conversation Messages
 
-Store conversational exchanges with roles:
-
 <CodeGroup>
 
 ```python Python
-# Initial message
-conversation_id = nebula.store_memory({
-    "collection_id": "support-collection",
-    "content": "Hello! How can I help you?",
-    "role": "assistant",
-    "metadata": {"session_id": "session_123"}
+# Create conversation
+conv_id = nebula.store_memory({
+    "collection_id": "support",
+    "content": "Hello! How can I help?",
+    "role": "assistant"
 })
 
-# Follow-up messages
+# Add to same conversation
 nebula.store_memory({
-    "memory_id": conversation_id,  # Add to same conversation
-    "collection_id": "support-collection",
+    "memory_id": conv_id,
+    "collection_id": "support",
     "content": "I need help with my account",
     "role": "user"
 })
 ```
 
 ```javascript JavaScript
-// Initial message
-const conversationId = await nebula.storeMemory({
-  collection_id: "support-collection",
-  content: "Hello! How can I help you?",
-  role: "assistant",
-  metadata: { session_id: "session_123" }
+const convId = await nebula.storeMemory({
+  collection_id: "support",
+  content: "Hello! How can I help?",
+  role: "assistant"
 });
 
-// Follow-up messages
 await nebula.storeMemory({
-  memory_id: conversationId,  // Add to same conversation
-  collection_id: "support-collection",
+  memory_id: convId,
+  collection_id: "support",
   content: "I need help with my account",
   role: "user"
 });
 ```
 
 ```bash cURL
-# Create conversation with initial message
 curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
+    "collection_id": "COLLECTION_ID",
     "engram_type": "conversation",
     "messages": [
-      {"role": "assistant", "content": "Hello! How can I help you?"},
+      {"role": "assistant", "content": "Hello! How can I help?"},
       {"role": "user", "content": "I need help with my account"}
-    ],
-    "metadata": {"session_id": "session_123"}
+    ]
   }'
 ```
 
 </CodeGroup>
 
-See [Conversations Guide](/guides/conversations) for multi-turn conversation patterns.
+See [Conversations Guide](/guides/conversations) for multi-turn patterns.
 
-## Document Upload
+### Document Upload
 
 <CodeGroup>
 
 ```python Python
-# First, get collection ID
 collection = nebula.get_collection_by_name("my-collection")
 
 # Upload text
@@ -205,51 +131,22 @@ doc_id = nebula.create_document_text(
     metadata={"title": "ML Intro"}
 )
 
-# Upload from file
-with open("doc.txt", "r") as f:
-    doc_id = nebula.create_document_text(
-        collection_id=collection.id,
-        raw_text=f.read(),
-        metadata={"filename": "doc.txt"}
-    )
-
 # Upload pre-chunked
 doc_id = nebula.create_document_chunks(
     collection_id=collection.id,
-    chunks=["Intro...", "Chapter 1...", "Chapter 2..."],
+    chunks=["Chapter 1...", "Chapter 2..."],
     metadata={"title": "My Doc"}
 )
 ```
 
 ```javascript JavaScript
-// First, get collection ID
 const collection = await nebula.getCollectionByName("my-collection");
 
-// Upload text (using storeMemory for documents)
 const docId = await nebula.storeMemory({
   collection_id: collection.id,
   content: "Machine learning is a subset of AI...",
   metadata: { title: "ML Intro" }
 });
-
-// Upload from file
-const fs = require('fs').promises;
-const content = await fs.readFile('doc.txt', 'utf-8');
-const docId = await nebula.storeMemory({
-  collection_id: collection.id,
-  content: content,
-  metadata: { filename: "doc.txt" }
-});
-
-// Upload pre-chunked (store as separate memories)
-const chunks = ["Intro...", "Chapter 1...", "Chapter 2..."];
-const docIds = await nebula.storeMemories(
-  chunks.map(chunk => ({
-    collection_id: collection.id,
-    content: chunk,
-    metadata: { title: "My Doc" }
-  }))
-);
 ```
 
 ```bash cURL
@@ -258,7 +155,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
+    "collection_id": "COLLECTION_ID",
     "engram_type": "document",
     "raw_text": "Machine learning is a subset of AI...",
     "metadata": {"title": "ML Intro"}
@@ -269,100 +166,64 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
+    "collection_id": "COLLECTION_ID",
     "engram_type": "document",
-    "chunks": ["Intro...", "Chapter 1...", "Chapter 2..."],
+    "chunks": ["Chapter 1...", "Chapter 2..."],
     "metadata": {"title": "My Doc"}
   }'
 ```
 
 </CodeGroup>
 
-**Ingestion modes**: `fast` (default), `hi-res` (better quality), `custom`
-
-**Web UI**: Click "Add Memory" → "Upload File" → Select .txt/.md/.json/.csv/.log file
-
 ## Retrieving Memories
 
-### Get by ID
-
 <CodeGroup>
 
 ```python Python
+# Get by ID
 memory = nebula.get_memory(memory_id)
 
-print(f"Content: {memory.content}")
-print(f"Metadata: {memory.metadata}")
-print(f"Created: {memory.created_at}")
+# List memories in collection
+memories = nebula.list_memories(collection_ids=["research"], limit=50)
 ```
 
 ```javascript JavaScript
+// Get by ID
 const memory = await nebula.getMemory(memoryId);
 
-console.log(`Content: ${memory.content}`);
-console.log(`Metadata: ${memory.metadata}`);
-console.log(`Created: ${memory.created_at}`);
+// List memories in collection
+const memories = await nebula.listMemories({ collection_ids: ["research"], limit: 50 });
 ```
 
 ```bash cURL
+# Get by ID
 curl -X GET "https://api.nebulacloud.app/v1/engrams/YOUR_MEMORY_ID" \
   -H "Authorization: Bearer YOUR_API_KEY"
-```
 
-</CodeGroup>
-
-### List Memories
-
-Retrieve all memories in a collection:
-
-<CodeGroup>
-
-```python Python
-memories = nebula.list_memories(
-    collection_ids=["research-collection"],
-    limit=50,
-    offset=0
-)
-
-for memory in memories:
-    print(f"{memory.content[:50]}...")
-```
-
-```javascript JavaScript
-const memories = await nebula.listMemories({
-  collection_ids: ["research-collection"],
-  limit: 50,
-  offset: 0
-});
-
-memories.forEach(memory => {
-  console.log(`${memory.content?.substring(0, 50)}...`);
-});
-```
-
-```bash cURL
-curl -X GET "https://api.nebulacloud.app/v1/engrams?limit=50&offset=0" \
+# List memories
+curl -X GET "https://api.nebulacloud.app/v1/engrams?limit=50" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
 </CodeGroup>
 
-<Info>For semantic search (finding memories by meaning), see the [Search Guide](/guides/search).</Info>
+<Info>For semantic search (finding by meaning), see the [Search Guide](/guides/search).</Info>
 
 ## Deleting Memories
 
-### Delete Single Memory
-
 <CodeGroup>
 
 ```python Python
-result = nebula.delete(memory_id)
-print(f"Deleted: {result}")
+# Delete single
+nebula.delete(memory_id)
+
+# Delete multiple
+nebula.delete([memory_id_1, memory_id_2, memory_id_3])
 ```
 
 ```javascript JavaScript
-const result = await nebula.delete(memoryId);
-console.log(`Deleted: ${result}`);
+await nebula.delete(memoryId);
+await nebula.delete([memoryId1, memoryId2, memoryId3]);
 ```
 
 ```bash cURL
@@ -372,65 +233,94 @@ curl -X DELETE "https://api.nebulacloud.app/v1/engrams/YOUR_MEMORY_ID" \
 
 </CodeGroup>
 
-### Batch Delete
+<Warning>Deletion is permanent and cannot be undone.</Warning>
+
+## Bulk Operations
+
+Use `list_memories()` with `metadata_filters` to target a set, then delete or update metadata in batches.
 
 <CodeGroup>
 
 ```python Python
-# Delete multiple memories
-result = nebula.delete([memory_id_1, memory_id_2, memory_id_3])
-print(f"Deleted {result['deleted_count']} memories")
+memories = nebula.list_memories(
+    collection_ids=["docs"],
+    metadata_filters={"metadata.status": {"$eq": "archived"}},
+    limit=1000
+)
+
+# Bulk delete
+nebula.delete([m.id for m in memories])
+
+# Bulk metadata update
+for m in memories:
+    nebula.update_memory(
+        memory_id=m.id,
+        metadata={"archived": True},
+        merge_metadata=True
+    )
 ```
 
 ```javascript JavaScript
-// Delete multiple memories
-const result = await nebula.delete([memoryId1, memoryId2, memoryId3]);
-console.log(`Deleted ${result.deleted_count} memories`);
+const memories = await nebula.listMemories({
+  collection_ids: ["docs"],
+  metadata_filters: {"metadata.status": {"$eq": "archived"}},
+  limit: 1000
+});
+
+// Bulk delete
+await nebula.delete(memories.map(m => m.id));
+
+// Bulk metadata update
+for (const m of memories) {
+  await nebula.updateMemory({
+    memoryId: m.id,
+    metadata: { archived: true },
+    mergeMetadata: true
+  });
+}
 ```
 
 ```bash cURL
-# Delete multiple memories (one at a time via API)
-curl -X DELETE "https://api.nebulacloud.app/v1/engrams/MEMORY_ID_1" \
-  -H "Authorization: Bearer YOUR_API_KEY"
+curl -G "https://api.nebulacloud.app/v1/memories" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  --data-urlencode 'collection_ids=docs' \
+  --data-urlencode 'limit=1000' \
+  --data-urlencode 'metadata_filters={"metadata.status":{"$eq":"archived"}}'
 
-curl -X DELETE "https://api.nebulacloud.app/v1/engrams/MEMORY_ID_2" \
-  -H "Authorization: Bearer YOUR_API_KEY"
+curl -X POST "https://api.nebulacloud.app/v1/memories/delete" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"ids": ["MEMORY_ID_1", "MEMORY_ID_2"]}'
 ```
 
 </CodeGroup>
 
-<Warning>Deletion is permanent and cannot be undone.</Warning>
+<Info>Use `store_memory()` to append content. `update_memory()` only updates name, metadata, or collection associations.</Info>
 
 ## Chunk Operations
 
-Memories can contain multiple chunks (for documents) or messages (for conversations). Each chunk has a unique ID for granular operations.
-
-### Get Chunks
-
-When retrieving a memory, chunks include their IDs:
+Memories contain chunks (messages in conversations, sections in documents). Each chunk has a unique ID.
 
 <CodeGroup>
 
 ```python Python
 memory = nebula.get_memory(memory_id)
-
-# Access chunks with IDs
 for chunk in memory.chunks:
     print(f"Chunk {chunk.id}: {chunk.content[:50]}...")
-    if chunk.role:  # For conversation messages
-        print(f"Role: {chunk.role}")
+
+# Delete specific chunk
+nebula.delete_chunk(chunk_id)
+
+# Update chunk
+nebula.update_chunk(chunk_id=chunk_id, content="Updated content", metadata={"edited": True})
 ```
 
 ```javascript JavaScript
 const memory = await nebula.getMemory(memoryId);
+memory.chunks?.forEach(chunk => console.log(`Chunk ${chunk.id}: ${chunk.content}`));
 
-// Access chunks with IDs
-memory.chunks?.forEach(chunk => {
-  console.log(`Chunk ${chunk.id}: ${chunk.content.substring(0, 50)}...`);
-  if (chunk.role) {  // For conversation messages
-    console.log(`Role: ${chunk.role}`);
-  }
-});
+await nebula.deleteChunk(chunkId);
+await nebula.updateChunk(chunkId, "Updated content", { edited: true });
 ```
 
 ```bash cURL
@@ -438,255 +328,29 @@ memory.chunks?.forEach(chunk => {
 curl -X GET "https://api.nebulacloud.app/v1/engrams/YOUR_MEMORY_ID" \
   -H "Authorization: Bearer YOUR_API_KEY"
 
-# List chunks directly
-curl -X GET "https://api.nebulacloud.app/v1/chunks?limit=100" \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-</CodeGroup>
-
-### Delete Chunk
-
-Delete a specific chunk or message:
-
-<CodeGroup>
-
-```python Python
-# Delete a specific message in a conversation
-nebula.delete_chunk(chunk_id)
-```
-
-```javascript JavaScript
-// Delete a specific message in a conversation
-await nebula.deleteChunk(chunkId);
-```
-
-```bash cURL
+# Delete chunk
 curl -X DELETE "https://api.nebulacloud.app/v1/chunks/YOUR_CHUNK_ID" \
   -H "Authorization: Bearer YOUR_API_KEY"
-```
 
-</CodeGroup>
-
-### Update Chunk
-
-Update content or metadata of a specific chunk:
-
-<CodeGroup>
-
-```python Python
-# Update chunk content
-nebula.update_chunk(
-    chunk_id=chunk_id,
-    content="Updated content here",
-    metadata={"edited": True}
-)
-```
-
-```javascript JavaScript
-// Update chunk content
-await nebula.updateChunk(
-  chunkId,
-  "Updated content here",
-  { edited: true }
-);
-```
-
-```bash cURL
+# Update chunk
 curl -X POST "https://api.nebulacloud.app/v1/chunks/YOUR_CHUNK_ID" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "id": "YOUR_CHUNK_ID",
-    "text": "Updated content here",
-    "metadata": {"edited": true}
-  }'
-```
-
-</CodeGroup>
-
-<Info>Chunk IDs are automatically generated when storing memories. You only need them for granular operations.</Info>
-
-## Complete Example
-
-Here's a full workflow demonstrating all operations:
-
-<CodeGroup>
-
-```python Python
-from nebula import Nebula
-
-nebula = Nebula(api_key="your-api-key")
-
-# 1. Create collection
-collection = nebula.create_collection(name="demo", description="Example collection")
-
-# 2. Store memories
-memories = [
-    {
-        "collection_id": collection.id,
-        "content": "Python is a high-level programming language",
-        "metadata": {"language": "python"}
-    },
-    {
-        "collection_id": collection.id,
-        "content": "JavaScript is used for web development",
-        "metadata": {"language": "javascript"}
-    }
-]
-memory_ids = nebula.store_memories(memories)
-print(f"Stored {len(memory_ids)} memories")
-
-# 3. Retrieve
-memory = nebula.get_memory(memory_ids[0])
-print(f"Retrieved: {memory.content}")
-
-# 4. Search
-results = nebula.search(
-    query="programming languages",
-    collection_ids=[collection.id]
-)
-print(f"Found {len(results)} results")
-
-# 5. Delete
-nebula.delete(memory_ids)
-print("Deleted all memories")
-```
-
-```javascript JavaScript
-const { Nebula } = require('@nebula-ai/sdk');
-const nebula = new Nebula({ apiKey: 'your-api-key' });
-
-async function fullWorkflow() {
-  // 1. Create collection
-  const collection = await nebula.createCollection({
-    name: "demo",
-    description: "Example collection"
-  });
-
-  // 2. Store memories
-  const memories = [
-    {
-      collection_id: collection.id,
-      content: "Python is a high-level programming language",
-      metadata: { language: "python" }
-    },
-    {
-      collection_id: collection.id,
-      content: "JavaScript is used for web development",
-      metadata: { language: "javascript" }
-    }
-  ];
-
-  const memoryIds = await nebula.storeMemories(memories);
-  console.log(`Stored ${memoryIds.length} memories`);
-
-  // 3. Retrieve
-  const memory = await nebula.getMemory(memoryIds[0]);
-  console.log(`Retrieved: ${memory.content}`);
-
-  // 4. Search
-  const results = await nebula.search({
-    query: "programming languages",
-    collection_ids: [collection.id]
-  });
-  console.log(`Found ${results.length} results`);
-
-  // 5. Delete
-  await nebula.delete(memoryIds);
-  console.log("Deleted all memories");
-}
-
-fullWorkflow();
-```
-
-```bash cURL
-# 1. Create collection
-curl -X POST "https://api.nebulacloud.app/v1/collections" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{"name": "demo", "description": "Example collection"}'
-
-# 2. Store memories (using collection ID from step 1)
-curl -X POST "https://api.nebulacloud.app/v1/memories" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
-    "engram_type": "document",
-    "raw_text": "Python is a high-level programming language",
-    "metadata": {"language": "python"}
-  }'
-
-curl -X POST "https://api.nebulacloud.app/v1/memories" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
-    "engram_type": "document",
-    "raw_text": "JavaScript is used for web development",
-    "metadata": {"language": "javascript"}
-  }'
-
-# 3. Retrieve memory
-curl -X GET "https://api.nebulacloud.app/v1/engrams/MEMORY_ID" \
-  -H "Authorization: Bearer YOUR_API_KEY"
-
-# 4. Search
-curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "query": "programming languages",
-    "collection_ids": ["demo"]
-  }'
-
-# 5. Delete
-curl -X DELETE "https://api.nebulacloud.app/v1/engrams/MEMORY_ID" \
-  -H "Authorization: Bearer YOUR_API_KEY"
+  -d '{"id": "YOUR_CHUNK_ID", "text": "Updated content", "metadata": {"edited": true}}'
 ```
 
 </CodeGroup>
 
 ## Best Practices
 
-1. **Use batch operations** - `store_memories()` is faster than multiple `store_memory()` calls
+1. **Use batch operations** - `store_memories()` is faster than multiple single calls
 2. **Add descriptive metadata** - Makes filtering and organization easier
-3. **Organize by collections** - Group related memories for better access control
-4. **Validate before storing** - Check that required fields (`collection_id`, `content`) are present
-5. **Handle errors gracefully** - Use try/catch for API operations
+3. **Organize by collections** - Group related memories logically
+4. **Handle errors gracefully** - Use try/catch for API operations
 
-<Tip>Rich metadata improves search quality. Include fields like `type`, `category`, `priority`, or `tags`.</Tip>
-
-## Metadata Best Practices
-
-Good metadata structure:
-
-```python
-{
-    "collection_id": "support-collection",
-    "content": "User reported login issue",
-    "metadata": {
-        "type": "support_ticket",
-        "priority": "high",
-        "user_id": "user_123",
-        "category": "authentication",
-        "tags": ["login", "bug"],
-        "created_by": "agent_001"
-    }
-}
-```
-
-This enables powerful filtering:
-- Find all high-priority tickets
-- Search tickets for specific users
-- Filter by category or tags
-
-Learn more in [Metadata Filtering](/guides/metadata-filtering).
+<Tip>Rich metadata improves search quality. See [Metadata Filtering](/guides/metadata-filtering) for filter operators.</Tip>
 
 ## Next Steps
 
 - [Search Guide](/guides/search) - Semantic search and filtering
 - [Collections Guide](/guides/collections) - Organize memories into collections
-- [Conversations](/guides/conversations) - Build chat applications
-- [Metadata Filtering](/guides/metadata-filtering) - Advanced filtering

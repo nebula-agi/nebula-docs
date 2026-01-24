@@ -9,7 +9,7 @@ Understanding Nebula's architecture helps you work more effectively with memorie
 
 ## Memories: Universal Information Containers
 
-In Nebula, everything is stored as a **memory** - a container for related information. A memory represents a complete unit:
+In Nebula, everything is stored as a **memory** - a container for related information:
 
 - **Conversation Memory**: Contains all messages in a conversation
 - **Document Memory**: Contains an entire document (potentially split into chunks)
@@ -17,7 +17,7 @@ In Nebula, everything is stored as a **memory** - a container for related inform
 
 ### Memories vs Chunks
 
-- **Memory**: The container with a unique `memory_id` - represents complete conversations or documents
+- **Memory**: The container with a unique `memory_id`
 - **Chunks**: Individual pieces within a memory (messages in conversations, sections in documents)
 - **Chunk ID**: Unique identifier for each chunk, used for granular operations
 
@@ -25,74 +25,64 @@ In Nebula, everything is stored as a **memory** - a container for related inform
 
 ```python Python
 # Create a conversation memory
-conversation_id = client.store_memory({
+conv_id = client.store_memory({
     "collection_id": "support_chats",
-    "content": "Hello! How can I help you today?",
-    "role": "assistant",
-    "metadata": {"conversation_name": "Support Chat #123"}
+    "content": "Hello! How can I help?",
+    "role": "assistant"
 })
 
-# Add more messages to the same conversation
+# Add messages to the same conversation
 client.store_memory({
-    "memory_id": conversation_id,  # Add to existing memory
+    "memory_id": conv_id,
     "collection_id": "support_chats",
     "content": [
-        {"content": "I need help with billing", "role": "user"},
-        {"content": "I'll help you with that", "role": "assistant"}
+        {"content": "I need help", "role": "user"},
+        {"content": "I'll help you", "role": "assistant"}
     ]
 })
-# The memory now contains 3 messages total
 ```
 
 ```javascript JavaScript
 // Create a conversation memory
-const conversationId = await nebula.storeMemory({
+const convId = await nebula.storeMemory({
   collection_id: 'support_chats',
-  content: 'Hello! How can I help you today?',
-  role: 'assistant',
-  metadata: { conversation_name: 'Support Chat #123' }
+  content: 'Hello! How can I help?',
+  role: 'assistant'
 });
 
-// Add more messages to the same conversation
+// Add messages to the same conversation
 await nebula.storeMemory({
-  memory_id: conversationId,  // Add to existing memory
+  memory_id: convId,
   collection_id: 'support_chats',
   content: [
-    { content: 'I need help with billing', role: 'user' },
-    { content: 'I\'ll help you with that', role: 'assistant' }
+    { content: 'I need help', role: 'user' },
+    { content: 'I\'ll help you', role: 'assistant' }
   ]
 });
-// The memory now contains 3 messages total
 ```
 
 ```bash cURL
-# Create a conversation memory
+# Create conversation
 curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
+    "collection_id": "COLLECTION_ID",
     "engram_type": "conversation",
-    "messages": [
-      {
-        "content": "Hello! How can I help you today?",
-        "role": "assistant",
-        "metadata": {"conversation_name": "Support Chat #123"}
-      }
-    ]
+    "messages": [{"content": "Hello! How can I help?", "role": "assistant"}]
   }'
 
-# Add more messages to the same conversation
+# Add messages (use memory_id from response)
 curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "memory_id": "CONVERSATION_ID",
-    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
+    "memory_id": "MEMORY_ID",
+    "collection_id": "COLLECTION_ID",
     "engram_type": "conversation",
     "messages": [
-      {"content": "I need help with billing", "role": "user"},
-      {"content": "I'\''ll help you with that", "role": "assistant"}
+      {"content": "I need help", "role": "user"},
+      {"content": "I'\''ll help you", "role": "assistant"}
     ]
   }'
 ```
@@ -107,432 +97,74 @@ Contain entire documents, split into chunks internally for processing.
 <CodeGroup>
 
 ```python Python
-# Store document
+# Store document text
 doc_id = client.create_document_text(
-    collection_id=collection.id,  # Get collection first: collection = client.get_collection_by_name("research_papers")
-    raw_text="Full document content here...",
-    metadata={"title": "AI Research Paper"}
+    collection_id=collection.id,
+    raw_text="Full document content...",
+    metadata={"title": "Research Paper"}
 )
 
-# Pre-chunked documents
+# Store pre-chunked document
 doc_id = client.create_document_chunks(
-    collection_id=collection.id,  # Get collection first: collection = client.get_collection_by_name("research_papers")
+    collection_id=collection.id,
     chunks=["Chapter 1...", "Chapter 2..."],
-    metadata={"title": "AI Research Paper"}
+    metadata={"title": "Research Paper"}
 )
 ```
 
 ```javascript JavaScript
-// Store document
 const docId = await nebula.storeMemory({
   collection_id: 'research_papers',
-  content: 'Full document content here...',
-  metadata: { title: 'AI Research Paper', engram_type: 'document' }
-});
-
-// Pre-chunked documents (store as separate memories)
-const docId2 = await nebula.storeMemory({
-  collection_id: 'research_papers',
-  content: 'Chapter 1...',
-  metadata: { title: 'AI Research Paper', engram_type: 'document', chunk: 1 }
+  content: 'Full document content...',
+  metadata: { title: 'Research Paper' }
 });
 ```
 
 ```bash cURL
-# Store document
 curl -X POST "https://api.nebulacloud.app/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
+    "collection_id": "COLLECTION_ID",
     "engram_type": "document",
-    "raw_text": "Full document content here...",
-    "metadata": {"title": "AI Research Paper"}
-  }'
-
-# Pre-chunked documents
-curl -X POST "https://api.nebulacloud.app/v1/memories" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
-    "engram_type": "document",
-    "chunks": ["Chapter 1...", "Chapter 2..."],
-    "metadata": {"title": "AI Research Paper"}
+    "raw_text": "Full document content...",
+    "metadata": {"title": "Research Paper"}
   }'
 ```
 
 </CodeGroup>
 
 ### Conversation Memories
-Contain entire conversations with all messages and context.
-
-<CodeGroup>
-
-```python Python
-# Create a conversation memory
-conv_id = client.store_memory({
-    "collection_id": "customer_support",
-    "content": "Hello! How can I help you today?",
-    "role": "assistant",  # Indicates conversation
-    "metadata": {
-        "conversation_name": "Support Chat #123",
-        "customer_id": "cust_456"
-    }
-})
-
-# Add more messages to the same conversation
-client.store_memory({
-    "memory_id": conv_id,  # Add to existing memory
-    "collection_id": "customer_support",
-    "content": [
-        {"content": "I have a billing question", "role": "user"},
-        {"content": "I'd be happy to help with billing", "role": "assistant"}
-    ]
-})
-# The memory now contains the entire conversation history
-```
-
-```javascript JavaScript
-// Create a conversation memory
-const convId = await nebula.storeMemory({
-  collection_id: 'customer_support',
-  content: 'Hello! How can I help you today?',
-  role: 'assistant',  // Indicates conversation
-  metadata: {
-    conversation_name: 'Support Chat #123',
-    customer_id: 'cust_456'
-  }
-});
-
-// Add more messages to the same conversation
-await nebula.storeMemory({
-  memory_id: convId,  // Add to existing memory
-  collection_id: 'customer_support',
-  content: [
-    { content: 'I have a billing question', role: 'user' },
-    { content: 'I\'d be happy to help with billing', role: 'assistant' }
-  ]
-});
-// The memory now contains the entire conversation history
-```
-
-```bash cURL
-# Create a conversation memory
-curl -X POST "https://api.nebulacloud.app/v1/memories" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
-    "engram_type": "conversation",
-    "messages": [
-      {
-        "content": "Hello! How can I help you today?",
-        "role": "assistant",
-        "metadata": {
-          "conversation_name": "Support Chat #123",
-          "customer_id": "cust_456"
-        }
-      }
-    ]
-  }'
-
-# Add more messages to the same conversation
-curl -X POST "https://api.nebulacloud.app/v1/memories" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "memory_id": "CONVERSATION_ID",
-    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
-    "engram_type": "conversation",
-    "messages": [
-      {"content": "I have a billing question", "role": "user"},
-      {"content": "I'\''d be happy to help with billing", "role": "assistant"}
-    ]
-  }'
-```
-
-</CodeGroup>
+Contain full conversations. Add messages by calling `store_memory()` with the same `memory_id`.
+See [Conversations Guide](/guides/conversations) for examples.
 
 ### Simple Memories
-Contain standalone pieces of information.
+Standalone pieces of information that don't need chunking.
 
-<CodeGroup>
-
-```python Python
-# Create a simple memory
+```python
 memory_id = client.store_memory({
-    "collection_id": "user_preferences",
-    "content": "User prefers dark mode and email notifications",
-    "metadata": {
-        "user_id": "user_789",
-        "preference_type": "ui_settings"
-    }
+    "collection_id": "preferences",
+    "content": "User prefers dark mode",
+    "metadata": {"user_id": "user_789"}
 })
-# Single piece of information
 ```
-
-```javascript JavaScript
-// Create a simple memory
-const memoryId = await nebula.storeMemory({
-  collection_id: 'user_preferences',
-  content: 'User prefers dark mode and email notifications',
-  metadata: {
-    user_id: 'user_789',
-    preference_type: 'ui_settings'
-  }
-});
-// Single piece of information
-```
-
-```bash cURL
-curl -X POST "https://api.nebulacloud.app/v1/memories" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
-    "engram_type": "document",
-    "raw_text": "User prefers dark mode and email notifications",
-    "metadata": {
-      "user_id": "user_789",
-      "preference_type": "ui_settings"
-    }
-  }'
-```
-
-</CodeGroup>
-
-## Memory Operations
-
-### Creation
-Every `store_memory()` call without `memory_id` creates a new memory:
-
-<CodeGroup>
-
-```python Python
-memory_id = client.store_memory({
-    "collection_id": "documents",
-    "content": "Initial document content"
-})
-# Creates new memory container
-```
-
-```javascript JavaScript
-const memoryId = await nebula.storeMemory({
-  collection_id: 'documents',
-  content: 'Initial document content'
-});
-// Creates new memory container
-```
-
-```bash cURL
-curl -X POST "https://api.nebulacloud.app/v1/memories" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
-    "engram_type": "document",
-    "raw_text": "Initial document content"
-  }'
-```
-
-</CodeGroup>
-
-### Expanding (Adding Content)
-Use `store_memory()` with `memory_id` to add content to existing memories:
-
-<CodeGroup>
-
-```python Python
-# Add more content to document
-client.store_memory({
-    "memory_id": doc_id,
-    "collection_id": "documents",
-    "content": "Chapter 2: Advanced Topics..."
-})
-
-# Add more messages to conversation
-client.store_memory({
-    "memory_id": conv_id,
-    "collection_id": "conversations",
-    "content": [
-        {"content": "Thanks for the help!", "role": "user"},
-        {"content": "You're welcome!", "role": "assistant"}
-    ]
-})
-# Each call adds chunks/messages to the same memory
-```
-
-```javascript JavaScript
-// Add more content to document
-await nebula.storeMemory({
-  memory_id: docId,
-  collection_id: 'documents',
-  content: 'Chapter 2: Advanced Topics...'
-});
-
-// Add more messages to conversation
-await nebula.storeMemory({
-  memory_id: convId,
-  collection_id: 'conversations',
-  content: [
-    { content: 'Thanks for the help!', role: 'user' },
-    { content: 'You\'re welcome!', role: 'assistant' }
-  ]
-});
-// Each call adds chunks/messages to the same memory
-```
-
-```bash cURL
-# Add more content to document
-curl -X POST "https://api.nebulacloud.app/v1/memories" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "memory_id": "DOCUMENT_MEMORY_ID",
-    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
-    "engram_type": "document",
-    "raw_text": "Chapter 2: Advanced Topics..."
-  }'
-
-# Add more messages to conversation
-curl -X POST "https://api.nebulacloud.app/v1/memories" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "memory_id": "CONVERSATION_MEMORY_ID",
-    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
-    "engram_type": "conversation",
-    "messages": [
-      {"content": "Thanks for the help!", "role": "user"},
-      {"content": "You'\''re welcome!", "role": "assistant"}
-    ]
-  }'
-```
-
-</CodeGroup>
-
-### Retrieval
-Retrieve complete memories with all chunks:
-
-<CodeGroup>
-
-```python Python
-# Get entire memory (complete document or conversation)
-memory = client.get_memory(memory_id)
-
-# Access individual chunks with IDs
-for chunk in memory.chunks:
-    print(f"Chunk {chunk.id}: {chunk.content}")
-
-# Search across memories
-results = client.search(
-    query="machine learning",
-    collection_ids=["research_papers"]
-)
-# Returns matching chunks with their parent memory_id
-```
-
-```javascript JavaScript
-// Get entire memory (complete document or conversation)
-const memory = await nebula.getMemory(memoryId);
-
-// Access individual chunks with IDs
-for (const chunk of memory.chunks) {
-  console.log(`Chunk ${chunk.id}: ${chunk.content}`);
-}
-
-// Search across memories
-const results = await nebula.search({
-  query: 'machine learning',
-  collection_ids: ['research_papers']
-});
-// Returns matching chunks with their parent memory_id
-```
-
-```bash cURL
-# Get entire memory
-curl -X GET "https://api.nebulacloud.app/v1/engrams/YOUR_MEMORY_ID" \
-  -H "Authorization: Bearer YOUR_API_KEY"
-
-# Search across memories
-curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "query": "machine learning",
-    "collection_ids": ["research_papers"]
-  }'
-```
-
-</CodeGroup>
-
-### Chunk Operations
-Work with individual pieces within memories:
-
-<CodeGroup>
-
-```python Python
-# Delete a specific message or chunk
-client.delete_chunk(chunk_id)
-
-# Update a specific chunk
-client.update_chunk(chunk_id, "Updated content", metadata={"edited": True})
-```
-
-```javascript JavaScript
-// Delete a specific message or chunk
-await nebula.deleteChunk(chunkId);
-
-// Update a specific chunk
-await nebula.updateChunk(chunkId, 'Updated content', { edited: true });
-```
-
-```bash cURL
-# Delete a specific message or chunk
-curl -X DELETE "https://api.nebulacloud.app/v1/chunks/YOUR_CHUNK_ID" \
-  -H "Authorization: Bearer YOUR_API_KEY"
-
-# Update a specific chunk
-curl -X POST "https://api.nebulacloud.app/v1/chunks/YOUR_CHUNK_ID" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "id": "YOUR_CHUNK_ID",
-    "text": "Updated content",
-    "metadata": {"edited": true}
-  }'
-```
-
-</CodeGroup>
 
 ## Memory Lifecycle
 
-1. **Creation**: `store_memory()` without `memory_id` creates new memory with unique ID
-2. **Expansion**: `store_memory()` with `memory_id` adds chunks/messages to existing memory
-3. **Retrieval**: `get_memory()` returns complete memory with all chunks (each chunk has an ID)
+1. **Creation**: `store_memory()` without `memory_id` creates new memory
+2. **Expansion**: `store_memory()` with `memory_id` adds content to existing memory
+3. **Retrieval**: `get_memory()` returns complete memory with all chunks
 4. **Chunk Operations**: Use chunk IDs for granular updates/deletes
 5. **Deletion**: `delete()` removes entire memory and all its chunks
 
-## Why This Matters
-
-Understanding memories and chunks helps you:
-
-- **Think in containers**: Build complete conversations or documents, not isolated pieces
-- **Use `memory_id` effectively**: Add to existing conversations/documents vs creating new ones
-- **Understand search results**: Search returns chunks with their parent `memory_id`
-- **Granular control**: Use chunk IDs to update/delete specific messages or sections
-
 ## Best Practices
 
-- **Build complete units**: Use `memory_id` to build entire conversations or documents in the same container
-- **Use descriptive metadata**: Identify memory types (conversation, document, preference)
+- **Build complete units**: Use `memory_id` to build entire conversations/documents in one container
+- **Use descriptive metadata**: Identify memory types and add context
 - **Choose appropriate collections**: Group related memories logically
-- **Consider memory scope**: Each memory should represent one complete conversation or document
-- **Chunk operations when needed**: Use chunk IDs only for granular edits (e.g., deleting one message)
+- **Chunk operations when needed**: Use chunk IDs only for granular edits
 
 ## Next Steps
 
-- [Memory Operations Guide](/guides/memory-operations) - Practical usage examples
-- [Conversations Guide](/guides/conversations) - Working with conversation memories
-- [Collections Guide](/guides/collections) - Organizing your memories effectively
+- [Memory Operations Guide](/guides/memory-operations) - Store, retrieve, and delete memories
+- [Collections Guide](/guides/collections) - Organize memories into collections

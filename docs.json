@@ -44,8 +44,7 @@
             "group": "Advanced Guides",
             "pages": [
               "guides/search",
-              "guides/metadata-filtering",
-              "guides/advanced-features"
+              "guides/metadata-filtering"
             ]
           },
           {
