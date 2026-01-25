@@ -50,7 +50,7 @@ const memoryIds = await nebula.storeMemories([
 ```
 
 ```bash cURL
-curl -X POST "https://api.nebulacloud.app/v1/memories" \
+curl -X POST "https://api.trynebula.ai/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
@@ -100,7 +100,7 @@ await nebula.storeMemory({
 ```
 
 ```bash cURL
-curl -X POST "https://api.nebulacloud.app/v1/memories" \
+curl -X POST "https://api.trynebula.ai/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
@@ -177,7 +177,7 @@ const fileDocId = await nebula.storeMemory(
 
 ```bash cURL
 # Upload file (base64 encoded)
-curl -X POST "https://api.nebulacloud.app/v1/memories" \
+curl -X POST "https://api.trynebula.ai/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
@@ -218,11 +218,11 @@ const memories = await nebula.listMemories({ collection_ids: ["research"], limit
 
 ```bash cURL
 # Get by ID
-curl -X GET "https://api.nebulacloud.app/v1/engrams/YOUR_MEMORY_ID" \
+curl -X GET "https://api.trynebula.ai/v1/engrams/YOUR_MEMORY_ID" \
   -H "Authorization: Bearer YOUR_API_KEY"
 
 # List memories
-curl -X GET "https://api.nebulacloud.app/v1/engrams?limit=50" \
+curl -X GET "https://api.trynebula.ai/v1/engrams?limit=50" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
@@ -248,7 +248,7 @@ await nebula.delete([memoryId1, memoryId2, memoryId3]);
 ```
 
 ```bash cURL
-curl -X DELETE "https://api.nebulacloud.app/v1/engrams/YOUR_MEMORY_ID" \
+curl -X DELETE "https://api.trynebula.ai/v1/engrams/YOUR_MEMORY_ID" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
@@ -302,13 +302,13 @@ for (const m of memories) {
 ```
 
 ```bash cURL
-curl -G "https://api.nebulacloud.app/v1/memories" \
+curl -G "https://api.trynebula.ai/v1/memories" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   --data-urlencode 'collection_ids=docs' \
   --data-urlencode 'limit=1000' \
   --data-urlencode 'metadata_filters={"metadata.status":{"$eq":"archived"}}'
 
-curl -X POST "https://api.nebulacloud.app/v1/memories/delete" \
+curl -X POST "https://api.trynebula.ai/v1/memories/delete" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"ids": ["MEMORY_ID_1", "MEMORY_ID_2"]}'
@@ -346,15 +346,15 @@ await nebula.updateChunk(chunkId, "Updated content", { edited: true });
 
 ```bash cURL
 # Get memory with chunks
-curl -X GET "https://api.nebulacloud.app/v1/engrams/YOUR_MEMORY_ID" \
+curl -X GET "https://api.trynebula.ai/v1/engrams/YOUR_MEMORY_ID" \
   -H "Authorization: Bearer YOUR_API_KEY"
 
 # Delete chunk
-curl -X DELETE "https://api.nebulacloud.app/v1/chunks/YOUR_CHUNK_ID" \
+curl -X DELETE "https://api.trynebula.ai/v1/chunks/YOUR_CHUNK_ID" \
   -H "Authorization: Bearer YOUR_API_KEY"
 
 # Update chunk
-curl -X POST "https://api.nebulacloud.app/v1/chunks/YOUR_CHUNK_ID" \
+curl -X POST "https://api.trynebula.ai/v1/chunks/YOUR_CHUNK_ID" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{"id": "YOUR_CHUNK_ID", "text": "Updated content", "metadata": {"edited": true}}'

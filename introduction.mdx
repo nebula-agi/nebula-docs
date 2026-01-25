@@ -68,13 +68,13 @@ async function example() {
 
 ```bash cURL
 # Create a memory collection
-curl -X POST "https://api.nebulacloud.app/v1/collections" \
+curl -X POST "https://api.trynebula.ai/v1/collections" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{"name": "customer_support"}'
 
 # Store information
-curl -X POST "https://api.nebulacloud.app/v1/memories" \
+curl -X POST "https://api.trynebula.ai/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
@@ -85,7 +85,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   }'
 
 # Search semantically
-curl -X POST "https://api.nebulacloud.app/v1/memories/search" \
+curl -X POST "https://api.trynebula.ai/v1/memories/search" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{

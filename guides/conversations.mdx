@@ -85,7 +85,7 @@ await nebula.storeMemory({
 
 ```bash cURL
 # Create conversation
-curl -X POST "https://api.nebulacloud.app/v1/memories" \
+curl -X POST "https://api.trynebula.ai/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
@@ -95,7 +95,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   }'
 
 # Add messages (use memory_id from response)
-curl -X POST "https://api.nebulacloud.app/v1/memories" \
+curl -X POST "https://api.trynebula.ai/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
@@ -136,11 +136,11 @@ const conversations = await nebula.listConversations({ limit: 50 });
 
 ```bash cURL
 # Get conversation messages
-curl -X GET "https://api.nebulacloud.app/v1/conversations/CONVERSATION_ID" \
+curl -X GET "https://api.trynebula.ai/v1/conversations/CONVERSATION_ID" \
   -H "Authorization: Bearer YOUR_API_KEY"
 
 # List conversations
-curl -X GET "https://api.nebulacloud.app/v1/conversations?limit=50" \
+curl -X GET "https://api.trynebula.ai/v1/conversations?limit=50" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 

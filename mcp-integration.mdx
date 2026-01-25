@@ -34,7 +34,7 @@ This automatically generates a dedicated API key for your MCP client and provide
     {
       "mcpServers": {
         "nebula-memory": {
-          "url": "https://mcp.nebulacloud.app/mcp",
+          "url": "https://mcp.trynebula.ai/mcp",
           "headers": {
             "Authorization": "Bearer YOUR_API_KEY",
             "X-Collection-ID": "YOUR_COLLECTION_ID"
@@ -57,7 +57,7 @@ This automatically generates a dedicated API key for your MCP client and provide
       "servers": {
         "nebula-memory": {
           "type": "http",
-          "url": "https://mcp.nebulacloud.app/mcp",
+          "url": "https://mcp.trynebula.ai/mcp",
           "headers": {
             "Authorization": "Bearer YOUR_API_KEY",
             "X-Collection-ID": "YOUR_COLLECTION_ID"
@@ -81,7 +81,7 @@ This automatically generates a dedicated API key for your MCP client and provide
     {
       "mcpServers": {
         "nebula-memory": {
-          "serverUrl": "https://mcp.nebulacloud.app/mcp",
+          "serverUrl": "https://mcp.trynebula.ai/mcp",
           "headers": {
             "Authorization": "Bearer YOUR_API_KEY",
             "X-Collection-ID": "YOUR_COLLECTION_ID"
@@ -111,7 +111,7 @@ This automatically generates a dedicated API key for your MCP client and provide
           "args": [
             "-y",
             "mcp-remote",
-            "https://mcp.nebulacloud.app/mcp",
+            "https://mcp.trynebula.ai/mcp",
             "--header", "Authorization: Bearer ${NEBULA_API_KEY}",
             "--header", "X-Collection-ID: YOUR_COLLECTION_ID"
           ],
@@ -133,7 +133,7 @@ This automatically generates a dedicated API key for your MCP client and provide
 
     **Quick Install (CLI):**
     ```bash
-    claude mcp add --transport http --scope user nebula-memory https://mcp.nebulacloud.app/mcp \
+    claude mcp add --transport http --scope user nebula-memory https://mcp.trynebula.ai/mcp \
       --header "Authorization: Bearer YOUR_API_KEY" \
       --header "X-Collection-ID: YOUR_COLLECTION_ID"
     ```
@@ -145,7 +145,7 @@ This automatically generates a dedicated API key for your MCP client and provide
       "mcpServers": {
         "nebula-memory": {
           "transport": "http",
-          "url": "https://mcp.nebulacloud.app/mcp",
+          "url": "https://mcp.trynebula.ai/mcp",
           "httpHeaders": {
             "Authorization": "Bearer YOUR_API_KEY",
             "X-Collection-ID": "YOUR_COLLECTION_ID"
@@ -201,7 +201,7 @@ search_memories(query="user preferences", effort="medium")
 **Connection errors:**
 - Verify your API key has the correct permissions
 - Check that the collection ID exists in your account
-- Ensure your firewall/proxy allows connections to `mcp.nebulacloud.app`
+- Ensure your firewall/proxy allows connections to `mcp.trynebula.ai`
 - Check the client's console/logs for detailed error messages
 
 **Authentication issues:**

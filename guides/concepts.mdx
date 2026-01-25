@@ -63,7 +63,7 @@ await nebula.storeMemory({
 
 ```bash cURL
 # Create conversation
-curl -X POST "https://api.nebulacloud.app/v1/memories" \
+curl -X POST "https://api.trynebula.ai/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
@@ -73,7 +73,7 @@ curl -X POST "https://api.nebulacloud.app/v1/memories" \
   }'
 
 # Add messages (use memory_id from response)
-curl -X POST "https://api.nebulacloud.app/v1/memories" \
+curl -X POST "https://api.trynebula.ai/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
@@ -132,7 +132,7 @@ const fileDocId = await nebula.storeMemory(
 
 ```bash cURL
 # Upload file (base64 encoded)
-curl -X POST "https://api.nebulacloud.app/v1/memories" \
+curl -X POST "https://api.trynebula.ai/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
