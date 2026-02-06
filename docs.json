@@ -73,6 +73,7 @@
           {
             "group": "Plugins",
             "pages": [
+              "plugins/claude-code",
               "plugins/openclaw"
             ]
           }
