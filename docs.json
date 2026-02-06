@@ -66,6 +66,17 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "Plugins",
+        "groups": [
+          {
+            "group": "Plugins",
+            "pages": [
+              "plugins/openclaw"
+            ]
+          }
+        ]
       }
     ],
     "global": {

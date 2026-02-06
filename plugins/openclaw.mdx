@@ -1,0 +1,129 @@
+---
+title: 'OpenClaw'
+description: 'Add persistent memory to OpenClaw with the Nebula plugin'
+---
+
+# OpenClaw Plugin
+
+Long-term semantic memory for [OpenClaw](https://docs.openclaw.ai) powered by Nebula. Automatically captures conversations and provides agent-driven search to recall relevant context from past interactions.
+
+<Info>You'll need a Nebula API key and collection ID before starting. Get both at [trynebula.ai](https://trynebula.ai)</Info>
+
+## Installation
+
+```bash
+openclaw plugins install @nebula-ai/openclaw-nebula
+```
+
+Restart OpenClaw after installation.
+
+## Configuration
+
+<Tabs>
+  <Tab title="Environment Variables">
+    The fastest way to get started. Add your credentials to the OpenClaw environment:
+
+    ```bash
+    echo -e "NEBULA_API_KEY=neb_xxx\nNEBULA_COLLECTION_ID=your_collection_id" >> ~/.openclaw/.env && openclaw gateway restart
+    ```
+  </Tab>
+
+  <Tab title="Config File">
+    Edit `~/.openclaw/openclaw.json`:
+
+    ```json
+    {
+      "plugins": {
+        "entries": {
+          "openclaw-nebula": {
+            "enabled": true,
+            "config": {
+              "apiKey": "your_api_key_here",
+              "collectionId": "your_collection_id_here"
+            }
+          }
+        }
+      }
+    }
+    ```
+
+    Then restart: `openclaw gateway restart`
+  </Tab>
+</Tabs>
+
+### Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `collectionName` | -- | Optional display name for the collection |
+| `autoCapture` | `true` | Auto-store conversations after AI turns |
+| `debug` | `false` | Enable debug logging |
+
+## Usage
+
+Conversations are automatically captured as memories after each AI response. This is enabled by default via `autoCapture`.
+
+### Agent Tool
+
+The AI agent can search stored memories during conversations:
+
+#### `nebula_search`
+Search stored memories for relevant context. The agent is encouraged to proactively use this tool to recall user preferences, past discussions, and relevant information before responding.
+
+```typescript
+nebula_search({ query: "coding preferences" })
+```
+
+### Slash Commands
+
+#### `/nebula-remember <text>`
+Manually save to memory.
+
+```
+/nebula-remember I prefer TypeScript for new projects
+```
+
+#### `/nebula-recall <query>`
+Search and display memories.
+
+```
+/nebula-recall typescript preferences
+```
+
+### CLI
+
+Search memories directly from the terminal:
+
+```bash
+openclaw nebula search "python coding style"
+```
+
+## Troubleshooting
+
+### Plugin won't load
+
+**`nebula: apiKey is required`**
+
+Set the `NEBULA_API_KEY` environment variable or add it to your config file.
+
+**`nebula: collectionId is required`**
+
+Set the `NEBULA_COLLECTION_ID` environment variable or add it to your config file. Get your collection ID from [trynebula.ai](https://trynebula.ai).
+
+### No search results
+
+<Info>Nebula takes 5-10 seconds to index new memories. Wait after storing before searching.</Info>
+
+### Debug mode
+
+Enable verbose logging to diagnose issues:
+
+```json
+{
+  "config": {
+    "debug": true
+  }
+}
+```
+
+Check OpenClaw logs for `[nebula]` prefixed messages.
