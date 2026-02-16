@@ -21,9 +21,12 @@ Conversations are stored as **conversation memories**. Each conversation has a `
 from nebula import Nebula
 nebula = Nebula(api_key="your-api-key")
 
+# Get or create your collection
+collection = nebula.create_collection(name="Support Chats")
+
 # Create conversation with initial message
 conv_id = nebula.store_memory({
-    "collection_id": "chat-collection",
+    "collection_id": collection.id,
     "content": "Hello! How can I help?",
     "role": "assistant",
     "metadata": {"conversation_name": "Support Chat"}
@@ -32,7 +35,7 @@ conv_id = nebula.store_memory({
 # Add messages to same conversation
 nebula.store_memory({
     "memory_id": conv_id,
-    "collection_id": "chat-collection",
+    "collection_id": collection.id,
     "content": "I need help with my account",
     "role": "user"
 })
@@ -40,7 +43,7 @@ nebula.store_memory({
 # Add multiple messages at once
 nebula.store_memory({
     "memory_id": conv_id,
-    "collection_id": "chat-collection",
+    "collection_id": collection.id,
     "content": [
         {"content": "What issue are you having?", "role": "assistant"},
         {"content": "I can't log in", "role": "user"}
@@ -52,9 +55,12 @@ nebula.store_memory({
 const { Nebula } = require('@nebula-ai/sdk');
 const nebula = new Nebula({ apiKey: 'your-api-key' });
 
+// Get or create your collection
+const collection = await nebula.createCollection({ name: "Support Chats" });
+
 // Create conversation
 const convId = await nebula.storeMemory({
-  collection_id: "chat-collection",
+  collection_id: collection.id,
   content: "Hello! How can I help?",
   role: "assistant",
   metadata: { conversation_name: "Support Chat" }
@@ -63,7 +69,7 @@ const convId = await nebula.storeMemory({
 // Add messages to same conversation
 await nebula.storeMemory({
   memory_id: convId,
-  collection_id: "chat-collection",
+  collection_id: collection.id,
   content: "I need help with my account",
   role: "user"
 });
@@ -71,7 +77,7 @@ await nebula.storeMemory({
 // Add multiple messages at once
 await nebula.storeMemory({
   memory_id: convId,
-  collection_id: "chat-collection",
+  collection_id: collection.id,
   content: [
     { content: "What issue are you having?", role: "assistant" },
     { content: "I can't log in", role: "user" }
@@ -90,14 +96,12 @@ curl -X POST "https://api.trynebula.ai/v1/memories" \
     "messages": [{"content": "Hello! How can I help?", "role": "assistant"}]
   }'
 
-# Add messages (use memory_id from response)
-curl -X POST "https://api.trynebula.ai/v1/memories" \
+# Append messages (use the id from the create response)
+curl -X POST "https://api.trynebula.ai/v1/memories/CONVERSATION_ID/append" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "memory_id": "CONVERSATION_ID",
     "collection_id": "COLLECTION_ID",
-    "engram_type": "conversation",
     "messages": [
       {"content": "I need help", "role": "user"},
       {"content": "What issue?", "role": "assistant"}
@@ -109,47 +113,47 @@ curl -X POST "https://api.trynebula.ai/v1/memories" \
 
 ## Retrieving Conversations
 
-Use `get_memory()` to retrieve a conversation with all its messages as chunks.
+Use `list_memories()` to retrieve conversations with message roles, or `get_memory()` for a single conversation's metadata.
 
 <CodeGroup>
 
 ```python Python
-# Get conversation with all messages
-memory = nebula.get_memory(conv_id)
-for chunk in memory.chunks:
-    print(f"[{chunk.metadata.get('source_role')}]: {chunk.content}")
-
-# List conversation memories in a collection
+# List conversations in a collection (includes message roles)
 conversations = nebula.list_memories(
-    collection_ids=["chat-collection"],
-    metadata_filters={"metadata.type": {"$eq": "conversation"}}
+    collection_ids=[collection.id]
 )
+for conv in conversations:
+    for chunk in conv.chunks or []:
+        print(f"[{chunk.role}]: {chunk.content}")
+
+# Get a single conversation's metadata
+memory = nebula.get_memory(conv_id)
 ```
 
 ```javascript JavaScript
-// Get conversation with all messages
-const memory = await nebula.getMemory(convId);
-memory.chunks?.forEach(chunk =>
-  console.log(`[${chunk.metadata?.source_role}]: ${chunk.content}`)
+// List conversations in a collection (includes message roles)
+const conversations = await nebula.listMemories({
+  collection_ids: [collection.id]
+});
+conversations.forEach(conv =>
+  conv.chunks?.forEach(chunk =>
+    console.log(`[${chunk.role}]: ${chunk.content}`)
+  )
 );
 
-// List conversation memories in a collection
-const conversations = await nebula.listMemories({
-  collection_ids: ["chat-collection"],
-  metadata_filters: {"metadata.type": {"$eq": "conversation"}}
-});
+// Get a single conversation's metadata
+const memory = await nebula.getMemory(convId);
 ```
 
 ```bash cURL
-# Get conversation with messages
-curl -X GET "https://api.trynebula.ai/v1/memories/CONVERSATION_ID" \
-  -H "Authorization: Bearer YOUR_API_KEY"
-
-# List memories (filter by conversation type)
+# List memories in a collection
 curl -G "https://api.trynebula.ai/v1/memories" \
   -H "Authorization: Bearer YOUR_API_KEY" \
-  --data-urlencode 'collection_ids=COLLECTION_ID' \
-  --data-urlencode 'metadata_filters={"metadata.type":{"$eq":"conversation"}}'
+  --data-urlencode 'collection_ids=COLLECTION_ID'
+
+# Get a single conversation
+curl -X GET "https://api.trynebula.ai/v1/memories/CONVERSATION_ID" \
+  -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
 </CodeGroup>
