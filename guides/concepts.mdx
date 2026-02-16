@@ -1,40 +1,122 @@
 ---
 title: "Core Concepts"
-description: "Understanding Nebula's architecture: memories, chunks, and containers"
+description: "Understanding Nebula's architecture: memories, chunks, and the knowledge graph"
 ---
 
-# Core Concepts
+## Memories and Chunks
 
-Understanding Nebula's architecture helps you work more effectively with memories, conversations, and documents.
+In Nebula, everything is stored as a **memory**. A memory is a container with a unique `memory_id` that holds one or more **chunks**:
 
-## Memories: Universal Information Containers
+- **Document Memory**: An entire document, automatically split into chunks for processing. You can upload text, pre-chunked text, or a file. A short piece of text (like a user preference) is a document memory with a single chunk.
+- **Conversation Memory**: A full conversation where each message is a chunk. Passing a `role` parameter tells Nebula to treat the memory as a conversation.
 
-In Nebula, everything is stored as a **memory** - a container for related information:
+Each chunk has a unique **chunk ID** for granular updates or deletes.
 
-- **Conversation Memory**: Contains all messages in a conversation
-- **Document Memory**: Contains an entire document (potentially split into chunks)
-- **Simple Memory**: Contains a single piece of information
-
-### Memories vs Chunks
-
-- **Memory**: The container with a unique `memory_id`
-- **Chunks**: Individual pieces within a memory (messages in conversations, sections in documents)
-- **Chunk ID**: Unique identifier for each chunk, used for granular operations
+## Document Memories
 
 <CodeGroup>
 
 ```python Python
+from nebula import Nebula, Memory
+
+nebula = Nebula(api_key="your-api-key")
+collection = nebula.create_collection(name="research_papers")
+
+# Store document text
+doc_id = nebula.create_document_text(
+    collection_id=collection.id,
+    raw_text="Full document content...",
+    metadata={"title": "Research Paper"}
+)
+
+# Or upload a file
+doc_id = nebula.store_memory(
+    Memory.from_file("document.pdf", collection_id=collection.id, metadata={"title": "Research Paper"})
+)
+
+# Or store a short piece of text
+nebula.store_memory({
+    "collection_id": collection.id,
+    "content": "User prefers dark mode",
+    "metadata": {"user_id": "user_789"}
+})
+```
+
+```javascript JavaScript
+import Nebula, { Memory } from '@nebula-ai/sdk';
+
+const nebula = new Nebula({ apiKey: 'your-api-key' });
+const collection = await nebula.createCollection({ name: 'research_papers' });
+
+// Store document text
+const docId = await nebula.storeMemory({
+  collection_id: collection.id,
+  content: 'Full document content...',
+  metadata: { title: 'Research Paper' }
+});
+
+// Upload a file (Node.js only)
+const fileDocId = await nebula.storeMemory(
+  await Memory.fromFile('document.pdf', collection.id, { title: 'Research Paper' })
+);
+
+// Or store a short piece of text
+await nebula.storeMemory({
+  collection_id: collection.id,
+  content: 'User prefers dark mode',
+  metadata: { user_id: 'user_789' }
+});
+```
+
+```bash cURL
+# Store document text
+curl -X POST "https://api.trynebula.ai/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "collection_id": "COLLECTION_ID",
+    "raw_text": "Full document content...",
+    "metadata": {"title": "Research Paper"}
+  }'
+
+# Upload file (base64 encoded)
+curl -X POST "https://api.trynebula.ai/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "collection_id": "COLLECTION_ID",
+    "content_parts": [{
+      "type": "document",
+      "data": "BASE64_ENCODED_FILE_DATA",
+      "media_type": "application/pdf",
+      "filename": "document.pdf"
+    }],
+    "metadata": {"title": "Research Paper"}
+  }'
+```
+
+</CodeGroup>
+
+## Conversation Memories
+
+Create a conversation by passing a `role`. Append messages by calling `store_memory()` with the same `memory_id`.
+
+<CodeGroup>
+
+```python Python
+collection = nebula.create_collection(name="support_chats")
+
 # Create a conversation memory
-conv_id = client.store_memory({
-    "collection_id": "support_chats",
+conv_id = nebula.store_memory({
+    "collection_id": collection.id,
     "content": "Hello! How can I help?",
     "role": "assistant"
 })
 
 # Add messages to the same conversation
-client.store_memory({
+nebula.store_memory({
     "memory_id": conv_id,
-    "collection_id": "support_chats",
+    "collection_id": collection.id,
     "content": [
         {"content": "I need help", "role": "user"},
         {"content": "I'll help you", "role": "assistant"}
@@ -43,21 +125,25 @@ client.store_memory({
 ```
 
 ```javascript JavaScript
+const collection = await nebula.createCollection({ name: 'support_chats' });
+
 // Create a conversation memory
 const convId = await nebula.storeMemory({
-  collection_id: 'support_chats',
+  collection_id: collection.id,
   content: 'Hello! How can I help?',
-  role: 'assistant'
+  role: 'assistant',
+  metadata: {}
 });
 
 // Add messages to the same conversation
 await nebula.storeMemory({
   memory_id: convId,
-  collection_id: 'support_chats',
+  collection_id: collection.id,
   content: [
     { content: 'I need help', role: 'user' },
     { content: 'I\'ll help you', role: 'assistant' }
-  ]
+  ],
+  metadata: {}
 });
 ```
 
@@ -89,97 +175,33 @@ curl -X POST "https://api.trynebula.ai/v1/memories" \
 
 </CodeGroup>
 
-## Types of Memories
+See [Conversations Guide](/guides/conversations) for multi-turn patterns.
 
-### Document Memories
-Contain entire documents, split into chunks internally for processing. You can upload text, pre-chunked text, or a file.
+## The Knowledge Graph
 
-<CodeGroup>
+When you store memories, Nebula automatically extracts structured knowledge and builds a graph of entities and relationships. When you search, the response contains three layers:
 
-```python Python
-from nebula import Memory
-
-# Store document text
-doc_id = client.create_document_text(
-    collection_id=collection.id,
-    raw_text="Full document content...",
-    metadata={"title": "Research Paper"}
-)
-
-# Upload a file
-doc_id = client.store_memory(
-    Memory.from_file("document.pdf", collection_id=collection.id, metadata={"title": "Research Paper"})
-)
-```
-
-```javascript JavaScript
-import Nebula, { Memory } from '@nebula-ai/sdk';
-
-const nebula = new Nebula({ apiKey: 'your-api-key' });
-
-// Store document text
-const docId = await nebula.storeMemory({
-  collection_id: 'research_papers',
-  content: 'Full document content...',
-  metadata: { title: 'Research Paper' }
-});
-
-// Upload a file (Node.js only)
-const fileDocId = await nebula.storeMemory(
-  await Memory.fromFile('document.pdf', 'research_papers', { title: 'Research Paper' })
-);
-```
-
-```bash cURL
-# Upload file (base64 encoded)
-curl -X POST "https://api.trynebula.ai/v1/memories" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "collection_id": "COLLECTION_ID",
-    "content_parts": [{
-      "type": "document",
-      "data": "BASE64_ENCODED_FILE_DATA",
-      "media_type": "application/pdf",
-      "filename": "document.pdf"
-    }],
-    "metadata": {"title": "Research Paper"}
-  }'
-```
-
-</CodeGroup>
-
-### Conversation Memories
-Contain full conversations. Add messages by calling `store_memory()` with the same `memory_id`.
-See [Conversations Guide](/guides/conversations) for examples.
-
-### Simple Memories
-Standalone pieces of information that don't need chunking.
-
-```python
-memory_id = client.store_memory({
-    "collection_id": "preferences",
-    "content": "User prefers dark mode",
-    "metadata": {"user_id": "user_789"}
-})
-```
+- **Entities**: People, concepts, organizations, and other things extracted from your data, each with a name, description, and category
+- **Facts**: Subject-predicate-value assertions about entities (e.g., "Sarah - led - the Aurora migration"), with confidence that grows through corroboration across sources
+- **Utterances**: The original source text that grounds each entity and fact, providing provenance back to the stored memory
 
 ## Memory Lifecycle
 
-1. **Creation**: `store_memory()` without `memory_id` creates new memory
-2. **Expansion**: `store_memory()` with `memory_id` adds content to existing memory
-3. **Retrieval**: `get_memory()` returns complete memory with all chunks
-4. **Chunk Operations**: Use chunk IDs for granular updates/deletes
-5. **Deletion**: `delete()` removes entire memory and all its chunks
+1. **Creation**: `store_memory()` without `memory_id` creates a new memory
+2. **Expansion**: `store_memory()` with `memory_id` adds content to an existing memory
+3. **Extraction**: Nebula extracts entities, facts, and relationships into the knowledge graph
+4. **Retrieval**: `search()` returns entities, facts, and utterances; `get_memory()` returns the raw memory with all chunks
+5. **Chunk Operations**: Use chunk IDs for granular updates or deletes
+6. **Deletion**: `delete()` removes an entire memory and all its chunks
 
 ## Best Practices
 
-- **Build complete units**: Use `memory_id` to build entire conversations/documents in one container
-- **Use descriptive metadata**: Identify memory types and add context
+- **Build complete units**: Use `memory_id` to build entire conversations or documents in one container
+- **Use descriptive metadata**: Add context for filtering and organization
 - **Choose appropriate collections**: Group related memories logically
-- **Chunk operations when needed**: Use chunk IDs only for granular edits
 
 ## Next Steps
 
 - [Memory Operations Guide](/guides/memory-operations) - Store, retrieve, and delete memories
 - [Collections Guide](/guides/collections) - Organize memories into collections
+- [Search Guide](/guides/search) - Semantic search and filtering
