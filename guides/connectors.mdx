@@ -166,6 +166,27 @@ After OAuth completes, browse the provider's structure to find folder or channel
 
 <Tabs>
   <Tab title="Google Drive Folders">
+    Browse folders:
+    <CodeGroup>
+    ```python Python
+    # List root folders
+    folders = client.list_folders("CONNECTION_ID")
+
+    # Browse a subfolder
+    subfolders = client.list_folders("CONNECTION_ID", parent_id="PARENT_FOLDER_ID")
+    for f in folders:
+        print(f["id"], f["name"])
+    ```
+
+    ```javascript JavaScript
+    // List root folders
+    const folders = await client.listFolders('CONNECTION_ID');
+
+    // Browse a subfolder
+    const subfolders = await client.listFolders('CONNECTION_ID', 'PARENT_FOLDER_ID');
+    folders.forEach(f => console.log(f.id, f.name));
+    ```
+
     ```bash cURL
     # List root folders
     curl -X GET "https://api.trynebula.ai/v1/connectors/CONNECTION_ID/folders" \
@@ -175,6 +196,7 @@ After OAuth completes, browse the provider's structure to find folder or channel
     curl -X GET "https://api.trynebula.ai/v1/connectors/CONNECTION_ID/folders?parent_id=PARENT_FOLDER_ID" \
       -H "Authorization: Bearer YOUR_API_KEY"
     ```
+    </CodeGroup>
 
     Response:
     ```json
@@ -185,19 +207,43 @@ After OAuth completes, browse the provider's structure to find folder or channel
     ```
 
     Submit your selection:
+    <CodeGroup>
+    ```python Python
+    client.update_connection_config("CONNECTION_ID", {"folder_ids": ["1ABC...", "2DEF..."]})
+    ```
+
+    ```javascript JavaScript
+    await client.updateConnectionConfig('CONNECTION_ID', { folder_ids: ['1ABC...', '2DEF...'] });
+    ```
+
     ```bash cURL
     curl -X PATCH "https://api.trynebula.ai/v1/connectors/CONNECTION_ID/config" \
       -H "Content-Type: application/json" \
       -H "Authorization: Bearer YOUR_API_KEY" \
       -d '{"config": {"folder_ids": ["1ABC...", "2DEF..."]}}'
     ```
+    </CodeGroup>
   </Tab>
 
   <Tab title="Slack Channels">
+    List available channels:
+    <CodeGroup>
+    ```python Python
+    channels = client.list_channels("CONNECTION_ID")
+    for ch in channels:
+        print(ch["id"], ch["name"], ch["num_members"])
+    ```
+
+    ```javascript JavaScript
+    const channels = await client.listChannels('CONNECTION_ID');
+    channels.forEach(ch => console.log(ch.id, ch.name, ch.num_members));
+    ```
+
     ```bash cURL
     curl -X GET "https://api.trynebula.ai/v1/connectors/CONNECTION_ID/channels" \
       -H "Authorization: Bearer YOUR_API_KEY"
     ```
+    </CodeGroup>
 
     Response:
     ```json
@@ -208,12 +254,22 @@ After OAuth completes, browse the provider's structure to find folder or channel
     ```
 
     Submit your selection:
+    <CodeGroup>
+    ```python Python
+    client.update_connection_config("CONNECTION_ID", {"channel_ids": ["C01234ABC", "C56789DEF"]})
+    ```
+
+    ```javascript JavaScript
+    await client.updateConnectionConfig('CONNECTION_ID', { channel_ids: ['C01234ABC', 'C56789DEF'] });
+    ```
+
     ```bash cURL
     curl -X PATCH "https://api.trynebula.ai/v1/connectors/CONNECTION_ID/config" \
       -H "Content-Type: application/json" \
       -H "Authorization: Bearer YOUR_API_KEY" \
       -d '{"config": {"channel_ids": ["C01234ABC", "C56789DEF"]}}'
     ```
+    </CodeGroup>
   </Tab>
 </Tabs>
 
@@ -271,12 +327,22 @@ Response:
 
 Change which folders or channels a connection syncs. This resets the sync cursor and triggers a fresh sync.
 
+<CodeGroup>
+```python Python
+client.update_connection_config("CONNECTION_ID", {"folder_ids": ["NEW_FOLDER_ID"]})
+```
+
+```javascript JavaScript
+await client.updateConnectionConfig('CONNECTION_ID', { folder_ids: ['NEW_FOLDER_ID'] });
+```
+
 ```bash cURL
 curl -X PATCH "https://api.trynebula.ai/v1/connectors/CONNECTION_ID/config" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{"config": {"folder_ids": ["NEW_FOLDER_ID"]}}'
 ```
+</CodeGroup>
 
 <Warning>Changing folders or channels resets the sync cursor. Nebula will re-sync all content from the new selection.</Warning>
 
@@ -284,10 +350,20 @@ curl -X PATCH "https://api.trynebula.ai/v1/connectors/CONNECTION_ID/config" \
 
 Remove a connection and stop syncing. Nebula attempts to revoke the OAuth token with the provider. Previously synced memories remain in the collection.
 
+<CodeGroup>
+```python Python
+client.disconnect("CONNECTION_ID")
+```
+
+```javascript JavaScript
+await client.disconnect('CONNECTION_ID');
+```
+
 ```bash cURL
 curl -X DELETE "https://api.trynebula.ai/v1/connectors/CONNECTION_ID" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
+</CodeGroup>
 
 <Note>Disconnecting does not delete previously synced memories. To remove them, delete the memories separately.</Note>
 
