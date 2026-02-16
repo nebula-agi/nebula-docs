@@ -9,7 +9,7 @@ description: 'Official Python SDK for Nebula'
 pip install nebula-client
 ```
 
-## Setup
+## Quick Start
 
 ```bash
 # Set environment variable
@@ -20,15 +20,6 @@ export NEBULA_API_KEY="your_api_key_here"
 from nebula import Nebula
 
 # Automatically uses NEBULA_API_KEY environment variable
-nebula = Nebula()
-```
-
-## Quick Start
-
-```python
-from nebula import Nebula
-
-# Initialize client
 nebula = Nebula()
 
 # Store a memory
@@ -49,7 +40,6 @@ for result in results:
 ```
 
 For more detailed examples, see [Memory Operations](/guides/memory-operations).
-
 
 ## Async Support
 
@@ -116,3 +106,4 @@ asyncio.run(main())
 
 - [Memory Operations](/guides/memory-operations) - Store, retrieve, delete
 - [Search Guide](/guides/search) - Semantic search and filtering
+

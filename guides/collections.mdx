@@ -207,7 +207,7 @@ curl -X POST "https://api.trynebula.ai/v1/memories/search" \
   </Tab>
 </Tabs>
 
-## Common Patterns
+## Patterns and Tips
 
 | Pattern | When to Use |
 |---------|-------------|
@@ -215,14 +215,4 @@ curl -X POST "https://api.trynebula.ai/v1/memories/search" \
 | **One collection per project** | Project-scoped documentation |
 | **One collection per data type** | Different content types (docs, chats, notes) |
 
-## Best Practices
-
-1. **Use descriptive names** - `customer_support` not `collection_1`
-2. **Leverage metadata** - Store organizational info in collection metadata
-3. **Specify collection_ids for targeted searches** - Faster, scoped searches
-4. **Plan for scale** - Consider collection strategy early
-
-## Next Steps
-
-- [Memory Operations](/guides/memory-operations) - Store and search memories
-- [Metadata Filtering](/guides/metadata-filtering) - Advanced filtering
+<Tip>Use descriptive names like `customer_support` instead of `collection_1`. Specify `collection_ids` in searches for faster, scoped results. Plan your collection strategy early as your data grows.</Tip>

@@ -400,15 +400,10 @@ curl -X DELETE "https://api.trynebula.ai/v1/connectors/CONNECTION_ID" \
 
 All endpoints require authentication via `Authorization: Bearer YOUR_API_KEY`. The user must have **EDIT** permission on the target collection.
 
-## Best Practices
-
-1. **Scope connections narrowly** - Select specific folders or channels rather than syncing everything
-2. **One connection per provider per collection** - Each collection can have one active connection per provider and account
-3. **Use folder/channel browsing** - Discover IDs programmatically instead of hard-coding them
-4. **Monitor sync status** - Check the `status`, `last_synced_at`, and `last_error` fields
+<Tip>Scope connections narrowly by selecting specific folders or channels. Each collection supports one active connection per provider and account. Use the folder/channel browsing APIs to discover IDs programmatically, and monitor `last_synced_at` and `last_error` fields for sync health.</Tip>
 
 ## Next Steps
 
-- [Collections Guide](/guides/collections) - Organize memories into collections
+- [Collections](/guides/collections) - Organize memories into collections
 - [Memory Operations](/guides/memory-operations) - Work with synced memories
-- [Search Guide](/guides/search) - Search across synced content
+- [Search](/guides/search) - Search across synced content

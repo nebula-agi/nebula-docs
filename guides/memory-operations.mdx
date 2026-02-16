@@ -358,16 +358,9 @@ curl -X PATCH "https://api.trynebula.ai/v1/chunks/YOUR_CHUNK_ID" \
 
 </CodeGroup>
 
-## Best Practices
-
-1. **Use batch operations** - `store_memories()` is faster than multiple single calls
-2. **Add descriptive metadata** - Makes filtering and organization easier
-3. **Organize by collections** - Group related memories logically
-4. **Handle errors gracefully** - Use try/catch for API operations
-
-<Tip>Rich metadata improves search quality. See [Metadata Filtering](/guides/metadata-filtering) for filter operators.</Tip>
+<Tip>Use `store_memories()` for batch operations -- it's faster than multiple single calls. Rich metadata improves search quality; see [Metadata Filtering](/guides/metadata-filtering) for filter operators.</Tip>
 
 ## Next Steps
 
-- [Search Guide](/guides/search) - Semantic search and filtering
-- [Collections Guide](/guides/collections) - Organize memories into collections
+- [Search](/guides/search) - Semantic search and filtering
+- [Collections](/guides/collections) - Organize memories into collections

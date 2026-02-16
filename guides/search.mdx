@@ -64,12 +64,12 @@ curl -X POST "https://api.trynebula.ai/v1/memories/search" \
 
 ## Search with Metadata Filters
 
-Combine semantic search with metadata filtering:
+Combine semantic search with metadata filtering. Simple key-value filters use equality matching, while operators like `$in`, `$gte`, and `$ne` handle more complex conditions.
 
 <CodeGroup>
 
 ```python Python
-# Search with filters
+# Simple equality filters
 results = nebula.search(
     query="project updates",
     collection_ids=["work-collection"],
@@ -80,10 +80,21 @@ results = nebula.search(
     },
     effort="medium"
 )
+
+# Advanced filtering with multiple operators
+results = nebula.search(
+    query="bug reports",
+    collection_ids=["issues-collection"],
+    filters={
+        "severity": {"$in": ["critical", "high"]},
+        "status": {"$ne": "closed"},
+        "created_date": {"$gte": "2024-01-01"}
+    }
+)
 ```
 
 ```javascript JavaScript
-// Search with filters
+// Simple equality filters
 const results = await nebula.search({
   query: "project updates",
   collection_ids: ["work-collection"],
@@ -93,6 +104,17 @@ const results = await nebula.search({
     team: "engineering"
   },
   effort: "medium"
+});
+
+// Advanced filtering with multiple operators
+const results2 = await nebula.search({
+  query: "bug reports",
+  collection_ids: ["issues-collection"],
+  filters: {
+    severity: { "$in": ["critical", "high"] },
+    status: { "$ne": "closed" },
+    created_date: { "$gte": "2024-01-01" }
+  }
 });
 ```
 
@@ -114,7 +136,9 @@ curl -X POST "https://api.trynebula.ai/v1/memories/search" \
 
 </CodeGroup>
 
-See [Metadata Filtering](/guides/metadata-filtering) for advanced filter operators.
+**Available operators:** `$eq`, `$ne`, `$in`, `$nin`, `$gt`, `$gte`, `$lt`, `$lte`, `$like`, `$ilike`, `$overlap`, `$contains`, `$and`, `$or`
+
+Full details in [Metadata Filtering](/guides/metadata-filtering).
 
 ## Hybrid Search Weights
 
@@ -244,25 +268,6 @@ curl -X POST "https://api.trynebula.ai/v1/memories/search" \
 
 <Warning>Searching all collections is slower than targeting specific collections.</Warning>
 
-### Complex Metadata Filters
-
-```python
-# Advanced filtering with multiple operators
-results = nebula.search(
-    query="bug reports",
-    collection_ids=["issues-collection"],
-    filters={
-        "severity": {"$in": ["critical", "high"]},
-        "status": {"$ne": "closed"},
-        "created_date": {"$gte": "2024-01-01"}
-    }
-)
-```
-
-**Available operators:** `$eq`, `$ne`, `$in`, `$nin`, `$gt`, `$gte`, `$lt`, `$lte`, `$like`, `$ilike`, `$overlap`, `$contains`, `$and`, `$or`
-
-Full details in [Metadata Filtering](/guides/metadata-filtering).
-
 ## Authority Scores
 
 Control which content should be prioritized in search results using authority scores (0-1).
@@ -315,14 +320,7 @@ nebula.store_memory({
 <Tip>Default authority is 0.5. Higher authority content ranks higher in search results.</Tip>
 
 
-## Search Best Practices
-
-1. **Use natural language queries** - "How do I reset my password?" works better than "password reset"
-2. **Target specific collections** - Faster and more relevant results
-3. **Start with defaults** - Only adjust weights if results aren't good
-4. **Leverage metadata filters** - Narrow results by structured fields
-5. **Choose appropriate effort** - Balance between coverage and performance (auto/low/medium/high)
-6. **Cache frequent queries** - Store common search results
+<Tip>Use natural language queries for better results. Target specific collections for faster responses, and start with default weights before tuning.</Tip>
 
 ## Next Steps
 
