@@ -21,13 +21,14 @@ Filter search results by metadata attributes using comparison and logical operat
 | `$ilike` | Pattern match (case-insensitive) | `{"email": {"$ilike": "%@company.com"}}` |
 | `$overlap` | Array has any | `{"tags": {"$overlap": ["urgent", "important"]}}` |
 | `$contains` | Array has all | `{"skills": {"$contains": ["python", "ml"]}}` |
+| `$json_contains` | JSONB structural match | `{"config": {"$json_contains": {"enabled": true}}}` |
 | `$and` | All conditions match | `{"$and": [{...}, {...}]}` |
 | `$or` | Any condition matches | `{"$or": [{...}, {...}]}` |
 
 <Tip>Use `%` as wildcard in `$like` and `$ilike` patterns.</Tip>
 <Tip>Target metadata fields with the `metadata.` prefix (e.g., `metadata.status`). Nested fields are supported.</Tip>
 
-<Info>Search responses can optionally include metadata via `search_settings.include_metadata`. When included, Nebula returns a whitelisted subset (e.g., `title`, `source`, `url`, `doc_type`, `mime_type`, `filename`, `page`) to keep results compact.</Info>
+<Info>Set `verbose: true` in `search_settings` to include full metadata and internal IDs in search results.</Info>
 
 ## Examples
 
@@ -52,7 +53,7 @@ results = nebula.search(
         "$and": [
             {"metadata.priority": {"$gte": 7}},
             {"metadata.status": {"$in": ["pending", "active"]}},
-            {"metadata.created_at": {"$gte": "2024-01-01"}}
+            {"created_at": {"$gte": "2024-01-01"}}
         ]
     }
 )
@@ -84,7 +85,7 @@ const results2 = await nebula.search({
     "$and": [
       {"metadata.priority": {"$gte": 7}},
       {"metadata.status": {"$in": ["pending", "active"]}},
-      {"metadata.created_at": {"$gte": "2024-01-01"}}
+      {"created_at": {"$gte": "2024-01-01"}}
     ]
   }
 });
@@ -119,7 +120,7 @@ curl -X POST "https://api.trynebula.ai/v1/memories/search" \
       "$and": [
         {"metadata.priority": {"$gte": 7}},
         {"metadata.status": {"$in": ["pending", "active"]}},
-        {"metadata.created_at": {"$gte": "2024-01-01"}}
+        {"created_at": {"$gte": "2024-01-01"}}
       ]
     }
   }'
@@ -133,15 +134,15 @@ curl -X POST "https://api.trynebula.ai/v1/memories/search" \
 ```python
 from datetime import datetime, timedelta
 
-# Last 30 days
+# Last 30 days (filters on the row's created_at column)
 start = (datetime.now() - timedelta(days=30)).isoformat()
-filters = {"metadata.created_at": {"$gte": start}}
+filters = {"created_at": {"$gte": start}}
 
 # Date range
 filters = {
     "$and": [
-        {"metadata.created_at": {"$gte": "2024-01-01"}},
-        {"metadata.created_at": {"$lte": "2024-12-31"}}
+        {"created_at": {"$gte": "2024-01-01"}},
+        {"created_at": {"$lte": "2024-12-31"}}
     ]
 }
 ```
@@ -163,8 +164,6 @@ filters = {
     "metadata.user.location.city": "San Francisco"
 }
 ```
-
-<Tip>Store numbers as numbers and booleans as booleans for correct comparisons. Use `$overlap` for "any of" matching and `$contains` for "all of" matching.</Tip>
 
 ## Next Steps
 
