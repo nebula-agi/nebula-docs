@@ -50,6 +50,7 @@
           {
             "group": "Integration",
             "pages": [
+              "guides/connectors",
               "mcp-integration"
             ]
           }

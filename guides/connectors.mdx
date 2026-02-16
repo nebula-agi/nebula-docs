@@ -1,0 +1,340 @@
+---
+title: 'Connectors Guide'
+description: 'Sync external data sources into Nebula collections via OAuth'
+---
+
+# Connectors
+
+Connectors let you link external data sources to a Nebula collection. Once connected, files and messages sync automatically into your memories on a recurring schedule.
+
+<Note>Connectors use OAuth, so users authorize access through the provider's consent screen. Nebula never sees raw passwords.</Note>
+
+## Supported Providers
+
+| Provider | What Syncs | Config | Setup Flow |
+|----------|-----------|--------|------------|
+| **Google Drive** | Documents from selected folders | `folder_ids` | Two-phase (pick folders after connecting) |
+| **Slack** | Messages from selected channels | `channel_ids` | Two-phase (pick channels after connecting) |
+| **Gmail** | Emails from the authorized inbox | &mdash; | One-phase (syncs immediately) |
+| **Notion** | Pages from the authorized workspace | &mdash; | One-phase (syncs immediately) |
+
+<Info>Use the **List Providers** endpoint to check which connectors are enabled on your Nebula instance.</Info>
+
+<CodeGroup>
+```python Python
+from nebula import Nebula
+
+client = Nebula(api_key="YOUR_API_KEY")
+providers = client.list_providers()
+print(providers)  # ["gmail", "google_drive", "notion", "slack"]
+```
+
+```javascript JavaScript
+import { Nebula } from '@trynebula/sdk';
+
+const client = new Nebula({ apiKey: 'YOUR_API_KEY' });
+const providers = await client.listProviders();
+console.log(providers); // ["gmail", "google_drive", "notion", "slack"]
+```
+
+```bash cURL
+curl -X GET "https://api.trynebula.ai/v1/connectors/providers" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+# Response: ["gmail", "google_drive", "notion", "slack"]
+```
+</CodeGroup>
+
+## Connecting a Data Source
+
+### Step 1: Start the OAuth Flow
+
+Provide the `collection_id` where synced content should land. For Google Drive and Slack, you can optionally include `config` with pre-selected folder or channel IDs. If omitted, you'll select them after authorization.
+
+<Tabs>
+  <Tab title="Google Drive">
+    <CodeGroup>
+    ```python Python
+    result = client.connect_provider("google_drive", "YOUR_COLLECTION_ID")
+    print(result["auth_url"])  # Redirect user here
+    ```
+
+    ```javascript JavaScript
+    const result = await client.connectProvider('google_drive', 'YOUR_COLLECTION_ID');
+    console.log(result.auth_url); // Redirect user here
+    ```
+
+    ```bash cURL
+    curl -X POST "https://api.trynebula.ai/v1/connectors/google_drive/connect" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer YOUR_API_KEY" \
+      -d '{
+        "collection_id": "YOUR_COLLECTION_ID"
+      }'
+    ```
+    </CodeGroup>
+
+    Response:
+    ```json
+    {
+      "auth_url": "https://accounts.google.com/o/oauth2/v2/auth?...",
+      "state": "signed-state-token"
+    }
+    ```
+  </Tab>
+
+  <Tab title="Slack">
+    <CodeGroup>
+    ```python Python
+    result = client.connect_provider("slack", "YOUR_COLLECTION_ID")
+    print(result["auth_url"])
+    ```
+
+    ```javascript JavaScript
+    const result = await client.connectProvider('slack', 'YOUR_COLLECTION_ID');
+    console.log(result.auth_url);
+    ```
+
+    ```bash cURL
+    curl -X POST "https://api.trynebula.ai/v1/connectors/slack/connect" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer YOUR_API_KEY" \
+      -d '{
+        "collection_id": "YOUR_COLLECTION_ID"
+      }'
+    ```
+    </CodeGroup>
+  </Tab>
+
+  <Tab title="Notion">
+    <CodeGroup>
+    ```python Python
+    result = client.connect_provider("notion", "YOUR_COLLECTION_ID")
+    print(result["auth_url"])
+    ```
+
+    ```javascript JavaScript
+    const result = await client.connectProvider('notion', 'YOUR_COLLECTION_ID');
+    console.log(result.auth_url);
+    ```
+
+    ```bash cURL
+    curl -X POST "https://api.trynebula.ai/v1/connectors/notion/connect" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer YOUR_API_KEY" \
+      -d '{
+        "collection_id": "YOUR_COLLECTION_ID"
+      }'
+    ```
+    </CodeGroup>
+  </Tab>
+
+  <Tab title="Gmail">
+    <CodeGroup>
+    ```python Python
+    result = client.connect_provider("gmail", "YOUR_COLLECTION_ID")
+    print(result["auth_url"])
+    ```
+
+    ```javascript JavaScript
+    const result = await client.connectProvider('gmail', 'YOUR_COLLECTION_ID');
+    console.log(result.auth_url);
+    ```
+
+    ```bash cURL
+    curl -X POST "https://api.trynebula.ai/v1/connectors/gmail/connect" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer YOUR_API_KEY" \
+      -d '{
+        "collection_id": "YOUR_COLLECTION_ID"
+      }'
+    ```
+    </CodeGroup>
+  </Tab>
+</Tabs>
+
+### Step 2: User Authorizes
+
+Redirect the user to the `auth_url` from the response. After they approve access on the provider's consent screen, Nebula handles the OAuth callback automatically.
+
+- **Gmail and Notion**: The connection becomes `active` and syncing starts immediately.
+- **Google Drive and Slack**: The connection is created with status `pending`. Proceed to Step 3.
+
+### Step 3: Select Folders or Channels (Google Drive / Slack only)
+
+After OAuth completes, browse the provider's structure to find folder or channel IDs, then submit your selection.
+
+<Tabs>
+  <Tab title="Google Drive Folders">
+    ```bash cURL
+    # List root folders
+    curl -X GET "https://api.trynebula.ai/v1/connectors/CONNECTION_ID/folders" \
+      -H "Authorization: Bearer YOUR_API_KEY"
+
+    # Browse a subfolder
+    curl -X GET "https://api.trynebula.ai/v1/connectors/CONNECTION_ID/folders?parent_id=PARENT_FOLDER_ID" \
+      -H "Authorization: Bearer YOUR_API_KEY"
+    ```
+
+    Response:
+    ```json
+    [
+      {"id": "1ABC...", "name": "Project Docs", "has_children": true},
+      {"id": "2DEF...", "name": "Research", "has_children": true}
+    ]
+    ```
+
+    Submit your selection:
+    ```bash cURL
+    curl -X PATCH "https://api.trynebula.ai/v1/connectors/CONNECTION_ID/config" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer YOUR_API_KEY" \
+      -d '{"config": {"folder_ids": ["1ABC...", "2DEF..."]}}'
+    ```
+  </Tab>
+
+  <Tab title="Slack Channels">
+    ```bash cURL
+    curl -X GET "https://api.trynebula.ai/v1/connectors/CONNECTION_ID/channels" \
+      -H "Authorization: Bearer YOUR_API_KEY"
+    ```
+
+    Response:
+    ```json
+    [
+      {"id": "C01234ABC", "name": "general", "is_private": false, "num_members": 42},
+      {"id": "C56789DEF", "name": "engineering", "is_private": false, "num_members": 15}
+    ]
+    ```
+
+    Submit your selection:
+    ```bash cURL
+    curl -X PATCH "https://api.trynebula.ai/v1/connectors/CONNECTION_ID/config" \
+      -H "Content-Type: application/json" \
+      -H "Authorization: Bearer YOUR_API_KEY" \
+      -d '{"config": {"channel_ids": ["C01234ABC", "C56789DEF"]}}'
+    ```
+  </Tab>
+</Tabs>
+
+The config update sets the connection to `active` and triggers the initial sync automatically.
+
+## Listing Connections
+
+View all connections for a collection. Connections with status `revoked` are excluded.
+
+<CodeGroup>
+```python Python
+connections = client.list_connections("YOUR_COLLECTION_ID")
+for conn in connections:
+    print(conn["provider"], conn["status"])
+```
+
+```javascript JavaScript
+const connections = await client.listConnections('YOUR_COLLECTION_ID');
+connections.forEach(conn => console.log(conn.provider, conn.status));
+```
+
+```bash cURL
+curl -X GET "https://api.trynebula.ai/v1/connectors?collection_id=YOUR_COLLECTION_ID" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+</CodeGroup>
+
+Response:
+```json
+[
+  {
+    "id": "CONNECTION_UUID",
+    "provider": "google_drive",
+    "external_account_id": "user@gmail.com",
+    "status": "active",
+    "collection_id": "COLLECTION_UUID",
+    "items_synced": 47,
+    "last_synced_at": "2025-06-15T10:30:00Z",
+    "last_error": null,
+    "config": {"folder_ids": ["1ABC..."]},
+    "created_at": "2025-06-01T08:00:00Z"
+  }
+]
+```
+
+### Connection Statuses
+
+| Status | Meaning |
+|--------|---------|
+| `pending` | OAuth complete, waiting for folder/channel selection (Google Drive, Slack only) |
+| `active` | Connected and syncing on schedule |
+| `revoked` | Disconnected, hidden from list results |
+
+## Updating Connection Config
+
+Change which folders or channels a connection syncs. This resets the sync cursor and triggers a fresh sync.
+
+```bash cURL
+curl -X PATCH "https://api.trynebula.ai/v1/connectors/CONNECTION_ID/config" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{"config": {"folder_ids": ["NEW_FOLDER_ID"]}}'
+```
+
+<Warning>Changing folders or channels resets the sync cursor. Nebula will re-sync all content from the new selection.</Warning>
+
+## Disconnecting
+
+Remove a connection and stop syncing. Nebula attempts to revoke the OAuth token with the provider. Previously synced memories remain in the collection.
+
+```bash cURL
+curl -X DELETE "https://api.trynebula.ai/v1/connectors/CONNECTION_ID" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+<Note>Disconnecting does not delete previously synced memories. To remove them, delete the memories separately.</Note>
+
+## Sync Behavior
+
+- **Schedule**: Active connections sync automatically every 4 hours (configurable by the instance admin).
+- **Incremental**: After the initial full sync, only new or changed items are fetched.
+- **Deduplication**: Items are tracked by their provider-specific ID and content hash. Unchanged items are skipped.
+- **Retries**: Failed items are retried up to 3 times. After that, they enter a cooldown period before being re-attempted.
+
+## Config Reference
+
+### Google Drive
+
+| Key | Type | Constraints | Description |
+|-----|------|-------------|-------------|
+| `folder_ids` | `string[]` | Max 10 items, each max 64 chars, alphanumeric/dash/underscore | Drive folder IDs to sync |
+
+### Slack
+
+| Key | Type | Constraints | Description |
+|-----|------|-------------|-------------|
+| `channel_ids` | `string[]` | Max 50 items, must start with `C` or `G`, uppercase alphanumeric | Slack channel IDs to sync |
+
+## API Reference
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/v1/connectors/providers` | List available connector providers |
+| `POST` | `/v1/connectors/{provider}/connect` | Start OAuth flow |
+| `GET` | `/v1/connectors` | List connections for a collection |
+| `GET` | `/v1/connectors/{connection_id}/folders` | Browse Google Drive folders |
+| `GET` | `/v1/connectors/{connection_id}/channels` | List Slack channels |
+| `PATCH` | `/v1/connectors/{connection_id}/config` | Update connection config |
+| `DELETE` | `/v1/connectors/{connection_id}` | Disconnect a data source |
+
+All endpoints require authentication via `Authorization: Bearer YOUR_API_KEY`. The user must have **EDIT** permission on the target collection.
+
+## Best Practices
+
+1. **Scope connections narrowly** - Select specific folders or channels rather than syncing everything
+2. **One connection per provider per collection** - Each collection can have one active connection per provider and account
+3. **Use folder/channel browsing** - Discover IDs programmatically instead of hard-coding them
+4. **Monitor sync status** - Check the `status`, `last_synced_at`, and `last_error` fields
+
+## Next Steps
+
+- [Collections Guide](/guides/collections) - Organize memories into collections
+- [Memory Operations](/guides/memory-operations) - Work with synced memories
+- [Search Guide](/guides/search) - Search across synced content
