@@ -22,9 +22,6 @@ pip install nebula-client
 
 # Node.js
 npm install @nebula-ai/sdk
-
-# Go
-go get github.com/nebula-ai/nebula-client-go
 ```
 
 ## 2. Initialize Client
@@ -54,7 +51,6 @@ const nebula = new Nebula({
 curl -X GET "https://api.trynebula.ai/v1/collections?limit=5" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
- 
 
 </CodeGroup>
 
@@ -80,13 +76,14 @@ memory_id = nebula.store_memory({
 # Search memories
 results = nebula.search(
     query="machine learning healthcare",
-    collection_ids=[collection.id],
-    limit=5
+    collection_ids=[collection.id]
 )
 
-for result in results:
-    print(f"Score: {result.score:.2f}")
-    print(f"Content: {result.content}")
+# Results contain entities, facts, and utterances
+for entity in results.entities:
+    print(entity)
+for fact in results.facts:
+    print(fact)
 ```
 
 ```javascript JavaScript
@@ -116,10 +113,9 @@ async function storeAndSearch() {
     collection_ids: [collection.id]
   });
 
-  results.forEach(result => {
-    console.log(`Score: ${result.score?.toFixed?.(2)}`);
-    console.log(`Content: ${result.content}`);
-  });
+  // Results contain entities, facts, and utterances
+  results.entities?.forEach(entity => console.log(entity));
+  results.facts?.forEach(fact => console.log(fact));
 }
 
 storeAndSearch();
@@ -132,12 +128,12 @@ curl -X POST "https://api.trynebula.ai/v1/collections" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{"name": "my_notes", "description": "Personal notes"}'
 
-# 2) Store a memory
+# 2) Store a memory (use collection ID from step 1)
 curl -X POST "https://api.trynebula.ai/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
+    "collection_id": "COLLECTION_ID",
     "engram_type": "document",
     "raw_text": "Machine learning is transforming healthcare",
     "metadata": {"topic": "AI", "importance": "high"}
@@ -149,7 +145,7 @@ curl -X POST "https://api.trynebula.ai/v1/memories/search" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "query": "machine learning healthcare",
-    "collection_ids": ["my_notes"]
+    "collection_ids": ["COLLECTION_ID"]
   }'
 ```
 
@@ -160,33 +156,43 @@ curl -X POST "https://api.trynebula.ai/v1/memories/search" \
 When you store a memory, Nebula returns the memory ID:
 
 ```python
-# Returns the memory ID
 memory_id = "eng_abc123def456"
 ```
 
-When you search, you get a list of relevant results with scores:
+When you search, Nebula returns a `MemoryResponse` with three layers of structured knowledge:
 
-```python
-# Search results structure
-[
-  {
-    "memory_id": "eng_abc123def456",
-    "content": "Machine learning is transforming healthcare",
-    "score": 0.95,
-    "metadata": {"topic": "AI", "importance": "high"},
-    "created_at": "2024-01-15T10:30:00Z"
-  },
-  {
-    "memory_id": "eng_xyz789ghi012",
-    "content": "AI models improve diagnostic accuracy",
-    "score": 0.87,
-    "metadata": {"topic": "AI", "importance": "high"},
-    "created_at": "2024-01-14T09:15:00Z"
-  }
-]
+```json
+{
+  "entities": [
+    {
+      "name": "Machine Learning",
+      "description": "A subset of AI focused on learning from data",
+      "activation_score": 0.95
+    }
+  ],
+  "facts": [
+    {
+      "subject": "Machine Learning",
+      "predicate": "is transforming",
+      "value": "healthcare",
+      "activation_score": 0.92
+    }
+  ],
+  "utterances": [
+    {
+      "text": "Machine learning is transforming healthcare",
+      "activation_score": 0.91,
+      "engram_id": "eng_abc123def456"
+    }
+  ]
+}
 ```
 
-<Tip>Scores range from 0-1, with higher scores indicating better semantic matches to your query.</Tip>
+- **Entities**: People, concepts, and things extracted from your data
+- **Facts**: Subject-predicate-value assertions about those entities
+- **Utterances**: The original source text that grounds each fact
+
+<Tip>See [Core Concepts](/guides/concepts) for a deeper explanation of entities, facts, and utterances.</Tip>
 
 ## Next Steps
 
@@ -198,4 +204,4 @@ When you search, you get a list of relevant results with scores:
 ## Need Help?
 
 - **Examples**: See detailed examples in [Memory Operations](/guides/memory-operations)
-- **Support**: Email [support@trynebula.ai](mailto:support@trynebula.ai) 
+- **Support**: Email [support@trynebula.ai](mailto:support@trynebula.ai)
