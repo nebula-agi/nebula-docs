@@ -10,7 +10,7 @@ description: 'Store, retrieve, and manage memories in Nebula'
 <CodeGroup>
 
 ```python Python
-from nebula import Nebula
+from nebula import Nebula, Memory
 nebula = Nebula(api_key="your-api-key")
 
 # Single memory
@@ -20,10 +20,10 @@ memory_id = nebula.store_memory({
     "metadata": {"topic": "AI"}
 })
 
-# Batch storage (more efficient)
+# Batch storage
 memory_ids = nebula.store_memories([
-    {"collection_id": "research", "content": "Neural networks...", "metadata": {"type": "concept"}},
-    {"collection_id": "research", "content": "Deep learning...", "metadata": {"type": "concept"}}
+    Memory(collection_id="research", content="Neural networks...", metadata={"type": "concept"}),
+    Memory(collection_id="research", content="Deep learning...", metadata={"type": "concept"})
 ])
 ```
 
@@ -58,6 +58,8 @@ curl -X POST "https://api.trynebula.ai/v1/memories" \
 ```
 
 </CodeGroup>
+
+<Info>Memory creation is asynchronous. Content becomes searchable after Nebula finishes extraction (typically a few seconds). The API returns a `202` status with the memory ID immediately.</Info>
 
 ### Conversation Messages
 
@@ -192,6 +194,8 @@ curl -X POST "https://api.trynebula.ai/v1/memories" \
 
 <Tip>Inline base64 uploads are limited to ~5MB per file part; larger files use a presigned upload flow (max 100MB).</Tip>
 
+<Tip>Use `store_memories()` for batch operations. Metadata is useful for organizing and listing memories, but search quality comes from the knowledge graph - Nebula extracts entities, facts, and relationships automatically.</Tip>
+
 ## Retrieving Memories
 
 <CodeGroup>
@@ -214,11 +218,11 @@ const memories = await nebula.listMemories({ collection_ids: ["research"], limit
 
 ```bash cURL
 # Get by ID
-curl -X GET "https://api.trynebula.ai/v1/engrams/YOUR_MEMORY_ID" \
+curl -X GET "https://api.trynebula.ai/v1/memories/YOUR_MEMORY_ID" \
   -H "Authorization: Bearer YOUR_API_KEY"
 
 # List memories
-curl -X GET "https://api.trynebula.ai/v1/engrams?limit=50" \
+curl -X GET "https://api.trynebula.ai/v1/memories?limit=50" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
@@ -244,7 +248,7 @@ await nebula.delete([memoryId1, memoryId2, memoryId3]);
 ```
 
 ```bash cURL
-curl -X DELETE "https://api.trynebula.ai/v1/engrams/YOUR_MEMORY_ID" \
+curl -X DELETE "https://api.trynebula.ai/v1/memories/YOUR_MEMORY_ID" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
@@ -342,7 +346,7 @@ await nebula.updateChunk(chunkId, "Updated content", { edited: true });
 
 ```bash cURL
 # Get memory with chunks
-curl -X GET "https://api.trynebula.ai/v1/engrams/YOUR_MEMORY_ID" \
+curl -X GET "https://api.trynebula.ai/v1/memories/YOUR_MEMORY_ID" \
   -H "Authorization: Bearer YOUR_API_KEY"
 
 # Delete chunk
@@ -358,7 +362,6 @@ curl -X PATCH "https://api.trynebula.ai/v1/chunks/YOUR_CHUNK_ID" \
 
 </CodeGroup>
 
-<Tip>Use `store_memories()` for batch operations -- it's faster than multiple single calls. Rich metadata improves search quality; see [Metadata Filtering](/guides/metadata-filtering) for filter operators.</Tip>
 
 ## Next Steps
 

@@ -109,35 +109,47 @@ curl -X POST "https://api.trynebula.ai/v1/memories" \
 
 ## Retrieving Conversations
 
+Use `get_memory()` to retrieve a conversation with all its messages as chunks.
+
 <CodeGroup>
 
 ```python Python
-# Get all messages in a conversation
-messages = nebula.get_conversation_messages(conv_id)
-for msg in messages:
-    print(f"[{msg.metadata.get('source_role')}]: {msg.content}")
+# Get conversation with all messages
+memory = nebula.get_memory(conv_id)
+for chunk in memory.chunks:
+    print(f"[{chunk.metadata.get('source_role')}]: {chunk.content}")
 
-# List all conversations
-conversations = nebula.list_conversations(limit=50)
+# List conversation memories in a collection
+conversations = nebula.list_memories(
+    collection_ids=["chat-collection"],
+    metadata_filters={"metadata.type": {"$eq": "conversation"}}
+)
 ```
 
 ```javascript JavaScript
-// Get all messages in a conversation
-const messages = await nebula.getConversationMessages(convId);
-messages.forEach(msg => console.log(`[${msg.metadata.source_role}]: ${msg.content}`));
+// Get conversation with all messages
+const memory = await nebula.getMemory(convId);
+memory.chunks?.forEach(chunk =>
+  console.log(`[${chunk.metadata?.source_role}]: ${chunk.content}`)
+);
 
-// List all conversations
-const conversations = await nebula.listConversations({ limit: 50 });
+// List conversation memories in a collection
+const conversations = await nebula.listMemories({
+  collection_ids: ["chat-collection"],
+  metadata_filters: {"metadata.type": {"$eq": "conversation"}}
+});
 ```
 
 ```bash cURL
-# Get conversation messages
-curl -X GET "https://api.trynebula.ai/v1/conversations/CONVERSATION_ID" \
+# Get conversation with messages
+curl -X GET "https://api.trynebula.ai/v1/memories/CONVERSATION_ID" \
   -H "Authorization: Bearer YOUR_API_KEY"
 
-# List conversations
-curl -X GET "https://api.trynebula.ai/v1/conversations?limit=50" \
-  -H "Authorization: Bearer YOUR_API_KEY"
+# List memories (filter by conversation type)
+curl -G "https://api.trynebula.ai/v1/memories" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  --data-urlencode 'collection_ids=COLLECTION_ID' \
+  --data-urlencode 'metadata_filters={"metadata.type":{"$eq":"conversation"}}'
 ```
 
 </CodeGroup>
