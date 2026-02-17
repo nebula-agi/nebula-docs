@@ -155,8 +155,8 @@ Provide the `collection_id` where synced content should land. For Google Drive a
 
 Redirect the user to the `auth_url` from the response. After they approve access on the provider's consent screen, Nebula handles the OAuth callback automatically.
 
-- **Gmail and Notion**: The connection becomes `active` and syncing starts immediately.
-- **Google Drive and Slack**: The connection is created with status `pending`. Proceed to Step 3.
+- **Gmail and Notion**: Becomes `active` and syncing starts immediately.
+- **Google Drive and Slack**: Created with status `pending`. Proceed to step 3.
 
 ### Step 3: Select Folders or Channels (Google Drive / Slack only)
 
@@ -378,7 +378,7 @@ curl -X DELETE "https://api.trynebula.ai/v1/connectors/CONNECTION_ID" \
 
 | Key | Type | Constraints | Description |
 |-----|------|-------------|-------------|
-| `folder_ids` | `string[]` | Max 10 items, each max 64 chars, alphanumeric/dash/underscore | Drive folder IDs to sync |
+| `folder_ids` | `string[]` | Max 10 items, 64 chars each, alphanumeric only | Drive folder IDs to sync |
 
 ### Slack
 
@@ -399,8 +399,6 @@ curl -X DELETE "https://api.trynebula.ai/v1/connectors/CONNECTION_ID" \
 | `DELETE` | `/v1/connectors/{connection_id}` | Disconnect a data source |
 
 All endpoints require authentication via `Authorization: Bearer YOUR_API_KEY`. The user must have **EDIT** permission on the target collection.
-
-<Tip>Scope connections narrowly by selecting specific folders or channels. Each collection supports one active connection per provider and account. Use the folder/channel browsing APIs to discover IDs programmatically, and monitor `last_synced_at` and `last_error` fields for sync health.</Tip>
 
 ## Next Steps
 
