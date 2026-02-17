@@ -194,7 +194,46 @@ curl -X POST "https://api.trynebula.ai/v1/memories" \
 
 <Tip>Inline base64 uploads are limited to ~5MB per file part; larger files use a presigned upload flow (max 100MB).</Tip>
 
-<Tip>Use `store_memories()` for batch operations. Metadata is useful for organizing and listing memories, but search quality comes from the knowledge graph - Nebula extracts entities, facts, and relationships automatically.</Tip>
+### Batch Storage
+
+Store multiple memories at once with `store_memories()`. Conversation messages with the same `collection_id` are grouped into a single conversation automatically.
+
+<CodeGroup>
+
+```python Python
+from nebula import Nebula, Memory
+nebula = Nebula(api_key="your-api-key")
+
+# Batch store documents
+ids = nebula.store_memories([
+    Memory(collection_id=collection.id, content="First document"),
+    Memory(collection_id=collection.id, content="Second document"),
+    Memory(collection_id=collection.id, content="Third document"),
+])
+
+# Batch store conversation messages (grouped into one conversation)
+ids = nebula.store_memories([
+    Memory(collection_id=collection.id, content="Hello!", role="user"),
+    Memory(collection_id=collection.id, content="Hi there!", role="assistant"),
+])
+```
+
+```javascript JavaScript
+// Batch store documents
+const ids = await nebula.storeMemories([
+  { collection_id: collection.id, content: "First document", metadata: {} },
+  { collection_id: collection.id, content: "Second document", metadata: {} },
+  { collection_id: collection.id, content: "Third document", metadata: {} },
+]);
+
+// Batch store conversation messages (grouped into one conversation)
+const convIds = await nebula.storeMemories([
+  { collection_id: collection.id, content: "Hello!", role: "user", metadata: {} },
+  { collection_id: collection.id, content: "Hi there!", role: "assistant", metadata: {} },
+]);
+```
+
+</CodeGroup>
 
 ## Retrieving Memories
 
