@@ -22,9 +22,12 @@ from nebula import Nebula
 # Automatically uses NEBULA_API_KEY environment variable
 nebula = Nebula()
 
+# Create a collection
+collection = nebula.create_collection(name="my-collection")
+
 # Store a memory
 memory_id = nebula.store_memory({
-    "collection_id": "my-collection",
+    "collection_id": collection.id,
     "content": "Nebula makes memory management easy",
     "metadata": {"topic": "nebula"}
 })
@@ -32,11 +35,11 @@ memory_id = nebula.store_memory({
 # Search memories
 results = nebula.search(
     query="memory management",
-    collection_ids=["my-collection"]
+    collection_ids=[collection.id]
 )
 
-for result in results:
-    print(f"Content: {result.content}")
+for fact in results.facts:
+    print(fact)
 ```
 
 For more detailed examples, see [Memory Operations](/guides/memory-operations).
@@ -67,8 +70,8 @@ async def main():
         collection_ids=[collection.id]
     )
 
-    for result in results:
-        print(f"{result.content}")
+    for fact in results.facts:
+        print(fact)
 
     # Clean up
     await nebula.aclose()
@@ -97,7 +100,7 @@ async def main():
             collection_ids=[collection.id]
         )
 
-        print(f"Found {len(results)} results")
+        print(f"Found {len(results.facts)} facts")
 
 asyncio.run(main())
 ```
