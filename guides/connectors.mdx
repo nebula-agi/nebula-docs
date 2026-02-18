@@ -28,7 +28,7 @@ print(providers)  # ["gmail", "google_drive", "notion", "slack"]
 ```
 
 ```javascript JavaScript
-import { Nebula } from '@trynebula/sdk';
+import { Nebula } from '@nebula-ai/sdk';
 
 const client = new Nebula({ apiKey: 'YOUR_API_KEY' });
 const providers = await client.listProviders();
@@ -173,7 +173,7 @@ After OAuth completes, browse the provider's structure to find folder or channel
     # Browse a subfolder
     subfolders = client.list_folders("CONNECTION_ID", parent_id="PARENT_FOLDER_ID")
     for f in folders:
-        print(f["id"], f["name"])
+        print(f["id"], f["name"], f["is_selected"])
     ```
 
     ```javascript JavaScript
@@ -182,7 +182,7 @@ After OAuth completes, browse the provider's structure to find folder or channel
 
     // Browse a subfolder
     const subfolders = await client.listFolders('CONNECTION_ID', 'PARENT_FOLDER_ID');
-    folders.forEach(f => console.log(f.id, f.name));
+    folders.forEach(f => console.log(f.id, f.name, f.is_selected));
     ```
 
     ```bash cURL
@@ -199,8 +199,8 @@ After OAuth completes, browse the provider's structure to find folder or channel
     Response:
     ```json
     [
-      {"id": "1ABC...", "name": "Project Docs", "has_children": true},
-      {"id": "2DEF...", "name": "Research", "has_children": true}
+      {"id": "1ABC...", "name": "Project Docs", "has_children": true, "is_selected": true},
+      {"id": "2DEF...", "name": "Research", "has_children": true, "is_selected": false}
     ]
     ```
 
@@ -218,7 +218,7 @@ After OAuth completes, browse the provider's structure to find folder or channel
     curl -X PATCH "https://api.trynebula.ai/v1/connectors/CONNECTION_ID/config" \
       -H "Content-Type: application/json" \
       -H "Authorization: Bearer YOUR_API_KEY" \
-      -d '{"config": {"folder_ids": ["1ABC...", "2DEF..."]}}'
+      -d '{"config": {"folder_ids": ["1ABC...", "2DEF..."]}, "apply": "full_resync"}'
     ```
     </CodeGroup>
   </Tab>
@@ -229,12 +229,12 @@ After OAuth completes, browse the provider's structure to find folder or channel
     ```python Python
     channels = client.list_channels("CONNECTION_ID")
     for ch in channels:
-        print(ch["id"], ch["name"], ch["num_members"])
+        print(ch["id"], ch["name"], ch["num_members"], ch["is_selected"])
     ```
 
     ```javascript JavaScript
     const channels = await client.listChannels('CONNECTION_ID');
-    channels.forEach(ch => console.log(ch.id, ch.name, ch.num_members));
+    channels.forEach(ch => console.log(ch.id, ch.name, ch.num_members, ch.is_selected));
     ```
 
     ```bash cURL
@@ -246,8 +246,8 @@ After OAuth completes, browse the provider's structure to find folder or channel
     Response:
     ```json
     [
-      {"id": "C01234ABC", "name": "general", "is_private": false, "num_members": 42},
-      {"id": "C56789DEF", "name": "engineering", "is_private": false, "num_members": 15}
+      {"id": "C01234ABC", "name": "general", "is_private": false, "num_members": 42, "is_selected": true},
+      {"id": "C56789DEF", "name": "engineering", "is_private": false, "num_members": 15, "is_selected": false}
     ]
     ```
 
@@ -265,13 +265,13 @@ After OAuth completes, browse the provider's structure to find folder or channel
     curl -X PATCH "https://api.trynebula.ai/v1/connectors/CONNECTION_ID/config" \
       -H "Content-Type: application/json" \
       -H "Authorization: Bearer YOUR_API_KEY" \
-      -d '{"config": {"channel_ids": ["C01234ABC", "C56789DEF"]}}'
+      -d '{"config": {"channel_ids": ["C01234ABC", "C56789DEF"]}, "apply": "full_resync"}'
     ```
     </CodeGroup>
   </Tab>
 </Tabs>
 
-The config update sets the connection to `active` and triggers the initial sync automatically.
+The config update sets the connection to `active` and triggers the initial sync automatically. The `apply` field defaults to `"full_resync"` -- currently the only supported mode.
 
 ## Listing Connections
 
@@ -281,12 +281,12 @@ View all connections for a collection. Connections with status `revoked` are exc
 ```python Python
 connections = client.list_connections("YOUR_COLLECTION_ID")
 for conn in connections:
-    print(conn["provider"], conn["status"])
+    print(conn["provider"], conn["status"], conn["health"])
 ```
 
 ```javascript JavaScript
 const connections = await client.listConnections('YOUR_COLLECTION_ID');
-connections.forEach(conn => console.log(conn.provider, conn.status));
+connections.forEach(conn => console.log(conn.provider, conn.status, conn.health));
 ```
 
 ```bash cURL
@@ -308,7 +308,10 @@ Response:
     "last_synced_at": "2025-06-15T10:30:00Z",
     "last_error": null,
     "config": {"folder_ids": ["1ABC..."]},
-    "created_at": "2025-06-01T08:00:00Z"
+    "created_at": "2025-06-01T08:00:00Z",
+    "health": "ok",
+    "error_detail": null,
+    "next_sync_at": "2025-06-15T14:30:00Z"
   }
 ]
 ```
@@ -320,6 +323,54 @@ Response:
 | `pending` | OAuth complete, waiting for folder/channel selection (Google Drive, Slack only) |
 | `active` | Connected and syncing on schedule |
 | `revoked` | Disconnected, hidden from list results |
+
+### Enriched Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `health` | `"ok" \| "error" \| null` | `"ok"` if active with no errors, `"error"` if active with `last_error`, `null` for non-active statuses |
+| `error_detail` | `{message, retryable} \| null` | Structured version of `last_error`. `retryable` is `true` for all current error types |
+| `next_sync_at` | `string \| null` | Estimated next sync time. `null` for non-active connections. Equal to `created_at` if never synced |
+
+## Get Connection Details
+
+Fetch a single connection by ID.
+
+<CodeGroup>
+```python Python
+conn = client.get_connection("CONNECTION_ID")
+print(conn["health"], conn["next_sync_at"])
+```
+
+```javascript JavaScript
+const conn = await client.getConnection('CONNECTION_ID');
+console.log(conn.health, conn.next_sync_at);
+```
+
+```bash cURL
+curl -X GET "https://api.trynebula.ai/v1/connectors/CONNECTION_ID" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+</CodeGroup>
+
+Response:
+```json
+{
+  "id": "CONNECTION_UUID",
+  "provider": "google_drive",
+  "external_account_id": "user@gmail.com",
+  "status": "active",
+  "collection_id": "COLLECTION_UUID",
+  "items_synced": 47,
+  "last_synced_at": "2025-06-15T10:30:00Z",
+  "last_error": null,
+  "config": {"folder_ids": ["1ABC..."]},
+  "created_at": "2025-06-01T08:00:00Z",
+  "health": "ok",
+  "error_detail": null,
+  "next_sync_at": "2025-06-15T14:30:00Z"
+}
+```
 
 ## Updating Connection Config
 
@@ -338,32 +389,80 @@ await client.updateConnectionConfig('CONNECTION_ID', { folder_ids: ['NEW_FOLDER_
 curl -X PATCH "https://api.trynebula.ai/v1/connectors/CONNECTION_ID/config" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{"config": {"folder_ids": ["NEW_FOLDER_ID"]}}'
+  -d '{"config": {"folder_ids": ["NEW_FOLDER_ID"]}, "apply": "full_resync"}'
 ```
 </CodeGroup>
+
+The `apply` field defaults to `"full_resync"`. Unsupported values return a 400 error:
+
+```json
+{"detail": "Unsupported apply mode: 'incremental'. Supported: ['full_resync']"}
+```
 
 <Warning>Changing folders or channels resets the sync cursor. Nebula will re-sync all content from the new selection.</Warning>
 
 ## Disconnecting
 
-Remove a connection and stop syncing. Nebula attempts to revoke the OAuth token with the provider. Previously synced memories remain in the collection.
+Remove a connection and stop syncing. Nebula attempts to revoke the OAuth token with the provider. Previously synced memories remain in the collection unless `delete_memories` is set to `true`.
 
 <CodeGroup>
 ```python Python
+# Simple disconnect (keep memories)
 client.disconnect("CONNECTION_ID")
+
+# Disconnect and delete synced memories
+result = client.disconnect("CONNECTION_ID", delete_memories=True)
+print(result["warnings"])  # [] on success
 ```
 
 ```javascript JavaScript
+// Simple disconnect (keep memories)
 await client.disconnect('CONNECTION_ID');
+
+// Disconnect and delete synced memories
+const result = await client.disconnect('CONNECTION_ID', true);
+console.log(result.warnings); // [] on success
 ```
 
 ```bash cURL
+# Simple disconnect (keep memories)
 curl -X DELETE "https://api.trynebula.ai/v1/connectors/CONNECTION_ID" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+# Disconnect and delete synced memories
+curl -X DELETE "https://api.trynebula.ai/v1/connectors/CONNECTION_ID?delete_memories=true" \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 </CodeGroup>
 
-<Note>Disconnecting does not delete previously synced memories. To remove them, delete the memories separately.</Note>
+Success response:
+```json
+{
+  "message": "Connection CONNECTION_UUID disconnected",
+  "warnings": []
+}
+```
+
+Partial cleanup response:
+```json
+{
+  "message": "Connection CONNECTION_UUID disconnected",
+  "warnings": [
+    {
+      "code": "cleanup_partial",
+      "message": "Some memories could not be deleted. For guaranteed cleanup, delete the entire collection."
+    }
+  ]
+}
+```
+
+<Warning>Memory deletion is best-effort. Memories created before connection tracking was added,
+or whose mapping was overwritten by content updates, may not be captured. If a lock is held
+(for example, sync or config update in progress), memory cleanup is skipped. In rare cases,
+an unusually slow deletion operation may cause the internal lock to expire, allowing concurrent
+operations to proceed before cleanup finishes. Metadata-based attribution may also affect
+engrams with manually crafted matching metadata in the same collection. For guaranteed
+cleanup, delete the entire collection.</Warning>
 
 ## Sync Behavior
 
@@ -371,6 +470,37 @@ curl -X DELETE "https://api.trynebula.ai/v1/connectors/CONNECTION_ID" \
 - **Incremental**: After the initial full sync, only new or changed items are fetched.
 - **Deduplication**: Items are tracked by their provider-specific ID and content hash. Unchanged items are skipped.
 - **Retries**: Failed items are retried up to 3 times. After that, they enter a cooldown period before being re-attempted.
+
+## Manual Sync
+
+Trigger an immediate sync for a connection without waiting for the next scheduled run.
+
+<CodeGroup>
+```python Python
+result = client.trigger_sync("CONNECTION_ID")
+print(result["message"])  # "Sync triggered"
+```
+
+```javascript JavaScript
+const result = await client.triggerSync('CONNECTION_ID');
+console.log(result.message); // "Sync triggered"
+```
+
+```bash cURL
+curl -X POST "https://api.trynebula.ai/v1/connectors/CONNECTION_ID/sync" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+</CodeGroup>
+
+The endpoint returns immediately. The sync runs asynchronously in the background.
+
+**Error responses:**
+
+| Status | Condition |
+|--------|-----------|
+| 400 | Connection is not `active` (e.g. `pending` or `revoked`) |
+| 403 | User lacks EDIT permission on the collection |
+| 409 | Sync already in progress for this connection |
 
 ## Config Reference
 
@@ -393,12 +523,30 @@ curl -X DELETE "https://api.trynebula.ai/v1/connectors/CONNECTION_ID" \
 | `GET` | `/v1/connectors/providers` | List available connector providers |
 | `POST` | `/v1/connectors/{provider}/connect` | Start OAuth flow |
 | `GET` | `/v1/connectors` | List connections for a collection |
+| `GET` | `/v1/connectors/{connection_id}` | Get a single connection |
+| `POST` | `/v1/connectors/{connection_id}/sync` | Trigger manual sync |
 | `GET` | `/v1/connectors/{connection_id}/folders` | Browse Google Drive folders |
 | `GET` | `/v1/connectors/{connection_id}/channels` | List Slack channels |
 | `PATCH` | `/v1/connectors/{connection_id}/config` | Update connection config |
 | `DELETE` | `/v1/connectors/{connection_id}` | Disconnect a data source |
 
-All endpoints require authentication via `Authorization: Bearer YOUR_API_KEY`. The user must have **EDIT** permission on the target collection.
+All endpoints require authentication via `Authorization: Bearer YOUR_API_KEY`.
+
+### Permissions
+
+| Endpoint | Permission |
+|----------|-----------|
+| `GET /connectors/providers` | Authenticated (no collection check) |
+| `GET /connectors` | Read access to collection |
+| `GET /connectors/{connection_id}` | Read access to collection |
+| `POST /connectors/{provider}/connect` | EDIT on collection |
+| `POST /connectors/{connection_id}/sync` | EDIT on collection |
+| `PATCH /connectors/{connection_id}/config` | EDIT on collection |
+| `DELETE /connectors/{connection_id}` | EDIT on collection |
+| `GET /connectors/{connection_id}/folders` | EDIT on collection |
+| `GET /connectors/{connection_id}/channels` | EDIT on collection |
+
+<Note>`/folders` and `/channels` are GET endpoints but require EDIT permission because they access the provider's API using stored credentials.</Note>
 
 ## Next Steps
 
