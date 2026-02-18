@@ -50,6 +50,7 @@
           {
             "group": "Integration",
             "pages": [
+              "guides/connectors",
               "mcp-integration"
             ]
           }
@@ -74,7 +75,8 @@
             "group": "Plugins",
             "pages": [
               "plugins/claude-code",
-              "plugins/openclaw"
+              "plugins/openclaw",
+              "plugins/zo"
             ]
           }
         ]

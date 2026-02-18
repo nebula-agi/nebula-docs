@@ -3,17 +3,13 @@ title: 'Node.js Client'
 description: 'Official Node.js SDK for Nebula'
 ---
 
-# Node.js Client
-
-Official Node.js/TypeScript SDK for the Nebula Memory API.
-
 ## Installation
 
 ```bash
 npm install @nebula-ai/sdk
 ```
 
-## Setup
+## Quick Start
 
 ```bash
 # Set environment variable
@@ -26,19 +22,14 @@ import { Nebula } from '@nebula-ai/sdk';
 
 // Automatically uses NEBULA_API_KEY environment variable
 const nebula = new Nebula();
-```
-
-## Quick Start
-
-```javascript
-import { Nebula } from '@nebula-ai/sdk';
-
-const nebula = new Nebula();
 
 async function example() {
+  // Create a collection
+  const collection = await nebula.createCollection({ name: 'my-collection' });
+
   // Store a memory
   const memoryId = await nebula.storeMemory({
-    collection_id: 'my-collection',
+    collection_id: collection.id,
     content: 'Nebula supports Node.js and TypeScript',
     metadata: { topic: 'nebula', language: 'javascript' }
   });
@@ -46,19 +37,18 @@ async function example() {
   // Search memories
   const results = await nebula.search({
     query: 'Node.js support',
-    collection_ids: ['my-collection']
+    collection_ids: [collection.id]
   });
 
-  results.forEach(result => {
-    console.log(`Content: ${result.content}`);
-  });
+  for (const fact of results.facts) {
+    console.log(fact);
+  }
 }
 
 example();
 ```
 
 For more detailed examples, see [Memory Operations](/guides/memory-operations).
-
 
 ## Next Steps
 

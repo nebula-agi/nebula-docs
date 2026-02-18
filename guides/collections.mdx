@@ -3,11 +3,7 @@ title: 'Collections Guide'
 description: 'Organize memories into logical collections'
 ---
 
-# Collections
-
-Collections are organizational containers for your memories - like projects or workspaces.
-
-<Note>Collections are manual organizational units. You control what goes where.</Note>
+A collection is a named container that groups related memories together. You create collections, assign memories to them, and scope searches to them.
 
 ## Why Use Collections?
 
@@ -28,8 +24,7 @@ nebula = Nebula(api_key="your-api-key")
 
 collection = nebula.create_collection(
     name="Research Papers",
-    description="Academic research documents",
-    metadata={"category": "academic"}
+    description="Academic research documents"
 )
 ```
 
@@ -39,8 +34,7 @@ const nebula = new Nebula({ apiKey: 'your-api-key' });
 
 const collection = await nebula.createCollection({
   name: "Research Papers",
-  description: "Academic research documents",
-  metadata: { category: "academic" }
+  description: "Academic research documents"
 });
 ```
 
@@ -124,7 +118,7 @@ curl -X POST "https://api.trynebula.ai/v1/memories/search" \
 
 </CodeGroup>
 
-<Tip>Use collection names for convenience or UUIDs for precision.</Tip>
+<Tip>Search accepts collection names or UUIDs. When storing memories, `collection_id` must be a UUID.</Tip>
 
 ## Managing Collections
 
@@ -207,26 +201,14 @@ curl -X POST "https://api.trynebula.ai/v1/memories/search" \
         -H "Authorization: Bearer YOUR_API_KEY"
       ```
     </CodeGroup>
-    <Warning>Deleting a collection permanently removes all memories within it.</Warning>
+    <Warning>Deleting a collection removes its graph data and vector chunks. The underlying memory records are disassociated from the collection, not deleted.</Warning>
   </Tab>
 </Tabs>
 
-## Common Patterns
+## Patterns and Tips
 
 | Pattern | When to Use |
 |---------|-------------|
 | **One collection per user** | User-specific memory/context |
 | **One collection per project** | Project-scoped documentation |
 | **One collection per data type** | Different content types (docs, chats, notes) |
-
-## Best Practices
-
-1. **Use descriptive names** - `customer_support` not `collection_1`
-2. **Leverage metadata** - Store organizational info in collection metadata
-3. **Specify collection_ids for targeted searches** - Faster, scoped searches
-4. **Plan for scale** - Consider collection strategy early
-
-## Next Steps
-
-- [Memory Operations](/guides/memory-operations) - Store and search memories
-- [Metadata Filtering](/guides/metadata-filtering) - Advanced filtering

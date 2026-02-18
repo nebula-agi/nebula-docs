@@ -1,6 +1,6 @@
 ---
 title: Introduction
-description: "Add persistent memory to your AI applications in minutes"
+description: "The memory layer that gives AI applications structured, long-term knowledge"
 ---
 
 <img
@@ -10,87 +10,85 @@ description: "Add persistent memory to your AI applications in minutes"
 
 # Welcome to Nebula
 
-Nebula is a persistent memory layer for AI applications. Store, search, and retrieve information with semantic understanding—giving your AI long-term memory across every interaction.
+Nebula is the memory layer for AI applications. It ingests documents, conversations, files, and connected sources, then builds a knowledge graph your AI can search and reason over. Retrieval returns entities, facts, and source utterances instead of flat text chunks.
 
 ## Quick Example
 
 <CodeGroup>
 
-```python
+```python Python
 from nebula import Nebula
 
 nebula = Nebula(api_key="your_api_key")
 
-# Create a memory collection
-collection = nebula.create_collection(name="customer_support")
+# Create a collection
+collection = nebula.create_collection(name="engineering_team")
 
-# Store information
+# Store a memory
 nebula.store_memory({
     "collection_id": collection.id,
-    "content": "User prefers email notifications over SMS",
-    "metadata": {"user_id": "user_123", "preference": "email"}
+    "content": "Sarah led the migration from PostgreSQL to Aurora last quarter. The project reduced our p99 latency from 200ms to 45ms.",
+    "metadata": {"source": "standup_notes"}
 })
 
-# Search semantically
-results = nebula.search("How does user_123 want to be contacted?", collection_id=collection.id)
-print(results[0].content)  # Returns: "User prefers email notifications over SMS"
+# Search
+results = nebula.search(
+    query="What has Sarah worked on?",
+    collection_ids=[collection.id]
+)
 ```
 
-```javascript
+```javascript JavaScript
 const { Nebula } = require('@nebula-ai/sdk');
 
-const nebula = new Nebula({
-  apiKey: 'your_api_key'
-});
+const nebula = new Nebula({ apiKey: 'your_api_key' });
 
 async function example() {
-  // Create a memory collection
+  // Create a collection
   const collection = await nebula.createCollection({
-    name: 'customer_support'
+    name: 'engineering_team'
   });
 
-  // Store information
+  // Store a memory
   await nebula.storeMemory({
     collection_id: collection.id,
-    content: 'User prefers email notifications over SMS',
-    metadata: { user_id: 'user_123', preference: 'email' }
+    content: 'Sarah led the migration from PostgreSQL to Aurora last quarter. The project reduced our p99 latency from 200ms to 45ms.',
+    metadata: { source: 'standup_notes' }
   });
 
-  // Search semantically
+  // Search
   const results = await nebula.search({
-    query: 'How does user_123 want to be contacted?',
+    query: 'What has Sarah worked on?',
     collection_ids: [collection.id]
   });
-
-  console.log(results[0].content); // Returns: "User prefers email notifications over SMS"
 }
 ```
 
 ```bash cURL
-# Create a memory collection
+# Create a collection
 curl -X POST "https://api.trynebula.ai/v1/collections" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{"name": "customer_support"}'
+  -d '{"name": "engineering_team"}'
 
-# Store information
+# Store a memory
 curl -X POST "https://api.trynebula.ai/v1/memories" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "collection_id": "550e8400-e29b-41d4-a716-446655440000",
+    "collection_id": "COLLECTION_ID",
     "engram_type": "document",
-    "raw_text": "User prefers email notifications over SMS",
-    "metadata": {"user_id": "user_123", "preference": "email"}
+    "raw_text": "Sarah led the migration from PostgreSQL to Aurora last quarter. The project reduced our p99 latency from 200ms to 45ms.",
+    "metadata": {"source": "standup_notes"}
   }'
 
-# Search semantically
+# Search
 curl -X POST "https://api.trynebula.ai/v1/memories/search" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "query": "How does user_123 want to be contacted?",
-    "collection_ids": ["customer_support"]
+    "query": "What has Sarah worked on?",
+    "collection_ids": ["COLLECTION_ID"]
   }'
 ```
 
@@ -98,15 +96,29 @@ curl -X POST "https://api.trynebula.ai/v1/memories/search" \
 
 [Get your API key and start building →](/quickstart)
 
+## How It Works
+
+<Steps>
+  <Step title="Ingest">
+    Store documents, conversations, or files. Connect external sources like Google Drive, Gmail, Notion, and Slack. Nebula parses 40+ file formats including PDFs, images, and audio.
+  </Step>
+  <Step title="Extract">
+    Nebula automatically builds a knowledge graph from your content, linking entities and relationships with temporal awareness and fact corroboration across sources.
+  </Step>
+  <Step title="Recall">
+    Search returns three layers of memory: **entities** (who and what), **facts** (assertions about them), and **utterances** (the original source text).
+  </Step>
+</Steps>
+
 ## Key Features
 
-- **Semantic Search** - Find information by meaning, not just keywords
-- **Persistent Memory** - Context that persists across sessions and conversations
-- **Rich Metadata** - Filter and organize with custom metadata fields
-- **Collection Organization** - Group related information into logical collections
-- **Sub-100ms Retrieval** - Fast semantic search even at scale
-- **Multi-Language SDKs** - Python, JavaScript/TypeScript, and MCP support
-- **SOC 2 Compliant** - Enterprise-grade security and encryption
+- **Knowledge Graph** - Automatic entity and relationship extraction from raw content
+- **Hierarchical Retrieval** - Three layers: entities, facts, and source utterances
+- **Knowledge Graph Search** - Graph traversal returning entities, facts, and source utterances
+- **Multimodal Ingestion** - 40+ file formats including PDFs, images, audio, and code
+- **Connectors** - Sync from Google Drive, Gmail, Notion, and Slack via OAuth
+- **Conversation Memory** - Multi-turn context with speaker identity tracking
+- **Multi-Language SDKs** - Python, JavaScript/TypeScript, REST API, and MCP
 
 ## Core Concepts
 
@@ -116,21 +128,45 @@ curl -X POST "https://api.trynebula.ai/v1/memories/search" \
     href="/guides/memory-operations"
     icon="brain"
   >
-    Store, search, and retrieve information with semantic understanding
+    Store, retrieve, and manage documents, conversations, and files
   </Card>
   <Card
     title="Collections"
     href="/guides/collections"
     icon="folder-tree"
   >
-    Organize memories into logical collections with automatic deduplication
+    Group related memories with scoped access control
   </Card>
+  <Card
+    title="Search"
+    href="/guides/search"
+    icon="magnifying-glass"
+  >
+    Knowledge graph traversal with effort levels and collection scoping
+  </Card>
+</CardGroup>
+
+<CardGroup cols={3}>
   <Card
     title="Conversations"
     href="/guides/conversations"
     icon="messages"
   >
-    Build chat applications with multi-turn conversation memory
+    Build multi-turn chat applications with persistent context
+  </Card>
+  <Card
+    title="Connectors"
+    href="/guides/connectors"
+    icon="plug"
+  >
+    OAuth-based sync for Google Drive, Gmail, Notion, and Slack
+  </Card>
+  <Card
+    title="Architecture"
+    href="/guides/concepts"
+    icon="book"
+  >
+    Memories, chunks, and the knowledge graph
   </Card>
 </CardGroup>
 
@@ -142,37 +178,23 @@ curl -X POST "https://api.trynebula.ai/v1/memories/search" \
     href="/clients/python"
     icon="python"
   >
-    Full-featured Python client with async support
+    Sync and async client for Python 3.8+
   </Card>
   <Card
     title="JavaScript SDK"
     href="/clients/nodejs"
     icon="js"
   >
-    TypeScript/JavaScript SDK with comprehensive types
+    TypeScript SDK with full type definitions
   </Card>
   <Card
     title="MCP Integration"
     href="/mcp-integration"
-    icon="plug"
+    icon="robot"
   >
     Connect AI assistants via Model Context Protocol
   </Card>
 </CardGroup>
-
-## Next Steps
-
-<Steps>
-  <Step title="Quickstart">
-    [Get started in 5 minutes →](/quickstart) Install the SDK, create your first collection, and store memories
-  </Step>
-  <Step title="Core Concepts">
-    [Learn the fundamentals →](/guides/concepts) Understand how Nebula stores and organizes information
-  </Step>
-  <Step title="Build">
-    [Explore guides →](/guides/memory-operations) Deep dive into memory operations, filtering, and conversations
-  </Step>
-</Steps>
 
 ## Support
 

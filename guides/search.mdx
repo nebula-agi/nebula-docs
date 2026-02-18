@@ -1,11 +1,9 @@
 ---
 title: 'Search Guide'
-description: 'Semantic search and intelligent filtering in Nebula'
+description: 'Knowledge graph search in Nebula'
 ---
 
-# Search Guide
-
-Nebula provides powerful hybrid search that combines semantic (vector) and full-text search for optimal results.
+Nebula searches over a knowledge graph of entities and relationships, not raw text chunks. You send a natural language query; Nebula traverses the graph and returns structured knowledge: **entities** (who and what), **facts** (assertions about them), and **utterances** (the original source text).
 
 ## Basic Search
 
@@ -16,16 +14,23 @@ from nebula import Nebula
 
 nebula = Nebula(api_key="your-api-key")
 
-# Simple search
 results = nebula.search(
-    query="machine learning algorithms",
-    collection_ids=["research-collection"]
+    query="What has Sarah worked on?",
+    collection_ids=["engineering"]
 )
 
-for result in results:
-    print(f"Score: {result.score:.3f}")
-    print(f"Content: {result.content}")
-    print(f"Metadata: {result.metadata}\n")
+# Entities: people, concepts, organizations
+for entity in results.entities:
+    print(f"{entity['name']} ({entity.get('category', 'unknown')})")
+    print(f"  Score: {entity['activation_score']:.2f}")
+
+# Facts: structured subject-predicate-value triples
+for fact in results.facts:
+    print(f"{fact['subject']} → {fact['predicate']} → {fact['value']}")
+
+# Utterances: original source text grounding the facts
+for utterance in results.utterances:
+    print(f"[{utterance.get('speaker', 'unknown')}]: {utterance['text']}")
 ```
 
 ```javascript JavaScript
@@ -33,15 +38,24 @@ const { Nebula } = require('@nebula-ai/sdk');
 const nebula = new Nebula({ apiKey: 'your-api-key' });
 
 const results = await nebula.search({
-  query: "machine learning algorithms",
-  collection_ids: ["research-collection"]
+  query: "What has Sarah worked on?",
+  collection_ids: ["engineering"]
 });
 
-results.forEach(result => {
-  console.log(`Score: ${result.score.toFixed(3)}`);
-  console.log(`Content: ${result.content}`);
-  console.log(`Metadata: ${JSON.stringify(result.metadata)}\n`);
-});
+// Entities
+results.entities.forEach(e =>
+  console.log(`${e.name} (${e.category ?? 'unknown'}) - score: ${e.activation_score}`)
+);
+
+// Facts
+results.facts.forEach(f =>
+  console.log(`${f.subject} → ${f.predicate} → ${f.value}`)
+);
+
+// Utterances
+results.utterances.forEach(u =>
+  console.log(`[${u.speaker ?? u.source_role ?? 'unknown'}]: ${u.text}`)
+);
 ```
 
 ```bash cURL
@@ -49,53 +63,54 @@ curl -X POST "https://api.trynebula.ai/v1/memories/search" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "query": "machine learning algorithms",
-    "collection_ids": ["research-collection"]
+    "query": "What has Sarah worked on?",
+    "collection_ids": ["engineering"]
   }'
 ```
 
 </CodeGroup>
 
-**Search results include:**
-- `score`: Relevance score (0-1, higher is better)
-- `content`: The memory content
-- `metadata`: Custom metadata
-- `memory_id`: Memory ID for retrieval
-- `collection_id`: Which collection it belongs to
-- `created_at`: Timestamp
+## Understanding Results
 
-## Search with Metadata Filters
+Search returns a `MemoryResponse` with three layers of knowledge:
 
-Combine semantic search with metadata filtering:
+| Layer | Contains | Example |
+|-------|----------|---------|
+| **Entities** | People, concepts, organizations with profiles | `Sarah Chen` (person, score: 0.94) |
+| **Facts** | Subject-predicate-value triples | `Sarah Chen → led → Aurora migration` |
+| **Utterances** | Original source text that grounds the facts | `"Sarah led the migration from PostgreSQL to Aurora last quarter"` |
+
+Each item has an `activation_score` (0-1) reflecting its relevance to the query. Facts link back to their source utterances, and entities link to their facts - giving you a full provenance chain from structured knowledge down to original text.
+
+<Info>The knowledge graph is built automatically when you store memories. You don't need to define entities or relationships - Nebula extracts them.</Info>
+
+## Search Effort
+
+The `effort` parameter is the primary control for search. It determines how deeply Nebula traverses the knowledge graph.
+
+| Effort | Depth | Use Case |
+|--------|-------|----------|
+| `auto` | Adapts to query | Default - good for most queries |
+| `low` | 2 hops, narrow | Fast lookups, simple factual queries |
+| `medium` | 2 hops, wider | Broader exploration across more relationships |
+| `high` | 3 hops, widest | Deep multi-hop reasoning across the graph |
 
 <CodeGroup>
 
 ```python Python
-# Search with filters
-results = nebula.search(
-    query="project updates",
-    collection_ids=["work-collection"],
-    filters={
-        "priority": "high",
-        "status": "active",
-        "team": "engineering"
-    },
-    effort="medium"
-)
+# Quick factual lookup
+results = nebula.search(query="Sarah's role", effort="low")
+
+# Deep exploration
+results = nebula.search(query="How are the Q4 projects connected?", effort="high")
 ```
 
 ```javascript JavaScript
-// Search with filters
-const results = await nebula.search({
-  query: "project updates",
-  collection_ids: ["work-collection"],
-  filters: {
-    priority: "high",
-    status: "active",
-    team: "engineering"
-  },
-  effort: "medium"
-});
+// Quick factual lookup
+const results = await nebula.search({ query: "Sarah's role", effort: "low" });
+
+// Deep exploration
+const deep = await nebula.search({ query: "How are the Q4 projects connected?", effort: "high" });
 ```
 
 ```bash cURL
@@ -103,34 +118,100 @@ curl -X POST "https://api.trynebula.ai/v1/memories/search" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "query": "project updates",
-    "collection_ids": ["work-collection"],
-    "filters": {
-      "metadata.priority": {"$eq": "high"},
-      "metadata.status": {"$eq": "active"},
-      "metadata.team": {"$eq": "engineering"}
-    },
-    "effort": "medium"
+    "query": "How are the Q4 projects connected?",
+    "effort": "high"
   }'
 ```
 
 </CodeGroup>
 
-See [Metadata Filtering](/guides/metadata-filtering) for advanced filter operators.
+<Tip>Start with the default (`auto`). Only increase effort if you need the graph to discover connections further from the query.</Tip>
 
-## Hybrid Search Weights
+## Scoping with Collections
 
-Control the balance between semantic and full-text search:
+Use `collection_ids` to scope which part of the knowledge graph is searched.
+
+<CodeGroup>
+
+```python Python
+# Search specific collections
+results = nebula.search(
+    query="customer feedback",
+    collection_ids=["support-2024", "support-2023", "surveys"]
+)
+
+# Search all accessible collections (omit collection_ids)
+results = nebula.search(query="product roadmap")
+```
+
+```javascript JavaScript
+const results = await nebula.search({
+  query: "customer feedback",
+  collection_ids: ["support-2024", "support-2023", "surveys"]
+});
+
+// Search all accessible collections
+const all = await nebula.search({ query: "product roadmap" });
+```
+
+```bash cURL
+curl -X POST "https://api.trynebula.ai/v1/memories/search" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "query": "customer feedback",
+    "collection_ids": ["support-2024", "support-2023", "surveys"]
+  }'
+```
+
+</CodeGroup>
+
+<Warning>Searching all collections is slower than targeting specific ones.</Warning>
+
+## Authority Scores
+
+Authority is a store-time parameter on conversation messages that tells Nebula how much to trust a piece of content. It's stored per-message, not per-memory.
+
+```python
+# Verified answer from support agent
+conv_id = nebula.store_memory({
+    "collection_id": "support",
+    "content": "Here is the verified answer...",
+    "role": "assistant",
+    "authority": 0.9
+})
+
+# Uncertain user message
+nebula.store_memory({
+    "memory_id": conv_id,
+    "collection_id": "support",
+    "content": "I'm not sure, maybe try this?",
+    "role": "user",
+    "authority": 0.4
+})
+```
+
+| Score | Use Case |
+|-------|----------|
+| `0.9-1.0` | Verified facts, official sources |
+| `0.5-0.7` | General content (default: 0.5) |
+| `0.0-0.3` | Low confidence or uncertain |
+
+## Advanced Options
+
+### Hybrid Search Weights
+
+Control the balance between semantic and full-text matching for seed discovery (how the graph traversal finds its starting points):
 
 <CodeGroup>
 
 ```python Python
 results = nebula.search(
     query="neural networks",
-    collection_ids=["research-collection"],
+    collection_ids=["research"],
     search_settings={
-        "semantic_weight": 0.7,    # Semantic search weight
-        "fulltext_weight": 0.3  # Keyword search weight
+        "semantic_weight": 0.7,
+        "fulltext_weight": 0.3
     }
 )
 ```
@@ -138,10 +219,10 @@ results = nebula.search(
 ```javascript JavaScript
 const results = await nebula.search({
   query: "neural networks",
-  collection_ids: ["research-collection"],
+  collection_ids: ["research"],
   searchSettings: {
-    semanticWeight: 0.7,    // Semantic search weight
-    fulltextWeight: 0.3  // Keyword search weight
+    semanticWeight: 0.7,
+    fulltextWeight: 0.3
   }
 });
 ```
@@ -152,7 +233,7 @@ curl -X POST "https://api.trynebula.ai/v1/memories/search" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "query": "neural networks",
-    "collection_ids": ["research-collection"],
+    "collection_ids": ["research"],
     "search_settings": {
       "semantic_weight": 0.7,
       "fulltext_weight": 0.3
@@ -162,171 +243,28 @@ curl -X POST "https://api.trynebula.ai/v1/memories/search" \
 
 </CodeGroup>
 
-**Weight Guidelines:**
-- `semantic_weight: 0.8, fulltext_weight: 0.2` - Prefer semantic meaning (default)
-- `semantic_weight: 0.5, fulltext_weight: 0.5` - Balanced
-- `semantic_weight: 0.2, fulltext_weight: 0.8` - Prefer exact keyword matches
+Defaults (0.8 semantic, 0.2 fulltext) work well for most cases. Lower semantic weight if you need exact keyword matching.
 
-<Tip>Default weights (0.8 semantic, 0.2 fulltext) work well for most use cases. Adjust only if needed.</Tip>
+### Metadata Filters
 
-## Search Effort
-
-Nebula always performs hybrid search. By default, effort is set to `auto` which adapts based on query complexity. You can optionally control the computational budget using `effort` (auto/low/medium/high) - this controls traversal compute and exploration depth, not the exact number of results. Adjust the balance between semantic and keyword search using `semantic_weight` and `fulltext_weight`.
-
-## Advanced Search Options
-
-### Search Multiple Collections
-
-<CodeGroup>
-
-```python Python
-# Search across multiple collections
-results = nebula.search(
-    query="customer feedback",
-    collection_ids=["support-2024", "support-2023", "surveys"],
-    effort="medium"
-)
-```
-
-```javascript JavaScript
-// Search across multiple collections
-const results = await nebula.search({
-  query: "customer feedback",
-  collection_ids: ["support-2024", "support-2023", "surveys"],
-  effort: "medium"
-});
-```
-
-```bash cURL
-curl -X POST "https://api.trynebula.ai/v1/memories/search" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "query": "customer feedback",
-    "collection_ids": ["support-2024", "support-2023", "surveys"],
-    "effort": "medium"
-  }'
-```
-
-</CodeGroup>
-
-### Search All Collections
-
-Omit `collection_ids` to search across all accessible collections:
-
-<CodeGroup>
-
-```python Python
-# Search everything
-results = nebula.search(
-    query="product roadmap",
-    effort="high"
-)
-```
-
-```javascript JavaScript
-// Search everything
-const results = await nebula.search({
-  query: "product roadmap",
-  effort: "high"
-});
-```
-
-```bash cURL
-curl -X POST "https://api.trynebula.ai/v1/memories/search" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "query": "product roadmap",
-    "effort": "high"
-  }'
-```
-
-</CodeGroup>
-
-<Warning>Searching all collections is slower than targeting specific collections.</Warning>
-
-### Complex Metadata Filters
+Optionally narrow the search scope using metadata constraints. Filters restrict which part of the graph is entered - the graph still handles discovery within that scope.
 
 ```python
-# Advanced filtering with multiple operators
 results = nebula.search(
-    query="bug reports",
-    collection_ids=["issues-collection"],
+    query="project updates",
+    collection_ids=["work"],
     filters={
-        "severity": {"$in": ["critical", "high"]},
-        "status": {"$ne": "closed"},
-        "created_date": {"$gte": "2024-01-01"}
+        "status": "active",
+        "team": "engineering"
     }
 )
 ```
 
-**Available operators:** `$eq`, `$ne`, `$in`, `$nin`, `$gt`, `$gte`, `$lt`, `$lte`, `$like`, `$ilike`, `$overlap`, `$contains`, `$and`, `$or`
+**Operators:** `$eq`, `$ne`, `$in`, `$nin`, `$gt`, `$gte`, `$lt`, `$lte`, `$like`, `$ilike`, `$overlap`, `$contains`, `$and`, `$or`
 
-Full details in [Metadata Filtering](/guides/metadata-filtering).
-
-## Authority Scores
-
-Control which content should be prioritized in search results using authority scores (0-1).
-
-```python
-# High authority for verified content
-nebula.store_memory({
-    "collection_id": "docs",
-    "content": "Official API documentation...",
-    "authority": 0.95,
-    "metadata": {"verified": True}
-})
-
-# Lower authority for user-contributed content
-nebula.store_memory({
-    "collection_id": "docs",
-    "content": "I think you do it this way...",
-    "authority": 0.4,
-    "metadata": {"verified": False}
-})
-```
-
-| Score | Use Case |
-|-------|----------|
-| `0.9-1.0` | Verified facts, official docs |
-| `0.7-0.9` | Reliable sources, quality content |
-| `0.5-0.7` | General content (default) |
-| `0.3-0.5` | Uncertain information |
-| `0.0-0.3` | Low-quality or spam |
-
-You can also set authority per message in conversations to prioritize specific chunks:
-
-```python
-conv_id = nebula.store_memory({
-    "collection_id": "support",
-    "content": "Here is the verified answer...",
-    "role": "assistant",
-    "authority": 0.9
-})
-
-nebula.store_memory({
-    "memory_id": conv_id,
-    "collection_id": "support",
-    "content": "I'm not sure, maybe try this?",
-    "role": "user",
-    "authority": 0.4
-})
-```
-
-<Tip>Default authority is 0.5. Higher authority content ranks higher in search results.</Tip>
-
-
-## Search Best Practices
-
-1. **Use natural language queries** - "How do I reset my password?" works better than "password reset"
-2. **Target specific collections** - Faster and more relevant results
-3. **Start with defaults** - Only adjust weights if results aren't good
-4. **Leverage metadata filters** - Narrow results by structured fields
-5. **Choose appropriate effort** - Balance between coverage and performance (auto/low/medium/high)
-6. **Cache frequent queries** - Store common search results
+See [Metadata Filtering](/guides/metadata-filtering) for the full reference.
 
 ## Next Steps
 
-- [Metadata Filtering](/guides/metadata-filtering) - Advanced filter operators
+- [Metadata Filtering](/guides/metadata-filtering) - Filter operator reference
 - [Memory Operations](/guides/memory-operations) - Store and manage memories
