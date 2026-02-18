@@ -1,0 +1,203 @@
+---
+title: 'Zo'
+description: 'Give Zo persistent memory with Nebula'
+---
+
+Persistent memory for [Zo](https://zo.computer) powered by Nebula. Stores conversations, decisions, preferences, and project context so Zo can recall them across sessions. Stored content feeds into a [knowledge graph](/guides/concepts#the-knowledge-graph) that returns entities, facts, and source utterances.
+
+<Info>You'll need a Nebula API key and collection ID before starting. Get both at [trynebula.ai](https://trynebula.ai)</Info>
+
+## Installation
+
+### One-Command Setup
+
+Replace `YOUR_API_KEY` and `YOUR_COLLECTION_ID`, then paste into your Zo terminal:
+
+```bash
+bash -c '
+set -euo pipefail
+
+if ! command -v node &>/dev/null && ! command -v npx &>/dev/null; then
+  echo "Error: Node.js is required. Install from https://nodejs.org"
+  exit 1
+fi
+if ! command -v jq &>/dev/null; then
+  echo "Error: jq is required. Install: sudo apt-get install jq"
+  exit 1
+fi
+
+NEBULA_API_KEY="YOUR_API_KEY"
+NEBULA_COLLECTION_ID="YOUR_COLLECTION_ID"
+CONFIG_DIR="$HOME/.config/nebula"
+ENV_FILE="$CONFIG_DIR/zo.env"
+MCPORTER_CONFIG="$HOME/.mcporter/mcporter.json"
+MCPORTER_VERSION="0.7.3"
+SKILLS_DIR="/home/workspace/Skills/nebula-memory"
+GH="https://raw.githubusercontent.com/nebula-agi/zo-nebula-memory/main"
+
+# Install skill
+echo "Installing nebula-memory skill..."
+mkdir -p "$SKILLS_DIR/scripts"
+curl -fsSL "$GH/SKILL.md" -o "$SKILLS_DIR/SKILL.md"
+curl -fsSL "$GH/scripts/memory.sh" -o "$SKILLS_DIR/scripts/memory.sh"
+chmod +x "$SKILLS_DIR/scripts/memory.sh"
+
+# Write credentials
+mkdir -p "$CONFIG_DIR"
+printf "export NEBULA_API_KEY=%s\nexport NEBULA_COLLECTION_ID=%s\n" \
+  "$NEBULA_API_KEY" "$NEBULA_COLLECTION_ID" > "$ENV_FILE"
+chmod 600 "$ENV_FILE"
+
+# Configure MCPorter
+SERVER_JSON=$(jq -n --arg url "https://mcp.trynebula.ai/mcp/" '"'"'{
+  "nebula-memory": {
+    "baseUrl": $url,
+    "headers": {
+      "Authorization": "Bearer ${NEBULA_API_KEY}",
+      "X-Collection-ID": "${NEBULA_COLLECTION_ID}"
+    }
+  }
+}'"'"')
+
+mkdir -p "$(dirname "$MCPORTER_CONFIG")"
+if [ -f "$MCPORTER_CONFIG" ]; then
+  if ! jq empty "$MCPORTER_CONFIG" 2>/dev/null; then
+    echo "Error: $MCPORTER_CONFIG contains invalid JSON. Fix it and re-run."
+    exit 1
+  fi
+  EXISTING=$(cat "$MCPORTER_CONFIG")
+  if [ -z "$EXISTING" ] || [ "$EXISTING" = "{}" ]; then
+    echo "{\"mcpServers\": $SERVER_JSON}" | jq "." > "$MCPORTER_CONFIG"
+  else
+    echo "$EXISTING" | jq --argjson server "$SERVER_JSON" \
+      ".mcpServers = ((.mcpServers // {}) * \$server)" > "$MCPORTER_CONFIG"
+  fi
+else
+  echo "{\"mcpServers\": $SERVER_JSON}" | jq "." > "$MCPORTER_CONFIG"
+fi
+
+# Verify
+echo "Running test search..."
+export NEBULA_API_KEY
+export NEBULA_COLLECTION_ID
+if npx -y "mcporter@$MCPORTER_VERSION" --config "$MCPORTER_CONFIG" \
+  call "nebula-memory.search_memories" query:"setup test" 2>&1; then
+  echo ""
+  echo "Setup complete! Nebula memory is ready."
+else
+  echo ""
+  echo "Warning: Test search failed. Check your API key and collection ID."
+  exit 1
+fi
+'
+```
+
+The command installs the [nebula-memory skill](https://github.com/nebula-agi/zo-nebula-memory), writes credentials to `~/.config/nebula/zo.env`, configures [MCPorter](https://github.com/steipete/mcporter) as the MCP bridge, and runs a test search.
+
+## Activating Memory
+
+After installation, Zo defaults to its built-in rules system and will not use Nebula Memory automatically. You need to tell it to use the skill.
+
+<Tabs>
+  <Tab title="Create a Rule (Recommended)">
+    Tell Zo to create a persistent rule so it always routes memory through Nebula:
+
+    ```
+    Create a rule: Always use Nebula Memory for storing and recalling information.
+    When a user says remember, save, note, or states a preference, run:
+    bash /home/workspace/Skills/nebula-memory/scripts/memory.sh add "<content>".
+    When a user asks about something from before or starts a new conversation, run:
+    bash /home/workspace/Skills/nebula-memory/scripts/memory.sh search "<keywords>".
+    Do not use the built-in Created rule feature - always use memory.sh instead.
+    ```
+
+    Once the rule exists, Zo searches on new conversations and stores after each exchange without further prompting.
+  </Tab>
+
+  <Tab title="Mention Explicitly">
+    Reference Nebula Memory by name when you want Zo to use it:
+
+    ```
+    Use Nebula Memory to remember that I prefer TypeScript for new projects
+    ```
+
+    ```
+    Search Nebula Memory for what we decided about the auth library
+    ```
+  </Tab>
+</Tabs>
+
+## Usage
+
+### What gets stored
+
+- Preferences and conventions ("always use TypeScript")
+- Decisions and their reasoning ("chose Next.js App Router for RSC support")
+- Corrections and clarifications
+- Project setup details and architecture notes
+
+### Skill CLI
+
+Run search and store directly from the Zo terminal:
+
+```bash
+# Search - use short keyword phrases, not full sentences
+bash /home/workspace/Skills/nebula-memory/scripts/memory.sh search "auth library preference"
+
+# Store - be specific and self-contained
+bash /home/workspace/Skills/nebula-memory/scripts/memory.sh add "acme app | user | routing: decided on Next.js App Router for RSC support"
+```
+
+The skill uses the same `search_memories` and `add_memory` MCP tools described in the [MCP integration guide](/mcp-integration#available-tools).
+
+## File Locations
+
+| File | Path | Purpose |
+|------|------|---------|
+| Credentials | `~/.config/nebula/zo.env` | API key and collection ID |
+| MCPorter config | `~/.mcporter/mcporter.json` | MCP server definition with auth headers |
+| Skill instructions | `/home/workspace/Skills/nebula-memory/SKILL.md` | Teaches Zo's AI when and how to use memory |
+| Skill CLI | `/home/workspace/Skills/nebula-memory/scripts/memory.sh` | Bash wrapper for search and store |
+
+## Requirements
+
+- [Zo](https://zo.computer) account
+- Node.js (for MCPorter)
+- jq
+
+## Troubleshooting
+
+### Command not found: node
+
+MCPorter requires Node.js:
+
+```bash
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+sudo apt-get install -y nodejs
+```
+
+### Connection test fails
+
+Verify credentials are set:
+
+```bash
+source ~/.config/nebula/zo.env
+echo $NEBULA_API_KEY
+```
+
+If the key prints but you get a 401, generate a new one from [trynebula.ai](https://trynebula.ai/dashboard).
+
+### No search results
+
+Content becomes searchable after Nebula finishes [extraction](/guides/concepts#the-knowledge-graph), typically a few seconds after storing.
+
+### Updating the skill
+
+Pull the latest files from the source repository:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/nebula-agi/zo-nebula-memory/main/SKILL.md \
+  -o /home/workspace/Skills/nebula-memory/SKILL.md
+curl -fsSL https://raw.githubusercontent.com/nebula-agi/zo-nebula-memory/main/scripts/memory.sh \
+  -o /home/workspace/Skills/nebula-memory/scripts/memory.sh
+```
