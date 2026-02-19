@@ -10,7 +10,7 @@ description: "The memory layer that gives AI applications structured, long-term 
 
 # Welcome to Nebula
 
-Nebula is the memory layer for AI applications. It ingests documents, conversations, files, and connected sources, then builds a knowledge graph your AI can search and reason over. Retrieval returns entities, facts, and source utterances instead of flat text chunks.
+Nebula is the memory layer for AI applications. It ingests documents, conversations, files, and connected sources, then builds a vector graph your AI can search and reason over. Retrieval returns entities, facts, and source utterances instead of flat text chunks.
 
 ## Quick Example
 
@@ -103,7 +103,7 @@ curl -X POST "https://api.trynebula.ai/v1/memories/search" \
     Store documents, conversations, or files. Connect external sources like Google Drive, Gmail, Notion, and Slack. Nebula parses 40+ file formats including PDFs, images, and audio.
   </Step>
   <Step title="Extract">
-    Nebula automatically builds a knowledge graph from your content, linking entities and relationships with temporal awareness and fact corroboration across sources.
+    Nebula automatically builds a vector graph from your content, linking entities and relationships with temporal awareness and fact corroboration across sources.
   </Step>
   <Step title="Recall">
     Search returns three layers of memory: **entities** (who and what), **facts** (assertions about them), and **utterances** (the original source text).
@@ -112,9 +112,8 @@ curl -X POST "https://api.trynebula.ai/v1/memories/search" \
 
 ## Key Features
 
-- **Knowledge Graph** - Automatic entity and relationship extraction from raw content
+- **Vector Graph** - Automatic entity and relationship extraction from raw content
 - **Hierarchical Retrieval** - Three layers: entities, facts, and source utterances
-- **Knowledge Graph Search** - Graph traversal returning entities, facts, and source utterances
 - **Multimodal Ingestion** - 40+ file formats including PDFs, images, audio, and code
 - **Connectors** - Sync from Google Drive, Gmail, Notion, and Slack via OAuth
 - **Conversation Memory** - Multi-turn context with speaker identity tracking
@@ -142,7 +141,7 @@ curl -X POST "https://api.trynebula.ai/v1/memories/search" \
     href="/guides/search"
     icon="magnifying-glass"
   >
-    Knowledge graph traversal with effort levels and collection scoping
+    Vector graph traversal with effort levels and collection scoping
   </Card>
 </CardGroup>
 
@@ -166,7 +165,7 @@ curl -X POST "https://api.trynebula.ai/v1/memories/search" \
     href="/guides/concepts"
     icon="book"
   >
-    Memories, chunks, and the knowledge graph
+    Memories, chunks, and the vector graph
   </Card>
 </CardGroup>
 

@@ -1,6 +1,6 @@
 ---
 title: "Core Concepts"
-description: "Understanding Nebula's architecture: memories, chunks, and the knowledge graph"
+description: "Understanding Nebula's architecture: memories, chunks, and the vector graph"
 ---
 
 ## Memories and Chunks
@@ -177,7 +177,7 @@ curl -X POST "https://api.trynebula.ai/v1/memories" \
 
 See [Conversations Guide](/guides/conversations) for multi-turn patterns.
 
-## The Knowledge Graph
+## The Vector Graph
 
 When you store memories, Nebula automatically extracts structured knowledge and builds a graph of entities and relationships. When you search, the response contains three layers:
 
@@ -191,7 +191,7 @@ When you store memories, Nebula automatically extracts structured knowledge and 
 
 1. **Creation**: `store_memory()` without `memory_id` creates a new memory
 2. **Expansion**: `store_memory()` with `memory_id` adds content to an existing memory
-3. **Extraction**: Nebula extracts entities, facts, and relationships into the knowledge graph
+3. **Extraction**: Nebula extracts entities, facts, and relationships into the vector graph
 4. **Retrieval**: `search()` returns entities, facts, and utterances; `get_memory()` returns the raw memory with all chunks
 5. **Chunk Operations**: Use chunk IDs for granular updates or deletes
 6. **Deletion**: `delete()` removes an entire memory and all its chunks

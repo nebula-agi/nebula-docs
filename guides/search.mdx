@@ -1,9 +1,9 @@
 ---
 title: 'Search Guide'
-description: 'Knowledge graph search in Nebula'
+description: 'Vector graph search in Nebula'
 ---
 
-Nebula searches over a knowledge graph of entities and relationships, not raw text chunks. You send a natural language query; Nebula traverses the graph and returns structured knowledge: **entities** (who and what), **facts** (assertions about them), and **utterances** (the original source text).
+Nebula searches over a vector graph of entities and relationships, not raw text chunks. You send a natural language query; Nebula traverses the graph and returns structured knowledge: **entities** (who and what), **facts** (assertions about them), and **utterances** (the original source text).
 
 ## Basic Search
 
@@ -82,11 +82,11 @@ Search returns a `MemoryResponse` with three layers of knowledge:
 
 Each item has an `activation_score` (0-1) reflecting its relevance to the query. Facts link back to their source utterances, and entities link to their facts - giving you a full provenance chain from structured knowledge down to original text.
 
-<Info>The knowledge graph is built automatically when you store memories. You don't need to define entities or relationships - Nebula extracts them.</Info>
+<Info>The vector graph is built automatically when you store memories. You don't need to define entities or relationships - Nebula extracts them.</Info>
 
 ## Search Effort
 
-The `effort` parameter is the primary control for search. It determines how deeply Nebula traverses the knowledge graph.
+The `effort` parameter is the primary control for search. It determines how deeply Nebula traverses the vector graph.
 
 | Effort | Depth | Use Case |
 |--------|-------|----------|
@@ -129,7 +129,7 @@ curl -X POST "https://api.trynebula.ai/v1/memories/search" \
 
 ## Scoping with Collections
 
-Use `collection_ids` to scope which part of the knowledge graph is searched.
+Use `collection_ids` to scope which part of the vector graph is searched.
 
 <CodeGroup>
 
