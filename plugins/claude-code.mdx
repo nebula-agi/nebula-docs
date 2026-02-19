@@ -14,7 +14,7 @@ The plugin hooks into two Claude Code lifecycle events:
 - **UserPromptSubmit** - captures new messages each time you send a prompt
 - **Stop** - captures any remaining messages when Claude finishes responding
 
-Messages are sent to Nebula as conversation memories using `storeMemories()`. Nebula handles chunking, embedding, ranking, deduplication, and knowledge graph extraction server-side. The plugin tracks what has already been sent per session so nothing is duplicated.
+Messages are sent to Nebula as conversation memories using `storeMemories()`. Nebula handles chunking, embedding, ranking, deduplication, and vector graph extraction server-side. The plugin tracks what has already been sent per session so nothing is duplicated.
 
 ### Search
 

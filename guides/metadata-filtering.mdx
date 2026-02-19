@@ -36,7 +36,7 @@ Filter search results by metadata attributes using comparison and logical operat
 
 ```python Python
 from nebula import Nebula
-nebula = Nebula(api_key="your-api-key")
+nebula = Nebula()
 
 # Simple equality
 results = nebula.search(
@@ -68,7 +68,7 @@ results = nebula.search(
 
 ```javascript JavaScript
 const { Nebula } = require('@nebula-ai/sdk');
-const nebula = new Nebula({ apiKey: 'your-api-key' });
+const nebula = new Nebula({ apiKey: process.env.NEBULA_API_KEY });
 
 // Simple equality
 const results = await nebula.search({

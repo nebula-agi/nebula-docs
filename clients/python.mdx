@@ -17,7 +17,7 @@ export NEBULA_API_KEY="your_api_key_here"
 ```
 
 ```python
-from nebula import Nebula
+from nebula import Nebula, Memory
 
 # Automatically uses NEBULA_API_KEY environment variable
 nebula = Nebula()
@@ -26,11 +26,13 @@ nebula = Nebula()
 collection = nebula.create_collection(name="my-collection")
 
 # Store a memory
-memory_id = nebula.store_memory({
-    "collection_id": collection.id,
-    "content": "Nebula makes memory management easy",
-    "metadata": {"topic": "nebula"}
-})
+memory_id = nebula.store_memory(
+    Memory(
+        collection_id=collection.id,
+        content="Nebula makes memory management easy",
+        metadata={"topic": "nebula"}
+    )
+)
 
 # Search memories
 results = nebula.search(
@@ -50,7 +52,7 @@ The Python SDK includes a dedicated async client:
 
 ```python
 import asyncio
-from nebula import AsyncNebula
+from nebula import AsyncNebula, Memory
 
 async def main():
     # Create async client (uses NEBULA_API_KEY env var)
@@ -59,11 +61,13 @@ async def main():
     # All operations are async
     collection = await nebula.create_collection(name="async_notes", description="Async example")
 
-    memory_id = await nebula.store_memory({
-        "collection_id": collection.id,
-        "content": "Async operations are fast",
-        "metadata": {"type": "example"}
-    })
+    memory_id = await nebula.store_memory(
+        Memory(
+            collection_id=collection.id,
+            content="Async operations are fast",
+            metadata={"type": "example"}
+        )
+    )
 
     results = await nebula.search(
         query="async",
@@ -83,17 +87,16 @@ asyncio.run(main())
 
 ```python
 import asyncio
-from nebula import AsyncNebula
+from nebula import AsyncNebula, Memory
 
 async def main():
     # Automatically handles cleanup
     async with AsyncNebula() as nebula:
         collection = await nebula.create_collection(name="notes", description="My notes")
 
-        memory_id = await nebula.store_memory({
-            "collection_id": collection.id,
-            "content": "Context managers are clean"
-        })
+        memory_id = await nebula.store_memory(
+            Memory(collection_id=collection.id, content="Context managers are clean")
+        )
 
         results = await nebula.search(
             query="clean",

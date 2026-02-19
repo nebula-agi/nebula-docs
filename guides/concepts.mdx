@@ -1,6 +1,6 @@
 ---
 title: "Core Concepts"
-description: "Understanding Nebula's architecture: memories, chunks, and the knowledge graph"
+description: "Understanding Nebula's architecture: memories, chunks, and the vector graph"
 ---
 
 ## Memories and Chunks
@@ -19,7 +19,7 @@ Each chunk has a unique **chunk ID** for granular updates or deletes.
 ```python Python
 from nebula import Nebula, Memory
 
-nebula = Nebula(api_key="your-api-key")
+nebula = Nebula()
 collection = nebula.create_collection(name="research_papers")
 
 # Store document text
@@ -31,21 +31,27 @@ doc_id = nebula.create_document_text(
 
 # Or upload a file
 doc_id = nebula.store_memory(
-    Memory.from_file("document.pdf", collection_id=collection.id, metadata={"title": "Research Paper"})
+    Memory.from_file(
+        "document.pdf",
+        collection_id=collection.id,
+        metadata={"title": "Research Paper"}
+    )
 )
 
 # Or store a short piece of text
-nebula.store_memory({
-    "collection_id": collection.id,
-    "content": "User prefers dark mode",
-    "metadata": {"user_id": "user_789"}
-})
+nebula.store_memory(
+    Memory(
+        collection_id=collection.id,
+        content="User prefers dark mode",
+        metadata={"user_id": "user_789"}
+    )
+)
 ```
 
 ```javascript JavaScript
 import Nebula, { Memory } from '@nebula-ai/sdk';
 
-const nebula = new Nebula({ apiKey: 'your-api-key' });
+const nebula = new Nebula({ apiKey: process.env.NEBULA_API_KEY });
 const collection = await nebula.createCollection({ name: 'research_papers' });
 
 // Store document text
@@ -107,21 +113,25 @@ Create a conversation by passing a `role`. Append messages by calling `store_mem
 collection = nebula.create_collection(name="support_chats")
 
 # Create a conversation memory
-conv_id = nebula.store_memory({
-    "collection_id": collection.id,
-    "content": "Hello! How can I help?",
-    "role": "assistant"
-})
+conv_id = nebula.store_memory(
+    Memory(
+        collection_id=collection.id,
+        content="Hello! How can I help?",
+        role="assistant"
+    )
+)
 
 # Add messages to the same conversation
-nebula.store_memory({
-    "memory_id": conv_id,
-    "collection_id": collection.id,
-    "content": [
-        {"content": "I need help", "role": "user"},
-        {"content": "I'll help you", "role": "assistant"}
-    ]
-})
+nebula.store_memory(
+    Memory(
+        memory_id=conv_id,
+        collection_id=collection.id,
+        content=[
+            {"content": "I need help", "role": "user"},
+            {"content": "I'll help you", "role": "assistant"}
+        ]
+    )
+)
 ```
 
 ```javascript JavaScript
@@ -131,8 +141,7 @@ const collection = await nebula.createCollection({ name: 'support_chats' });
 const convId = await nebula.storeMemory({
   collection_id: collection.id,
   content: 'Hello! How can I help?',
-  role: 'assistant',
-  metadata: {}
+  role: 'assistant'
 });
 
 // Add messages to the same conversation
@@ -142,8 +151,7 @@ await nebula.storeMemory({
   content: [
     { content: 'I need help', role: 'user' },
     { content: 'I\'ll help you', role: 'assistant' }
-  ],
-  metadata: {}
+  ]
 });
 ```
 
@@ -159,13 +167,11 @@ curl -X POST "https://api.trynebula.ai/v1/memories" \
   }'
 
 # Add messages (use memory_id from response)
-curl -X POST "https://api.trynebula.ai/v1/memories" \
+curl -X POST "https://api.trynebula.ai/v1/memories/MEMORY_ID/append" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
-    "memory_id": "MEMORY_ID",
     "collection_id": "COLLECTION_ID",
-    "engram_type": "conversation",
     "messages": [
       {"content": "I need help", "role": "user"},
       {"content": "I'\''ll help you", "role": "assistant"}
@@ -177,7 +183,7 @@ curl -X POST "https://api.trynebula.ai/v1/memories" \
 
 See [Conversations Guide](/guides/conversations) for multi-turn patterns.
 
-## The Knowledge Graph
+## The Vector Graph
 
 When you store memories, Nebula automatically extracts structured knowledge and builds a graph of entities and relationships. When you search, the response contains three layers:
 
@@ -185,16 +191,18 @@ When you store memories, Nebula automatically extracts structured knowledge and 
 - **Facts**: Subject-predicate-value assertions about entities (e.g., "Sarah - led - the Aurora migration"), with confidence that grows through corroboration across sources
 - **Utterances**: The original source text that grounds each entity and fact, providing provenance back to the stored memory
 
+<Warning>The use of `metadata` is highly discouraged. Nebula already consolidates all the knowledge from your content automatically.</Warning>
+
 ## Memory Lifecycle
 
 1. **Creation**: `store_memory()` without `memory_id` creates a new memory
 2. **Expansion**: `store_memory()` with `memory_id` adds content to an existing memory
-3. **Extraction**: Nebula extracts entities, facts, and relationships into the knowledge graph
+3. **Extraction**: Nebula extracts entities, facts, and relationships into the vector graph
 4. **Retrieval**: `search()` returns entities, facts, and utterances; `get_memory()` returns the raw memory with all chunks
 5. **Chunk Operations**: Use chunk IDs for granular updates or deletes
 6. **Deletion**: `delete()` removes an entire memory and all its chunks
 
-<Tip>Build complete units by using `memory_id` to group entire conversations or documents in one container. Add descriptive metadata for filtering, and group related memories into [collections](/guides/collections).</Tip>
+<Tip>Build complete units by using `memory_id` to group entire conversations or documents in one container, and group related memories into [collections](/guides/collections).</Tip>
 
 ## Next Steps
 
