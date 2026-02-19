@@ -10,9 +10,9 @@ Nebula searches over a vector graph of entities and relationships, not raw text 
 <CodeGroup>
 
 ```python Python
-from nebula import Nebula
+from nebula import Nebula, Memory
 
-nebula = Nebula(api_key="your-api-key")
+nebula = Nebula()
 
 results = nebula.search(
     query="What has Sarah worked on?",
@@ -35,7 +35,7 @@ for utterance in results.utterances:
 
 ```javascript JavaScript
 const { Nebula } = require('@nebula-ai/sdk');
-const nebula = new Nebula({ apiKey: 'your-api-key' });
+const nebula = new Nebula({ apiKey: process.env.NEBULA_API_KEY });
 
 const results = await nebula.search({
   query: "What has Sarah worked on?",
@@ -174,21 +174,14 @@ Authority is a store-time parameter on conversation messages that tells Nebula h
 
 ```python
 # Verified answer from support agent
-conv_id = nebula.store_memory({
-    "collection_id": "support",
-    "content": "Here is the verified answer...",
-    "role": "assistant",
-    "authority": 0.9
-})
+conv_id = nebula.store_memory(
+    Memory(collection_id="support", content="Here is the verified answer...", role="assistant", authority=0.9)
+)
 
 # Uncertain user message
-nebula.store_memory({
-    "memory_id": conv_id,
-    "collection_id": "support",
-    "content": "I'm not sure, maybe try this?",
-    "role": "user",
-    "authority": 0.4
-})
+nebula.store_memory(
+    Memory(memory_id=conv_id, collection_id="support", content="I'm not sure, maybe try this?", role="user", authority=0.4)
+)
 ```
 
 | Score | Use Case |

@@ -11,17 +11,11 @@ npm install @nebula-ai/sdk
 
 ## Quick Start
 
-```bash
-# Set environment variable
-export NEBULA_API_KEY="your_api_key_here"
-```
-
 ```javascript
 import { Nebula } from '@nebula-ai/sdk';
 // or: const { Nebula } = require('@nebula-ai/sdk');
 
-// Automatically uses NEBULA_API_KEY environment variable
-const nebula = new Nebula();
+const nebula = new Nebula({ apiKey: process.env.NEBULA_API_KEY });
 
 async function example() {
   // Create a collection

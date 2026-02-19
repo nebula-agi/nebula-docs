@@ -17,19 +17,21 @@ Nebula is the memory layer for AI applications. It ingests documents, conversati
 <CodeGroup>
 
 ```python Python
-from nebula import Nebula
+from nebula import Nebula, Memory
 
-nebula = Nebula(api_key="your_api_key")
+nebula = Nebula()
 
 # Create a collection
 collection = nebula.create_collection(name="engineering_team")
 
 # Store a memory
-nebula.store_memory({
-    "collection_id": collection.id,
-    "content": "Sarah led the migration from PostgreSQL to Aurora last quarter. The project reduced our p99 latency from 200ms to 45ms.",
-    "metadata": {"source": "standup_notes"}
-})
+nebula.store_memory(
+    Memory(
+        collection_id=collection.id,
+        content="Sarah led the migration from PostgreSQL to Aurora last quarter. The project reduced our p99 latency from 200ms to 45ms.",
+        metadata={"source": "standup_notes"}
+    )
+)
 
 # Search
 results = nebula.search(
@@ -41,7 +43,7 @@ results = nebula.search(
 ```javascript JavaScript
 const { Nebula } = require('@nebula-ai/sdk');
 
-const nebula = new Nebula({ apiKey: 'your_api_key' });
+const nebula = new Nebula({ apiKey: process.env.NEBULA_API_KEY });
 
 async function example() {
   // Create a collection

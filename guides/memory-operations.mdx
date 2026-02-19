@@ -11,14 +11,12 @@ description: 'Store, retrieve, and manage memories in Nebula'
 
 ```python Python
 from nebula import Nebula, Memory
-nebula = Nebula(api_key="your-api-key")
+nebula = Nebula()
 
 # Single memory
-memory_id = nebula.store_memory({
-    "collection_id": "research",
-    "content": "Machine learning automates model building",
-    "metadata": {"topic": "AI"}
-})
+memory_id = nebula.store_memory(
+    Memory(collection_id="research", content="Machine learning automates model building", metadata={"topic": "AI"})
+)
 
 # Batch storage
 memory_ids = nebula.store_memories([
@@ -29,7 +27,7 @@ memory_ids = nebula.store_memories([
 
 ```javascript JavaScript
 const { Nebula } = require('@nebula-ai/sdk');
-const nebula = new Nebula({ apiKey: 'your-api-key' });
+const nebula = new Nebula({ apiKey: process.env.NEBULA_API_KEY });
 
 // Single memory
 const memoryId = await nebula.storeMemory({
@@ -61,6 +59,10 @@ curl -X POST "https://api.trynebula.ai/v1/memories" \
 
 <Warning>The use of `metadata` is highly discouraged. Nebula already consolidates all the knowledge from your content automatically.</Warning>
 
+<Tip>
+Python's `store_memory()` also accepts a plain dict: `nebula.store_memory({"collection_id": "...", "content": "..."})`. Similarly, JavaScript's `storeMemory()` accepts a `Memory()` wrapper: `nebula.storeMemory(Memory({ ... }))`. Both forms are equivalent -- use whichever you prefer.
+</Tip>
+
 <Info>Memory creation is asynchronous. Content becomes searchable after Nebula finishes extraction (typically a few seconds). The API returns a `202` status with the memory ID immediately.</Info>
 
 ### Conversation Messages
@@ -69,19 +71,14 @@ curl -X POST "https://api.trynebula.ai/v1/memories" \
 
 ```python Python
 # Create conversation
-conv_id = nebula.store_memory({
-    "collection_id": "support",
-    "content": "Hello! How can I help?",
-    "role": "assistant"
-})
+conv_id = nebula.store_memory(
+    Memory(collection_id="support", content="Hello! How can I help?", role="assistant")
+)
 
 # Add to same conversation
-nebula.store_memory({
-    "memory_id": conv_id,
-    "collection_id": "support",
-    "content": "I need help with my account",
-    "role": "user"
-})
+nebula.store_memory(
+    Memory(memory_id=conv_id, collection_id="support", content="I need help with my account", role="user")
+)
 ```
 
 ```javascript JavaScript
@@ -126,7 +123,7 @@ Upload a document as raw text, pre-chunked text, or a file. File processing (OCR
 ```python Python
 from nebula import Nebula, Memory
 
-nebula = Nebula(api_key="your-api-key")
+nebula = Nebula()
 collection = nebula.get_collection_by_name("my-collection")
 
 # Upload text
@@ -152,7 +149,7 @@ doc_id = nebula.store_memory(
 ```javascript JavaScript
 import Nebula, { Memory } from '@nebula-ai/sdk';
 
-const nebula = new Nebula({ apiKey: 'your-api-key' });
+const nebula = new Nebula({ apiKey: process.env.NEBULA_API_KEY });
 const collection = await nebula.getCollectionByName('my-collection');
 
 // Upload text
@@ -204,7 +201,7 @@ Store multiple memories at once with `store_memories()`. Conversation messages w
 
 ```python Python
 from nebula import Nebula, Memory
-nebula = Nebula(api_key="your-api-key")
+nebula = Nebula()
 
 # Batch store documents
 ids = nebula.store_memories([
@@ -223,15 +220,15 @@ ids = nebula.store_memories([
 ```javascript JavaScript
 // Batch store documents
 const ids = await nebula.storeMemories([
-  { collection_id: collection.id, content: "First document", metadata: {} },
-  { collection_id: collection.id, content: "Second document", metadata: {} },
-  { collection_id: collection.id, content: "Third document", metadata: {} },
+  { collection_id: collection.id, content: "First document" },
+  { collection_id: collection.id, content: "Second document" },
+  { collection_id: collection.id, content: "Third document" },
 ]);
 
 // Batch store conversation messages (grouped into one conversation)
 const convIds = await nebula.storeMemories([
-  { collection_id: collection.id, content: "Hello!", role: "user", metadata: {} },
-  { collection_id: collection.id, content: "Hi there!", role: "assistant", metadata: {} },
+  { collection_id: collection.id, content: "Hello!", role: "user" },
+  { collection_id: collection.id, content: "Hi there!", role: "assistant" },
 ]);
 ```
 
