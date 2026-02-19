@@ -18,6 +18,12 @@ memory_id = nebula.store_memory(
     Memory(collection_id="research", content="Machine learning automates model building", metadata={"topic": "AI"})
 )
 
+# Also accepts a plain dict
+memory_id = nebula.store_memory({
+    "collection_id": "research",
+    "content": "Machine learning automates model building",
+})
+
 # Batch storage
 memory_ids = nebula.store_memories([
     Memory(collection_id="research", content="Neural networks...", metadata={"type": "concept"}),
@@ -58,10 +64,6 @@ curl -X POST "https://api.trynebula.ai/v1/memories" \
 </CodeGroup>
 
 <Warning>The use of `metadata` is highly discouraged. Nebula already consolidates all the knowledge from your content automatically.</Warning>
-
-<Tip>
-Python's `store_memory()` also accepts a plain dict: `nebula.store_memory({"collection_id": "...", "content": "..."})`. Similarly, JavaScript's `storeMemory()` accepts a `Memory()` wrapper: `nebula.storeMemory(Memory({ ... }))`. Both forms are equivalent -- use whichever you prefer.
-</Tip>
 
 <Info>Memory creation is asynchronous. Content becomes searchable after Nebula finishes extraction (typically a few seconds). The API returns a `202` status with the memory ID immediately.</Info>
 
