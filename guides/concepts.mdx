@@ -185,6 +185,8 @@ When you store memories, Nebula automatically extracts structured knowledge and 
 - **Facts**: Subject-predicate-value assertions about entities (e.g., "Sarah - led - the Aurora migration"), with confidence that grows through corroboration across sources
 - **Utterances**: The original source text that grounds each entity and fact, providing provenance back to the stored memory
 
+<Warning>The use of `metadata` is highly discouraged. Nebula already consolidates all the knowledge from your content automatically.</Warning>
+
 ## Memory Lifecycle
 
 1. **Creation**: `store_memory()` without `memory_id` creates a new memory
@@ -194,7 +196,7 @@ When you store memories, Nebula automatically extracts structured knowledge and 
 5. **Chunk Operations**: Use chunk IDs for granular updates or deletes
 6. **Deletion**: `delete()` removes an entire memory and all its chunks
 
-<Tip>Build complete units by using `memory_id` to group entire conversations or documents in one container. Add descriptive metadata for filtering, and group related memories into [collections](/guides/collections).</Tip>
+<Tip>Build complete units by using `memory_id` to group entire conversations or documents in one container, and group related memories into [collections](/guides/collections).</Tip>
 
 ## Next Steps
 

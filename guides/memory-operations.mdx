@@ -59,6 +59,8 @@ curl -X POST "https://api.trynebula.ai/v1/memories" \
 
 </CodeGroup>
 
+<Warning>The use of `metadata` is highly discouraged. Nebula already consolidates all the knowledge from your content automatically.</Warning>
+
 <Info>Memory creation is asynchronous. Content becomes searchable after Nebula finishes extraction (typically a few seconds). The API returns a `202` status with the memory ID immediately.</Info>
 
 ### Conversation Messages
