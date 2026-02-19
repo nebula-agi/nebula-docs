@@ -27,7 +27,11 @@ collection = nebula.create_collection(name="my-collection")
 
 # Store a memory
 memory_id = nebula.store_memory(
-    Memory(collection_id=collection.id, content="Nebula makes memory management easy", metadata={"topic": "nebula"})
+    Memory(
+        collection_id=collection.id,
+        content="Nebula makes memory management easy",
+        metadata={"topic": "nebula"}
+    )
 )
 
 # Search memories
@@ -58,7 +62,11 @@ async def main():
     collection = await nebula.create_collection(name="async_notes", description="Async example")
 
     memory_id = await nebula.store_memory(
-        Memory(collection_id=collection.id, content="Async operations are fast", metadata={"type": "example"})
+        Memory(
+            collection_id=collection.id,
+            content="Async operations are fast",
+            metadata={"type": "example"}
+        )
     )
 
     results = await nebula.search(

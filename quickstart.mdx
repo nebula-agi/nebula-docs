@@ -64,7 +64,11 @@ collection = nebula.create_collection(name="my_notes", description="Personal not
 
 # Store a memory
 memory_id = nebula.store_memory(
-    Memory(collection_id=collection.id, content="Machine learning is transforming healthcare", metadata={"topic": "AI", "importance": "high"})
+    Memory(
+        collection_id=collection.id,
+        content="Machine learning is transforming healthcare",
+        metadata={"topic": "AI", "importance": "high"}
+    )
 )
 
 # Search memories

@@ -175,12 +175,23 @@ Authority is a store-time parameter on conversation messages that tells Nebula h
 ```python
 # Verified answer from support agent
 conv_id = nebula.store_memory(
-    Memory(collection_id="support", content="Here is the verified answer...", role="assistant", authority=0.9)
+    Memory(
+        collection_id="support",
+        content="Here is the verified answer...",
+        role="assistant",
+        authority=0.9
+    )
 )
 
 # Uncertain user message
 nebula.store_memory(
-    Memory(memory_id=conv_id, collection_id="support", content="I'm not sure, maybe try this?", role="user", authority=0.4)
+    Memory(
+        memory_id=conv_id,
+        collection_id="support",
+        content="I'm not sure, maybe try this?",
+        role="user",
+        authority=0.4
+    )
 )
 ```
 

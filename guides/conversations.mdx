@@ -26,12 +26,22 @@ collection = nebula.create_collection(name="Support Chats")
 
 # Create conversation with initial message
 conv_id = nebula.store_memory(
-    Memory(collection_id=collection.id, content="Hello! How can I help?", role="assistant", metadata={"conversation_name": "Support Chat"})
+    Memory(
+        collection_id=collection.id,
+        content="Hello! How can I help?",
+        role="assistant",
+        metadata={"conversation_name": "Support Chat"}
+    )
 )
 
 # Add messages to same conversation
 nebula.store_memory(
-    Memory(memory_id=conv_id, collection_id=collection.id, content="I need help with my account", role="user")
+    Memory(
+        memory_id=conv_id,
+        collection_id=collection.id,
+        content="I need help with my account",
+        role="user"
+    )
 )
 
 # Add multiple messages at once

@@ -55,7 +55,11 @@ Always specify `collection_id` when storing memories:
 
 ```python Python
 nebula.store_memory(
-    Memory(collection_id=collection.id, content="Q4 planning meeting notes", metadata={"type": "meeting"})
+    Memory(
+        collection_id=collection.id,
+        content="Q4 planning meeting notes",
+        metadata={"type": "meeting"}
+    )
 )
 ```
 

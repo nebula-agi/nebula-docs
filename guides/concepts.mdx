@@ -31,12 +31,20 @@ doc_id = nebula.create_document_text(
 
 # Or upload a file
 doc_id = nebula.store_memory(
-    Memory.from_file("document.pdf", collection_id=collection.id, metadata={"title": "Research Paper"})
+    Memory.from_file(
+        "document.pdf",
+        collection_id=collection.id,
+        metadata={"title": "Research Paper"}
+    )
 )
 
 # Or store a short piece of text
 nebula.store_memory(
-    Memory(collection_id=collection.id, content="User prefers dark mode", metadata={"user_id": "user_789"})
+    Memory(
+        collection_id=collection.id,
+        content="User prefers dark mode",
+        metadata={"user_id": "user_789"}
+    )
 )
 ```
 
@@ -106,7 +114,11 @@ collection = nebula.create_collection(name="support_chats")
 
 # Create a conversation memory
 conv_id = nebula.store_memory(
-    Memory(collection_id=collection.id, content="Hello! How can I help?", role="assistant")
+    Memory(
+        collection_id=collection.id,
+        content="Hello! How can I help?",
+        role="assistant"
+    )
 )
 
 # Add messages to the same conversation

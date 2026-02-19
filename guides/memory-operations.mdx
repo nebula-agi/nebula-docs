@@ -15,7 +15,11 @@ nebula = Nebula()
 
 # Single memory
 memory_id = nebula.store_memory(
-    Memory(collection_id="research", content="Machine learning automates model building", metadata={"topic": "AI"})
+    Memory(
+        collection_id="research",
+        content="Machine learning automates model building",
+        metadata={"topic": "AI"}
+    )
 )
 
 # Also accepts a plain dict
@@ -26,8 +30,16 @@ memory_id = nebula.store_memory({
 
 # Batch storage
 memory_ids = nebula.store_memories([
-    Memory(collection_id="research", content="Neural networks...", metadata={"type": "concept"}),
-    Memory(collection_id="research", content="Deep learning...", metadata={"type": "concept"})
+    Memory(
+        collection_id="research",
+        content="Neural networks...",
+        metadata={"type": "concept"}
+    ),
+    Memory(
+        collection_id="research",
+        content="Deep learning...",
+        metadata={"type": "concept"}
+    ),
 ])
 ```
 
@@ -74,12 +86,21 @@ curl -X POST "https://api.trynebula.ai/v1/memories" \
 ```python Python
 # Create conversation
 conv_id = nebula.store_memory(
-    Memory(collection_id="support", content="Hello! How can I help?", role="assistant")
+    Memory(
+        collection_id="support",
+        content="Hello! How can I help?",
+        role="assistant"
+    )
 )
 
 # Add to same conversation
 nebula.store_memory(
-    Memory(memory_id=conv_id, collection_id="support", content="I need help with my account", role="user")
+    Memory(
+        memory_id=conv_id,
+        collection_id="support",
+        content="I need help with my account",
+        role="user"
+    )
 )
 ```
 
@@ -144,7 +165,11 @@ doc_id = nebula.create_document_chunks(
 
 # Upload a file
 doc_id = nebula.store_memory(
-    Memory.from_file("document.pdf", collection_id=collection.id, metadata={"title": "Research Paper"})
+    Memory.from_file(
+        "document.pdf",
+        collection_id=collection.id,
+        metadata={"title": "Research Paper"}
+    )
 )
 ```
 
