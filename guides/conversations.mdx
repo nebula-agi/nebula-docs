@@ -11,7 +11,7 @@ Conversations are stored as **conversation memories**. Each conversation has a `
 - **`memory_id`**: The conversation container to append to
 - **`content`**: Message text (single message or a list of message objects)
 
-<Info>Conversation memories contain the full message history. See [Core Concepts](/guides/concepts) for the memory/chunk model.</Info>
+<Info>Conversation memories contain the full message history. See [Core Concepts](/guides/concepts) for the memory/source model.</Info>
 
 ## Creating and Adding Messages
 
@@ -129,8 +129,8 @@ conversations = nebula.list_memories(
     collection_ids=[collection.id]
 )
 for conv in conversations:
-    for chunk in conv.chunks or []:
-        print(f"[{chunk.role}]: {chunk.content}")
+    for source in conv.sources or []:
+        print(f"[{source.role}]: {source.content}")
 
 # Get a single conversation's metadata
 memory = nebula.get_memory(conv_id)
@@ -142,8 +142,8 @@ const conversations = await nebula.listMemories({
   collection_ids: [collection.id]
 });
 conversations.forEach(conv =>
-  conv.chunks?.forEach(chunk =>
-    console.log(`[${chunk.role}]: ${chunk.content}`)
+  conv.sources?.forEach(source =>
+    console.log(`[${source.role}]: ${source.content}`)
   )
 );
 
@@ -166,5 +166,5 @@ curl -X GET "https://api.trynebula.ai/v1/memories/CONVERSATION_ID" \
 
 ## Next Steps
 
-- [Core Concepts](/guides/concepts) - Understanding memories and chunks
+- [Core Concepts](/guides/concepts) - Understanding memories and sources
 - [Memory Operations](/guides/memory-operations) - Store and search memories
