@@ -78,6 +78,8 @@ results = nebula.search(
 # Results contain entities, facts, and sources
 for entity in results.entities:
     print(entity)
+for fact in results.facts:
+    print(fact)
 for source in results.sources:
     print(source)
 ```
@@ -111,6 +113,7 @@ async function storeAndSearch() {
 
   // Results contain entities, facts, and sources
   results.entities?.forEach(entity => console.log(entity));
+  results.facts?.forEach(fact => console.log(fact));
   results.sources?.forEach(source => console.log(source));
 }
 

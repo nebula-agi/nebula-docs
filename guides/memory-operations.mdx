@@ -188,8 +188,8 @@ const docId = await nebula.storeMemory({
   metadata: { title: "ML Intro" }
 });
 
-// Upload pre-chunked
-const chunkedDocId = await nebula.storeMemory({
+// Upload pre-split sources
+const docId2 = await nebula.storeMemory({
   collection_id: collection.id,
   content: ["Chapter 1...", "Chapter 2..."],
   metadata: { title: "My Doc" }
