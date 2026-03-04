@@ -7,7 +7,7 @@ description: "Understanding Nebula's architecture: memories, sources, and the ve
 
 In Nebula, everything is stored as a **memory**. A memory is a container with a unique `memory_id` that holds one or more **sources**:
 
-- **Document Memory**: An entire document, automatically split into sources for processing. You can upload text, pre-split text, or a file. A short piece of text (like a user preference) is a document memory with a single source.
+- **Document Memory**: An entire document, automatically split into sources for processing. You can upload text, pre-chunked text, or a file. A short piece of text (like a user preference) is a document memory with a single source.
 - **Conversation Memory**: A full conversation where each message is a source. Passing a `role` parameter tells Nebula to treat the memory as a conversation.
 
 Each source has a unique **source ID** for granular updates or deletes.

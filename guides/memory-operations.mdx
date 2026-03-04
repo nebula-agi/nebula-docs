@@ -139,7 +139,7 @@ See [Conversations Guide](/guides/conversations) for multi-turn patterns.
 
 ### Document Upload
 
-Upload a document as raw text, pre-split text, or a file. File processing (OCR/transcription/text extraction) happens automatically.
+Upload a document as raw text, pre-chunked text, or a file. File processing (OCR/transcription/text extraction) happens automatically.
 
 <CodeGroup>
 
@@ -156,7 +156,7 @@ doc_id = nebula.create_document_text(
     metadata={"title": "ML Intro"}
 )
 
-# Upload pre-split sources
+# Upload pre-chunked content
 doc_id = nebula.store_memory(
     Memory(
         collection_id=collection.id,
@@ -188,7 +188,7 @@ const docId = await nebula.storeMemory({
   metadata: { title: "ML Intro" }
 });
 
-// Upload pre-split sources
+// Upload pre-chunked content
 const docId2 = await nebula.storeMemory({
   collection_id: collection.id,
   content: ["Chapter 1...", "Chapter 2..."],
