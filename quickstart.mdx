@@ -75,11 +75,13 @@ results = nebula.search(
     collection_ids=[collection.id]
 )
 
-# Results contain entities, facts, and utterances
+# Results contain entities, facts, and sources
 for entity in results.entities:
     print(entity)
 for fact in results.facts:
     print(fact)
+for source in results.sources:
+    print(source)
 ```
 
 ```javascript JavaScript
@@ -109,9 +111,10 @@ async function storeAndSearch() {
     collection_ids: [collection.id]
   });
 
-  // Results contain entities, facts, and utterances
+  // Results contain entities, facts, and sources
   results.entities?.forEach(entity => console.log(entity));
   results.facts?.forEach(fact => console.log(fact));
+  results.sources?.forEach(source => console.log(source));
 }
 
 storeAndSearch();
@@ -174,7 +177,7 @@ When you search, Nebula returns a `MemoryResponse` with three layers of structur
       "activation_score": 0.92
     }
   ],
-  "utterances": [
+  "sources": [
     {
       "text": "Machine learning is transforming healthcare",
       "activation_score": 0.91,
@@ -186,9 +189,9 @@ When you search, Nebula returns a `MemoryResponse` with three layers of structur
 
 - **Entities**: People, concepts, and things extracted from your data
 - **Facts**: Subject-predicate-value assertions about those entities
-- **Utterances**: The original source text that grounds each fact
+- **Sources**: The original source text that grounds each fact
 
-<Tip>See [Core Concepts](/guides/concepts) for a deeper explanation of entities, facts, and utterances.</Tip>
+<Tip>See [Core Concepts](/guides/concepts) for a deeper explanation of entities, facts, and sources.</Tip>
 
 ## Next Steps
 

@@ -156,11 +156,13 @@ doc_id = nebula.create_document_text(
     metadata={"title": "ML Intro"}
 )
 
-# Upload pre-chunked
-doc_id = nebula.create_document_chunks(
-    collection_id=collection.id,
-    chunks=["Chapter 1...", "Chapter 2..."],
-    metadata={"title": "My Doc"}
+# Upload pre-chunked content
+doc_id = nebula.store_memory(
+    Memory(
+        collection_id=collection.id,
+        content=["Chapter 1...", "Chapter 2..."],
+        metadata={"title": "My Doc"}
+    )
 )
 
 # Upload a file
@@ -186,8 +188,8 @@ const docId = await nebula.storeMemory({
   metadata: { title: "ML Intro" }
 });
 
-// Upload pre-chunked
-const chunkedDocId = await nebula.storeMemory({
+// Upload pre-chunked content
+const docId2 = await nebula.storeMemory({
   collection_id: collection.id,
   content: ["Chapter 1...", "Chapter 2..."],
   metadata: { title: "My Doc" }
@@ -383,43 +385,43 @@ curl -X POST "https://api.trynebula.ai/v1/memories/delete" \
 
 <Info>Use `store_memory()` to append content. `update_memory()` only updates name, metadata, or collection associations.</Info>
 
-## Chunk Operations
+## Source Operations
 
-Memories contain chunks (messages in conversations, sections in documents). Each chunk has a unique ID.
+Memories contain sources (messages in conversations, sections in documents). Each source has a unique ID.
 
 <CodeGroup>
 
 ```python Python
 memory = nebula.get_memory(memory_id)
-for chunk in memory.chunks:
-    print(f"Chunk {chunk.id}: {chunk.content[:50]}...")
+for source in memory.sources:
+    print(f"Source {source.id}: {source.content[:50]}...")
 
-# Delete specific chunk
-nebula.delete_chunk(chunk_id)
+# Delete specific source
+nebula.delete_source(source_id)
 
-# Update chunk
-nebula.update_chunk(chunk_id=chunk_id, content="Updated content", metadata={"edited": True})
+# Update source
+nebula.update_source(source_id=source_id, content="Updated content", metadata={"edited": True})
 ```
 
 ```javascript JavaScript
 const memory = await nebula.getMemory(memoryId);
-memory.chunks?.forEach(chunk => console.log(`Chunk ${chunk.id}: ${chunk.content}`));
+memory.sources?.forEach(source => console.log(`Source ${source.id}: ${source.content}`));
 
-await nebula.deleteChunk(chunkId);
-await nebula.updateChunk(chunkId, "Updated content", { edited: true });
+await nebula.deleteSource(sourceId);
+await nebula.updateSource(sourceId, "Updated content", { edited: true });
 ```
 
 ```bash cURL
-# Get memory with chunks
+# Get memory with sources
 curl -X GET "https://api.trynebula.ai/v1/memories/YOUR_MEMORY_ID" \
   -H "Authorization: Bearer YOUR_API_KEY"
 
-# Delete chunk
-curl -X DELETE "https://api.trynebula.ai/v1/chunks/YOUR_CHUNK_ID" \
+# Delete source
+curl -X DELETE "https://api.trynebula.ai/v1/sources/YOUR_SOURCE_ID" \
   -H "Authorization: Bearer YOUR_API_KEY"
 
-# Update chunk
-curl -X PATCH "https://api.trynebula.ai/v1/chunks/YOUR_CHUNK_ID" \
+# Update source
+curl -X PATCH "https://api.trynebula.ai/v1/sources/YOUR_SOURCE_ID" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{"content": "Updated content", "metadata": {"edited": true}}'
