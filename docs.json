@@ -28,6 +28,7 @@
             "group": "Get Started",
             "pages": [
               "introduction",
+              "use-cases",
               "quickstart"
             ]
           },
