@@ -1,0 +1,61 @@
+---
+title: "Use Cases"
+description: "What Nebula is built for, and what it isn't"
+---
+
+## What Nebula Is
+
+Nebula is a **memory layer** for AI applications. It gives your agents structured, long-term state that evolves over time. When your agent retrieves context from Nebula, it gets entities, facts, and source utterances -- not raw text chunks.
+
+This matters when your agent needs to:
+
+- **Remember across sessions** -- A coding agent that recalls what it built last week, what failed, and why.
+- **Track evolving state** -- A customer support agent that knows a user upgraded their plan, changed their email, and had a billing issue last month -- without re-reading every past ticket.
+- **Reason over long horizons** -- An autonomous agent running multi-step workflows that span hours or days, where earlier decisions inform later ones.
+- **Stay consistent** -- An assistant that doesn't contradict itself because it maintains a unified model of what's true.
+
+## Common Use Cases
+
+### Long-Horizon Agents
+
+Agents that run complex, multi-step tasks need to remember what they've done, what worked, and what didn't. Nebula tracks this as structured state, not a chat log. Your agent can recall "I tried approach X and it failed because of Y" without searching through thousands of messages.
+
+### Coding Agents
+
+Give your coding agent persistent project context: architecture decisions, past debugging sessions, team conventions, and codebase knowledge. The agent builds understanding over time instead of starting fresh every session.
+
+### Personal AI Assistants
+
+Assistants that learn user preferences, remember past conversations, and adapt over time. Nebula extracts and maintains a model of the user -- their preferences, history, and context -- so the assistant gets better the more it's used.
+
+### Customer-Facing Agents
+
+Support and sales agents that know the customer's full history: past interactions, account changes, resolved issues, and preferences. Nebula maintains this as structured facts with temporal awareness, not a keyword search over transcripts.
+
+### Knowledge Workers
+
+Agents that synthesize information from multiple sources -- documents, Slack threads, emails, meeting notes -- into a unified knowledge graph. Ask "what decisions were made about the auth system?" and get a coherent answer across sources.
+
+## What Nebula Is Not
+
+**Nebula is not a vector database.** If you need a general-purpose vector store for embedding search, cosine similarity lookups, or nearest-neighbor queries on raw vectors, use a vector database like Pinecone, Weaviate, or Qdrant.
+
+**Nebula is not a RAG pipeline.** If you just need to chunk documents and retrieve the top-k most similar passages, a standard RAG setup will work fine. Nebula is for when top-k retrieval isn't enough -- when you need your agent to understand what changed, what's related, and what's true.
+
+**Here's the difference:**
+
+| Capability | Vector Database | RAG Pipeline | Nebula |
+| --- | --- | --- | --- |
+| Store and retrieve embeddings | Yes | Yes | Under the hood |
+| Chunk documents | No | Yes | Yes |
+| Extract entities and relationships | No | No | Yes |
+| Track facts over time | No | No | Yes |
+| Resolve contradictions across sources | No | No | Yes |
+| Return structured context (entities, facts, sources) | No | No | Yes |
+| Maintain agent state across sessions | No | No | Yes |
+
+## When to Choose Nebula
+
+Choose Nebula when your AI application needs **state, not just search**. If your agent needs to learn, remember, and evolve -- not just retrieve similar text -- Nebula is the right tool.
+
+[Get started with Nebula ->](/quickstart)
