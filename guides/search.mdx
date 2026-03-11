@@ -3,7 +3,7 @@ title: 'Search Guide'
 description: 'Vector graph search in Nebula'
 ---
 
-Nebula searches over a vector graph of entities and relationships, not raw text chunks. You send a natural language query; Nebula traverses the graph and returns structured memory: **knowledge** (facts and inferences), **procedures** (preferences and habits), **episodes** (temporal event clusters), and **sources** (the original text).
+Nebula searches over a vector graph of entities and relationships, not raw text chunks. You send a natural language query; Nebula traverses the graph and returns structured memory: **semantics** (facts and inferences), **procedures** (preferences and habits), **episodes** (temporal event clusters), and **sources** (the original text).
 
 ## Basic Search
 
@@ -19,8 +19,8 @@ results = nebula.search(
     collection_ids=["engineering"]
 )
 
-# Knowledge: structured subject-predicate-value triples
-for fact in results.knowledge:
+# Semantics: structured subject-predicate-value triples
+for fact in results.semantics:
     print(f"{fact['subject']} → {fact['predicate']} → {fact['value']}")
     print(f"  Score: {fact['activation_score']:.2f}")
 
@@ -28,7 +28,7 @@ for fact in results.knowledge:
 for proc in results.procedures:
     print(f"{proc['statement']} (confidence: {proc['confidence']:.2f})")
 
-# Sources: original source text grounding the knowledge
+# Sources: original source text grounding the semantics
 for source in results.sources:
     print(f"[{source.get('speaker', 'unknown')}]: {source['text']}")
 ```
@@ -42,8 +42,8 @@ const results = await nebula.search({
   collection_ids: ["engineering"]
 });
 
-// Knowledge
-results.knowledge.forEach(f =>
+// Semantics
+results.semantics.forEach(f =>
   console.log(`${f.subject} → ${f.predicate} → ${f.value}`)
 );
 
@@ -76,12 +76,12 @@ Search returns a `MemoryResponse` with four layers of memory:
 
 | Layer | Contains | Example |
 |-------|----------|---------|
-| **Knowledge** | Subject-predicate-value triples (facts, inferences, tasks) | `Sarah Chen → led → Aurora migration` |
+| **Semantics** | Subject-predicate-value triples (facts, inferences, tasks) | `Sarah Chen → led → Aurora migration` |
 | **Procedures** | User preferences and behavioral patterns | `Prefers PostgreSQL over MySQL` |
 | **Episodes** | Temporally clustered events | `Q4 database migration project` |
-| **Sources** | Original source text that grounds the knowledge | `"Sarah led the migration from PostgreSQL to Aurora last quarter"` |
+| **Sources** | Original source text that grounds the semantics | `"Sarah led the migration from PostgreSQL to Aurora last quarter"` |
 
-Each item has an `activation_score` (0-1) reflecting its relevance to the query. Knowledge items link back to their source text, giving you a full provenance chain from structured assertions down to original content.
+Each item has an `activation_score` (0-1) reflecting its relevance to the query. Semantics items link back to their source text, giving you a full provenance chain from structured assertions down to original content.
 
 <Info>The vector graph is built automatically when you store memories. You don't need to define entities or relationships - Nebula extracts them.</Info>
 

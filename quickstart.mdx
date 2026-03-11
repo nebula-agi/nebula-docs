@@ -75,8 +75,8 @@ results = nebula.search(
     collection_ids=[collection.id]
 )
 
-# Results contain knowledge, procedures, episodes, and sources
-for fact in results.knowledge:
+# Results contain semantics, procedures, episodes, and sources
+for fact in results.semantics:
     print(f"{fact['subject']} → {fact['predicate']} → {fact['value']}")
 for source in results.sources:
     print(source['text'])
@@ -109,8 +109,8 @@ async function storeAndSearch() {
     collection_ids: [collection.id]
   });
 
-  // Results contain knowledge, procedures, episodes, and sources
-  results.knowledge?.forEach(fact =>
+  // Results contain semantics, procedures, episodes, and sources
+  results.semantics?.forEach(fact =>
     console.log(`${fact.subject} → ${fact.predicate} → ${fact.value}`)
   );
   results.sources?.forEach(source => console.log(source.text));
@@ -161,7 +161,7 @@ When you search, Nebula returns a `MemoryResponse` with structured memory:
 
 ```json
 {
-  "knowledge": [
+  "semantics": [
     {
       "category": "fact",
       "subject": "Machine Learning",
@@ -181,7 +181,7 @@ When you search, Nebula returns a `MemoryResponse` with structured memory:
 }
 ```
 
-- **Knowledge**: Subject-predicate-value assertions (facts, inferences, tasks)
+- **Semantics**: Subject-predicate-value assertions (facts, inferences, tasks)
 - **Procedures**: User preferences and behavioral patterns
 - **Episodes**: Temporally clustered events
 - **Sources**: The original source text that grounds each assertion

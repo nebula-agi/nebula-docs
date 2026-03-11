@@ -187,19 +187,19 @@ See [Conversations Guide](/guides/conversations) for multi-turn patterns.
 
 When you store memories, Nebula automatically extracts structured knowledge and builds a graph of entities and relationships. When you search, the response contains four layers of memory:
 
-- **Knowledge**: Subject-predicate-value assertions (e.g., "Sarah - led - the Aurora migration"), with confidence that grows through corroboration across sources
+- **Semantics**: Subject-predicate-value assertions (e.g., "Sarah - led - the Aurora migration"), with confidence that grows through corroboration across sources
 - **Procedures**: User preferences and behavioral patterns (e.g., "Prefers dark mode")
 - **Episodes**: Temporally clustered events with timestamps
 - **Sources**: The original source text that grounds each assertion, providing provenance back to the stored memory
 
-<Warning>The use of `metadata` is highly discouraged. Nebula already consolidates all the knowledge from your content automatically.</Warning>
+<Warning>The use of `metadata` is highly discouraged. Nebula already consolidates all the semantics from your content automatically.</Warning>
 
 ## Memory Lifecycle
 
 1. **Creation**: `store_memory()` without `memory_id` creates a new memory
 2. **Expansion**: `store_memory()` with `memory_id` adds content to an existing memory
 3. **Extraction**: Nebula extracts entities, facts, and relationships into the vector graph
-4. **Retrieval**: `search()` returns knowledge, procedures, episodes, and sources; `get_memory()` returns the raw memory with all chunks
+4. **Retrieval**: `search()` returns semantics, procedures, episodes, and sources; `get_memory()` returns the raw memory with all chunks
 5. **Chunk Operations**: Use chunk IDs for granular updates or deletes
 6. **Deletion**: `delete()` removes an entire memory and all its chunks
 
