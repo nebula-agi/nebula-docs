@@ -40,7 +40,7 @@ results = nebula.search(
     collection_ids=[collection.id]
 )
 
-for fact in results.facts:
+for fact in results.knowledge:
     print(fact)
 ```
 
@@ -74,7 +74,7 @@ async def main():
         collection_ids=[collection.id]
     )
 
-    for fact in results.facts:
+    for fact in results.knowledge:
         print(fact)
 
     # Clean up
@@ -103,7 +103,7 @@ async def main():
             collection_ids=[collection.id]
         )
 
-        print(f"Found {len(results.facts)} facts")
+        print(f"Found {len(results.knowledge)} facts")
 
 asyncio.run(main())
 ```
