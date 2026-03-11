@@ -75,13 +75,11 @@ results = nebula.search(
     collection_ids=[collection.id]
 )
 
-# Results contain entities, facts, and sources
-for entity in results.entities:
-    print(entity)
-for fact in results.facts:
-    print(fact)
+# Results contain semantics, procedures, episodes, and sources
+for fact in results.semantics:
+    print(f"{fact['subject']} → {fact['predicate']} → {fact['value']}")
 for source in results.sources:
-    print(source)
+    print(source['text'])
 ```
 
 ```javascript JavaScript
@@ -111,10 +109,11 @@ async function storeAndSearch() {
     collection_ids: [collection.id]
   });
 
-  // Results contain entities, facts, and sources
-  results.entities?.forEach(entity => console.log(entity));
-  results.facts?.forEach(fact => console.log(fact));
-  results.sources?.forEach(source => console.log(source));
+  // Results contain semantics, procedures, episodes, and sources
+  results.semantics?.forEach(fact =>
+    console.log(`${fact.subject} → ${fact.predicate} → ${fact.value}`)
+  );
+  results.sources?.forEach(source => console.log(source.text));
 }
 
 storeAndSearch();
@@ -158,40 +157,36 @@ When you store a memory, Nebula returns the memory ID:
 memory_id = "eng_abc123def456"
 ```
 
-When you search, Nebula returns a `MemoryResponse` with three layers of structured knowledge:
+When you search, Nebula returns a `MemoryResponse` with structured memory:
 
 ```json
 {
-  "entities": [
+  "semantics": [
     {
-      "name": "Machine Learning",
-      "description": "A subset of AI focused on learning from data",
-      "activation_score": 0.95
-    }
-  ],
-  "facts": [
-    {
+      "category": "fact",
       "subject": "Machine Learning",
       "predicate": "is transforming",
       "value": "healthcare",
       "activation_score": 0.92
     }
   ],
+  "procedures": [],
+  "episodes": [],
   "sources": [
     {
       "text": "Machine learning is transforming healthcare",
-      "activation_score": 0.91,
-      "engram_id": "eng_abc123def456"
+      "activation_score": 0.91
     }
   ]
 }
 ```
 
-- **Entities**: People, concepts, and things extracted from your data
-- **Facts**: Subject-predicate-value assertions about those entities
-- **Sources**: The original source text that grounds each fact
+- **Semantics**: Subject-predicate-value assertions (facts, inferences, tasks)
+- **Procedures**: User preferences and behavioral patterns
+- **Episodes**: Temporally clustered events
+- **Sources**: The original source text that grounds each assertion
 
-<Tip>See [Core Concepts](/guides/concepts) for a deeper explanation of entities, facts, and sources.</Tip>
+<Tip>See [Core Concepts](/guides/concepts) for a deeper explanation of the memory response.</Tip>
 
 ## Next Steps
 
