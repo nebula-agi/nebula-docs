@@ -63,6 +63,16 @@ export CC_NEBULA_COLLECTION_ID="your-collection-id"
 
 ### 4. Install the Plugin
 
+Run this in any project directory where you use Claude Code:
+
+```bash
+npx skills add nebula-agi/skills
+```
+
+This installs the Nebula skill and wires up the hooks automatically.
+
+<Accordion title="Manual installation">
+
 ```bash
 git clone https://github.com/nebula-agi/claude-nebula.git
 cd claude-nebula
@@ -72,6 +82,8 @@ claude plugin install ./plugin
 ```
 
 The build step bundles the source files into `plugin/scripts/*.cjs` using esbuild.
+
+</Accordion>
 
 ### 5. Verify
 
