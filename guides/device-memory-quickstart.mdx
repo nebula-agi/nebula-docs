@@ -5,86 +5,169 @@ description: 'Get started with client-owned memory in 5 minutes'
 
 <Warning>You'll need a Nebula API key before starting. Get one at [trynebula.ai](https://trynebula.ai)</Warning>
 
-<Note>The Device Memory SDK is currently available for Python only. A JavaScript SDK is coming soon.</Note>
-
 ## Prerequisites
 
-- Python 3.8+
 - A Nebula account at [trynebula.ai](https://trynebula.ai)
 - An existing Nebula collection with some stored memories (see [Quick Start](/quickstart) to create one)
+- **Python**: Python 3.10+ with `pip install nebula-client`
+- **JavaScript/TypeScript**: Node.js 18+ with `npm install @nebula-ai/sdk`
 
 ## Install
 
-```bash
+<CodeGroup>
+
+```bash Python
 pip install nebula-client
 ```
+
+```bash JavaScript
+npm install @nebula-ai/sdk
+```
+
+</CodeGroup>
 
 ## Walkthrough
 
 <Steps>
 <Step title="Initialize the client">
 
-```python
-from nebula.device_memory import NebulaMemoryClient
+<CodeGroup>
 
-client = NebulaMemoryClient(
-    api_key="YOUR_API_KEY",
-    storage_path="~/.nebula/memory.snapshot",  # default
-)
+```python Python
+from nebula import Nebula
+
+client = Nebula(api_key="YOUR_API_KEY")
 ```
+
+```typescript JavaScript
+import { Nebula } from '@nebula-ai/sdk';
+
+const client = new Nebula({ apiKey: 'YOUR_API_KEY' });
+```
+
+</CodeGroup>
 
 </Step>
 
-<Step title="Bootstrap from an existing collection">
+<Step title="Export a snapshot from an existing collection">
 
-```python
-await client.bootstrap(collection_id="YOUR_COLLECTION_ID")
+Download the full graph state of a collection. After this, your local copy is canonical.
+
+<CodeGroup>
+
+```python Python
+snapshot = client.export_snapshot(collection_id="YOUR_COLLECTION_ID")
 ```
 
-<Info>After bootstrap, the local snapshot file is the canonical copy. Nebula does not retain a server-side copy.</Info>
+```typescript JavaScript
+const snapshot = await client.exportSnapshot('YOUR_COLLECTION_ID');
+```
+
+```bash cURL
+curl -X POST "https://api.trynebula.ai/v1/device-memory/snapshot/export" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -d '{"collection_id": "YOUR_COLLECTION_ID"}'
+```
+
+</CodeGroup>
+
+<Info>After export, the local snapshot is the canonical copy. Nebula does not retain a server-side copy.</Info>
 
 </Step>
 
 <Step title="Ingest new events">
 
-```python
-from nebula.device_memory import Event
+Send your snapshot and new events to Nebula. It processes them and returns a patch describing what changed.
 
-await client.ingest([
-    Event(content="Had a meeting with Alice about the Q2 roadmap"),
-    Event(content="Reviewed PR #42 for the auth module"),
-])
+<CodeGroup>
+
+```python Python
+patch = client.compute({
+    "collection_id": "YOUR_COLLECTION_ID",
+    "context": snapshot,
+    "events": [
+        {"content": "Had a meeting with Alice about the Q2 roadmap"},
+        {"content": "Reviewed PR #42 for the auth module"},
+    ],
+})
+
+# patch contains put_entities, delete_entities, put_relationships, etc.
 ```
 
-The snapshot is updated locally with any new entities and relationships Nebula extracted.
+```typescript JavaScript
+const patch = await client.compute({
+  collection_id: 'YOUR_COLLECTION_ID',
+  context: snapshot,
+  events: [
+    { content: 'Had a meeting with Alice about the Q2 roadmap' },
+    { content: 'Reviewed PR #42 for the auth module' },
+  ],
+});
+```
+
+```bash cURL
+curl -X POST "https://api.trynebula.ai/v1/device-memory/compute" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -d '{
+    "request": {
+      "collection_id": "YOUR_COLLECTION_ID",
+      "events": [
+        {"content": "Had a meeting with Alice about the Q2 roadmap"}
+      ],
+      "context": { "...your snapshot..." }
+    }
+  }'
+```
+
+</CodeGroup>
+
+Apply the returned patch to your local snapshot to keep it up to date.
 
 </Step>
 
 <Step title="Search memory">
 
-```python
-results = await client.search("What do I know about Alice?")
+Query your memory through Nebula's traversal engine. Your snapshot is sent, scored, and results are returned. Nothing is stored server-side.
+
+<CodeGroup>
+
+```python Python
+results = client.query_snapshot(
+    snapshot=snapshot,
+    query="What do I know about Alice?",
+    limit=10,
+)
 
 for entity in results.get("entities", []):
     print(f"{entity['name']}: {entity['description']}")
 ```
 
-</Step>
+```typescript JavaScript
+const results = await client.querySnapshot({
+  snapshot,
+  query: 'What do I know about Alice?',
+  limit: 10,
+});
 
-<Step title="Export and import snapshots">
-
-```python
-# Export
-snapshot_bytes = client.export_snapshot()
-
-# Save to file, upload to S3, send to another device, etc.
-with open("backup.snapshot", "wb") as f:
-    f.write(snapshot_bytes)
-
-# Import on another device or after restore
-with open("backup.snapshot", "rb") as f:
-    client.import_snapshot(f.read())
+for (const entity of results.entities) {
+  console.log(`${entity.name}: ${entity.description}`);
+}
 ```
+
+```bash cURL
+curl -X POST "https://api.trynebula.ai/v1/device-memory/query" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -d '{
+    "snapshot": { "...your snapshot..." },
+    "query": "What do I know about Alice?",
+    "limit": 10
+  }'
+```
+
+</CodeGroup>
 
 </Step>
 </Steps>
