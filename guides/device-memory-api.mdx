@@ -3,9 +3,9 @@ title: 'Device Memory API'
 description: 'REST API reference for device-memory endpoints'
 ---
 
-<Info>The Python and JavaScript SDKs handle request construction and response parsing automatically. These endpoint details are for developers building their own client or calling the API directly.</Info>
+<Info>Device memory reuses the existing `store_memory` and `search` endpoints. Pass `snapshot` instead of `collection_id` -- they are mutually exclusive.</Info>
 
-All endpoints require authentication via `X-API-Key` header (or `Authorization: Bearer <token>`) and collection-level access.
+All endpoints require authentication via `X-API-Key` header (or `Authorization: Bearer <token>`).
 
 ## Export Snapshot
 
@@ -18,8 +18,6 @@ POST /v1/device-memory/snapshot/export
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `collection_id` | string | Yes | UUID of the collection to export |
-
-Returns a `SnapshotEnvelope` containing entities, relationships, embeddings, FTS metadata, and a `root_hash` for optimistic concurrency.
 
 <CodeGroup>
 
@@ -55,9 +53,138 @@ curl -X POST "https://api.trynebula.ai/v1/device-memory/snapshot/export" \
 
 ---
 
+## Store Memory
+
+The existing `/v1/memories` endpoint accepts a `snapshot` field instead of `collection_id`. When a snapshot is provided, Nebula processes the content statelessly and returns an updated snapshot instead of a `memory_id`.
+
+```
+POST /v1/memories
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `snapshot` | object | Yes | Your current snapshot (mutually exclusive with `collection_id`) |
+| `raw_text` | string | Yes | Content to store |
+| `metadata` | object | No | Arbitrary metadata |
+
+Returns `{ "snapshot": <updated_snapshot> }` when using device memory mode.
+
+<CodeGroup>
+
+```python Python
+from nebula import Memory
+
+result = client.store_memory(
+    Memory(
+        snapshot=snapshot,
+        content="Had a meeting with Alice about the Q2 roadmap",
+    )
+)
+
+snapshot = result.snapshot
+```
+
+```python Python (async)
+async with AsyncNebula(api_key="YOUR_API_KEY") as client:
+    result = await client.store_memory(
+        Memory(
+            snapshot=snapshot,
+            content="Had a meeting with Alice about the Q2 roadmap",
+        )
+    )
+    snapshot = result.snapshot
+```
+
+```typescript JavaScript
+const result = await client.storeMemory({
+  snapshot,
+  content: 'Had a meeting with Alice about the Q2 roadmap',
+});
+
+snapshot = result.snapshot;
+```
+
+```bash cURL
+curl -X POST "https://api.trynebula.ai/v1/memories" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -d '{
+    "snapshot": { "...your snapshot..." },
+    "raw_text": "Had a meeting with Alice about the Q2 roadmap"
+  }'
+```
+
+</CodeGroup>
+
+---
+
+## Search
+
+The existing `/v1/memories/search` endpoint accepts a `snapshot` field instead of `collection_ids`. Nebula scores your snapshot statelessly and returns results. Nothing is persisted.
+
+```
+POST /v1/memories/search
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `snapshot` | object | Yes | Your full snapshot (mutually exclusive with `collection_ids`) |
+| `query` | string | Yes | Natural language search query |
+| `limit` | integer | No | Maximum results to return (default: 10) |
+
+Returns the same `MemoryResponse` format as standard search (semantics, procedures, episodes, sources).
+
+<CodeGroup>
+
+```python Python
+results = client.search(
+    query="What do I know about Alice?",
+    snapshot=snapshot,
+    limit=10,
+)
+
+for fact in results.semantics:
+    print(f"{fact['subject']} -> {fact['predicate']} -> {fact['value']}")
+```
+
+```python Python (async)
+results = await client.search(
+    query="What do I know about Alice?",
+    snapshot=snapshot,
+    limit=10,
+)
+```
+
+```typescript JavaScript
+const results = await client.search({
+  query: 'What do I know about Alice?',
+  snapshot,
+  limit: 10,
+});
+
+for (const fact of results.semantics) {
+  console.log(`${fact.subject} -> ${fact.predicate} -> ${fact.value}`);
+}
+```
+
+```bash cURL
+curl -X POST "https://api.trynebula.ai/v1/memories/search" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -d '{
+    "snapshot": { "...your snapshot..." },
+    "query": "What do I know about Alice?",
+    "limit": 10
+  }'
+```
+
+</CodeGroup>
+
+---
+
 ## Import Snapshot
 
-Import a `SnapshotEnvelope` into an ephemeral server-side collection. Useful for debugging or running server-side operations against a client-owned snapshot.
+Import a snapshot into an ephemeral server-side collection. Useful for debugging or running server-side operations against a client-owned snapshot.
 
 ```
 POST /v1/device-memory/snapshot/import
@@ -65,7 +192,7 @@ POST /v1/device-memory/snapshot/import
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `snapshot` | SnapshotEnvelope | Yes | The full snapshot to import |
+| `snapshot` | object | Yes | The full snapshot to import |
 
 Returns `{ "ephemeral_collection_id": "<uuid>" }`.
 
@@ -88,173 +215,6 @@ curl -X POST "https://api.trynebula.ai/v1/device-memory/snapshot/import" \
   -H "Content-Type: application/json" \
   -H "X-API-Key: YOUR_API_KEY" \
   -d '{"snapshot": { "...your snapshot..." }}'
-```
-
-</CodeGroup>
-
----
-
-## Compute
-
-Send new events for processing and receive a patch with the resulting changes.
-
-```
-POST /v1/device-memory/compute
-```
-
-### Request
-
-The request body wraps a `ComputeRequest`:
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `request.collection_id` | string | Yes | UUID of the collection |
-| `request.events` | Event[] | Yes | New content to process |
-| `request.context` | SnapshotEnvelope | Yes | Your current snapshot |
-| `request.request_id` | string | No | Idempotency key (UUID) |
-| `request.base_generation` | integer | No | Generation from your current snapshot |
-| `request.base_root_hash` | string | No | Root hash from your current snapshot |
-| `request.context_selection` | object | No | How context was selected (default: `{"strategy": "full_snapshot"}`) |
-
-**Event fields:**
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `content` | string | Yes | The text content to process |
-| `source_type` | string | No | `"document"` or `"conversation"` (default: `"document"`) |
-| `metadata` | object | No | Arbitrary metadata |
-| `timestamp` | string | No | ISO 8601 timestamp |
-
-### Response
-
-Returns a `PatchEnvelope` with full-value put/delete operations:
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `collection_id` | string | The collection this patch applies to |
-| `previous_root_hash` | string | Hash of the pre-state snapshot |
-| `next_root_hash` | string | Expected hash after applying the patch |
-| `put_entities` | EntityRecord[] | Entities to upsert |
-| `delete_entities` | string[] | Entity IDs to remove |
-| `put_relationships` | RelationshipRecord[] | Relationships to upsert |
-| `delete_relationships` | string[] | Relationship IDs to remove |
-| `events` | Event[] | Events that were processed |
-
-<CodeGroup>
-
-```python Python
-patch = client.compute({
-    "collection_id": "YOUR_COLLECTION_ID",
-    "context": snapshot,
-    "events": [
-        {"content": "Had a meeting with Alice about the Q2 roadmap"},
-        {"content": "Bob mentioned the API deadline is March 20th"},
-    ],
-})
-```
-
-```python Python (async)
-patch = await client.compute({
-    "collection_id": "YOUR_COLLECTION_ID",
-    "context": snapshot,
-    "events": [
-        {"content": "Had a meeting with Alice about the Q2 roadmap"},
-    ],
-})
-```
-
-```typescript JavaScript
-const patch = await client.compute({
-  collection_id: 'YOUR_COLLECTION_ID',
-  context: snapshot,
-  events: [
-    { content: 'Had a meeting with Alice about the Q2 roadmap' },
-    { content: 'Bob mentioned the API deadline is March 20th' },
-  ],
-});
-```
-
-```bash cURL
-curl -X POST "https://api.trynebula.ai/v1/device-memory/compute" \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: YOUR_API_KEY" \
-  -d '{
-    "request": {
-      "collection_id": "YOUR_COLLECTION_ID",
-      "events": [
-        {"content": "Had a meeting with Alice about the Q2 roadmap"}
-      ],
-      "context": { "...your snapshot..." },
-      "context_selection": {"strategy": "full_snapshot"}
-    }
-  }'
-```
-
-</CodeGroup>
-
-<Tip>Verify the patch by checking that your post-patch root hash matches `next_root_hash`. If it doesn't, re-export the snapshot to resync.</Tip>
-
----
-
-## Query
-
-Search your memory through Nebula's traversal engine. Your snapshot is scored and results are returned. Nothing is persisted server-side.
-
-```
-POST /v1/device-memory/query
-```
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `snapshot` | SnapshotEnvelope | Yes | Your full snapshot |
-| `query` | string | Yes | Natural language search query |
-| `query_embedding` | float[] | No | Pre-computed query embedding. If omitted, Nebula generates it. |
-| `limit` | integer | No | Maximum entities to return (default: 10) |
-
-Returns `{ "entities": [...], "relationships": [...] }` with scored results.
-
-<CodeGroup>
-
-```python Python
-results = client.query_snapshot(
-    snapshot=snapshot,
-    query="What do I know about Alice?",
-    limit=10,
-)
-
-for entity in results.get("entities", []):
-    print(f"{entity['name']}: {entity['description']}")
-```
-
-```python Python (async)
-results = await client.query_snapshot(
-    snapshot=snapshot,
-    query="What do I know about Alice?",
-    limit=10,
-)
-```
-
-```typescript JavaScript
-const results = await client.querySnapshot({
-  snapshot,
-  query: 'What do I know about Alice?',
-  limit: 10,
-});
-
-for (const entity of results.entities) {
-  console.log(`${entity.name}: ${entity.description}`);
-}
-```
-
-```bash cURL
-curl -X POST "https://api.trynebula.ai/v1/device-memory/query" \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: YOUR_API_KEY" \
-  -d '{
-    "snapshot": { "...your snapshot..." },
-    "query": "What do I know about Alice?",
-    "limit": 10
-  }'
 ```
 
 </CodeGroup>

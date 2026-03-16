@@ -7,9 +7,7 @@ description: 'Own your memory graph on-device while using Nebula as a stateless 
 
 In the standard Nebula model, your memory graph lives on Nebula's servers. Device Memory inverts this: **your application owns the canonical graph state**, and Nebula operates as a stateless compute engine.
 
-Your app stores a portable snapshot locally -- on-device, in your database, wherever you choose. When new content arrives, you send it to Nebula. Nebula processes the content and returns a patch describing what changed. Your app applies the patch locally and moves on.
-
-Nebula never persists your data. Any server-side state is ephemeral and cleaned up immediately after each request.
+Your app stores a portable snapshot locally -- on-device, in your database, wherever you choose. When new content arrives, you send it to Nebula. Nebula processes the content and returns an updated snapshot. Nothing is persisted server-side.
 
 ## When to Use Device Memory
 
@@ -22,11 +20,13 @@ Nebula never persists your data. Any server-side state is ephemeral and cleaned 
 
 ## How It Works
 
-**1. Bootstrap** -- Download an initial snapshot from an existing Nebula collection. After this, your local copy is canonical.
+The API is the same one you already know -- `store_memory` and `search`. The only difference is you pass a `snapshot` instead of a `collection_id`.
 
-**2. Ingest** -- Send new events to Nebula. It processes them and returns a patch. The SDK applies the patch to your local snapshot automatically.
+**1. Bootstrap** -- Export a snapshot from an existing collection. After this, your local copy is canonical.
 
-**3. Search** -- Query your memory through Nebula's traversal engine. Your snapshot is sent, scored, and results are returned. Nothing is stored server-side.
+**2. Store** -- Call `store_memory` with your snapshot and new content. Nebula processes it and returns an updated snapshot.
+
+**3. Search** -- Call `search` with your snapshot and a query. Nebula scores it and returns results. Nothing is stored server-side.
 
 **4. Export / Import** -- Serialize the snapshot to portable bytes for backup or transfer between devices.
 
