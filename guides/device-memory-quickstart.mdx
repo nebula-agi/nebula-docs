@@ -33,17 +33,12 @@ client = NebulaMemoryClient(
 )
 ```
 
-
 </Step>
 
 <Step title="Bootstrap from an existing collection">
 
 ```python
-snapshot = await client.bootstrap(collection_id="YOUR_COLLECTION_ID")
-
-print(f"Entities: {len(snapshot.graph.entities)}")
-print(f"Relationships: {len(snapshot.graph.relationships)}")
-print(f"Generation: {snapshot.generation}")
+await client.bootstrap(collection_id="YOUR_COLLECTION_ID")
 ```
 
 <Info>After bootstrap, the local snapshot file is the canonical copy. Nebula does not retain a server-side copy.</Info>
@@ -55,16 +50,13 @@ print(f"Generation: {snapshot.generation}")
 ```python
 from nebula.device_memory import Event
 
-patch = await client.ingest([
+await client.ingest([
     Event(content="Had a meeting with Alice about the Q2 roadmap"),
     Event(content="Reviewed PR #42 for the auth module"),
 ])
-
-print(f"Patch ops: {len(patch.ops)}")
-print(f"Generation: {patch.base_generation} -> {patch.next_generation}")
 ```
 
-The patch is applied to your local snapshot automatically.
+The snapshot is updated locally with any new entities and relationships Nebula extracted.
 
 </Step>
 
@@ -99,6 +91,5 @@ with open("backup.snapshot", "rb") as f:
 
 ## Next Steps
 
-- [Device Memory API](/guides/device-memory-api) -- Full endpoint reference with request/response schemas
-- [Device Memory Wire Protocol](/guides/device-memory-protocol) -- Detailed envelope formats and apply rules
+- [Device Memory API](/guides/device-memory-api) -- REST endpoint reference
 - [Device Memory Architecture](/guides/device-memory) -- Conceptual overview
