@@ -52,8 +52,7 @@
             "pages": [
               "guides/device-memory",
               "guides/device-memory-quickstart",
-              "guides/device-memory-api",
-              "guides/device-memory-protocol"
+              "guides/device-memory-api"
             ]
           },
           {

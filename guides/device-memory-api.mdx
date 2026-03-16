@@ -3,7 +3,7 @@ title: 'Device Memory API'
 description: 'REST API reference for device-memory endpoints'
 ---
 
-<Info>The Python SDK handles snapshot management, request construction, and patch application automatically. These endpoint details are for developers building their own client or calling the API directly. For the wire format internals, see [Wire Protocol](/guides/device-memory-protocol).</Info>
+<Info>The Python SDK handles snapshot management, request construction, and patch application automatically. These endpoint details are for developers building their own client or calling the API directly.</Info>
 
 All endpoints require authentication via `Authorization: Bearer <API_KEY>` and collection-level access.
 
@@ -74,7 +74,7 @@ The SDK constructs this automatically from your local snapshot and new events. I
 
 ### Response
 
-Returns a patch containing ordered operations and conflict-detection fields. The SDK applies this to your local snapshot automatically. See [Apply Rules](/guides/device-memory-protocol#apply-rules) for details on patch validation.
+Returns a patch containing ordered operations. The SDK applies this to your local snapshot automatically.
 
 <CodeGroup>
 
