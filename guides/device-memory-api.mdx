@@ -49,62 +49,17 @@ curl -X POST "https://api.trynebula.ai/v1/device-memory/snapshot/export" \
 
 ## Import Snapshot
 
-Import a `SnapshotEnvelope` into an ephemeral server-side collection. Useful for server-side operations that require a temporary hydrated graph.
+Import a `SnapshotEnvelope` into an ephemeral server-side collection. Used internally by the compute pipeline; direct usage is for advanced cases requiring temporary server-side graph access.
 
 ```
 POST /v1/device-memory/snapshot/import
 ```
 
-### Request Body
-
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `snapshot` | SnapshotEnvelope | Yes | The full snapshot to import |
 
-### Response
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `ephemeral_collection_id` | string | UUID of the temporary collection created server-side |
-
-<CodeGroup>
-
-```python Python
-# The import endpoint is used internally by the compute pipeline.
-# Direct usage is for advanced cases where you need server-side access
-# to the graph (e.g., custom processing).
-
-from nebula.device_memory import NebulaAPI
-
-api = NebulaAPI(api_key="YOUR_API_KEY")
-# api.export_snapshot() and api.compute() handle import internally
-```
-
-```bash cURL
-curl -X POST "https://api.trynebula.ai/v1/device-memory/snapshot/import" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "snapshot": {
-      "format_version": 2,
-      "collection_id": "YOUR_COLLECTION_ID",
-      "generation": 1,
-      "root_hash": "sha256:...",
-      "created_at": "2026-03-15T00:00:00Z",
-      "graph": {
-        "entities": [],
-        "relationships": [],
-        "entity_description_embeddings": {"ids": [], "dim": 1536, "dtype": "float16", "encoding": "npy-base64", "values_b64": "", "mask_b64": ""},
-        "relationship_description_embeddings": {"ids": [], "dim": 1536, "dtype": "float16", "encoding": "npy-base64", "values_b64": "", "mask_b64": ""},
-        "relationship_relation_embeddings": {"ids": [], "dim": 1536, "dtype": "float16", "encoding": "npy-base64", "values_b64": "", "mask_b64": ""}
-      }
-    }
-  }'
-```
-
-</CodeGroup>
-
-<Warning>Ephemeral collections are automatically cleaned up after compute completes. A background reaper also removes any orphaned ephemeral collections every 15 minutes.</Warning>
+Returns `{ "ephemeral_collection_id": "uuid" }`. Ephemeral collections are cleaned up automatically after compute completes.
 
 ---
 
@@ -112,7 +67,7 @@ curl -X POST "https://api.trynebula.ai/v1/device-memory/snapshot/import" \
 
 Process new events against a context subgraph and return a `PatchEnvelope` with the resulting changes.
 
-This is the main ingestion endpoint. Nebula runs LLM-based entity extraction, relationship extraction, entity linking, deduplication, and description consolidation over the events, diffs the result against the provided context, and returns patch operations.
+Nebula runs extraction, entity linking, deduplication, and consolidation over the events, diffs against the provided context, and returns patch operations.
 
 ```
 POST /v1/device-memory/compute
@@ -189,18 +144,9 @@ curl -X POST "https://api.trynebula.ai/v1/device-memory/compute" \
       "base_generation": 1,
       "base_root_hash": "sha256:abc123...",
       "events": [
-        {
-          "content": "Had a meeting with Alice about the Q2 roadmap",
-          "source_type": "document"
-        }
+        {"content": "Had a meeting with Alice about the Q2 roadmap"}
       ],
-      "context": {
-        "entities": [],
-        "relationships": [],
-        "entity_description_embeddings": {"ids": [], "dim": 1536, "dtype": "float16", "encoding": "npy-base64", "values_b64": "", "mask_b64": ""},
-        "relationship_description_embeddings": {"ids": [], "dim": 1536, "dtype": "float16", "encoding": "npy-base64", "values_b64": "", "mask_b64": ""},
-        "relationship_relation_embeddings": {"ids": [], "dim": 1536, "dtype": "float16", "encoding": "npy-base64", "values_b64": "", "mask_b64": ""}
-      },
+      "context": { "...your snapshot graph..." },
       "context_selection": {"strategy": "full_snapshot"}
     }
   }'
@@ -208,9 +154,7 @@ curl -X POST "https://api.trynebula.ai/v1/device-memory/compute" \
 
 </CodeGroup>
 
-<Warning>
-The client **must reject** the patch if `base_generation` or `base_root_hash` don't match the local snapshot. After applying `ops`, the client must verify that the recomputed root hash equals `next_root_hash`. If it doesn't, the patch is invalid -- resync by re-exporting the snapshot.
-</Warning>
+<Info>See [Apply Rules](/guides/device-memory-protocol#apply-rules) for patch validation requirements.</Info>
 
 ---
 

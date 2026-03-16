@@ -28,9 +28,9 @@ The device-memory lifecycle has four operations:
 
 **1. Bootstrap** -- Download an initial snapshot from an existing Nebula collection via the [export endpoint](/guides/device-memory-api#export-snapshot). After this, your local copy is canonical.
 
-**2. Ingest** -- When new content arrives, send a `ComputeRequest` containing the new events and your current graph as context to the [compute endpoint](/guides/device-memory-api#compute). Nebula returns a `PatchEnvelope` with `put_entity`, `put_relationship`, `delete_entity`, and `delete_relationship` operations. Apply the patch locally.
+**2. Ingest** -- Send new events plus your current graph as context to the [compute endpoint](/guides/device-memory-api#compute). Nebula returns a `PatchEnvelope` with put/delete operations. Apply the patch locally.
 
-**3. Search** -- Send your snapshot to the [query endpoint](/guides/device-memory-api#query-snapshot) for stateless traversal. Nebula scores entities using cosine similarity and BM25, expands related nodes, and returns results. Nothing is stored server-side.
+**3. Search** -- Send your snapshot to the [query endpoint](/guides/device-memory-api#query-snapshot) for stateless traversal. Nothing is stored server-side.
 
 **4. Export / Import** -- Serialize the snapshot to portable compressed bytes for backup, transfer between devices, or migration.
 
@@ -38,14 +38,10 @@ The device-memory lifecycle has four operations:
 
 | Concept | Description |
 |---------|-------------|
-| **SnapshotEnvelope** | The complete portable state: entities, relationships, masked embedding blocks, a generation counter, and a root hash. |
+| **SnapshotEnvelope** | The complete portable state: entities, relationships, embedding blocks, a generation counter, and a root hash. |
 | **ComputeRequest** | New events to process, plus a context subgraph from your snapshot. Includes `base_generation` and `base_root_hash` for concurrency. |
 | **PatchEnvelope** | Ordered list of `put_*` / `delete_*` operations, plus the `next_generation` and `next_root_hash` to expect after applying. |
-| **Generation** | Monotonically increasing counter. Each patch bumps it by one. |
-| **Root Hash** | Deterministic SHA-256 over sorted entity/relationship records and raw embedding blocks. Both client and server compute it independently to verify consistency. |
-| **Optimistic Concurrency** | Patches include `base_generation` and `base_root_hash`. If these don't match your local snapshot, the patch is stale and must be rejected. |
-| **Embedding Blocks** | Positional float16 numpy matrices with boolean presence masks, base64-encoded. Missing embeddings are distinct from zero vectors. |
-| **Advisory Events** | Optional annotations in patches (e.g., `entity_merged`) useful for UI or observability. Not required for correctness. |
+| **Generation & Root Hash** | Each patch bumps the generation by one. The root hash is a deterministic SHA-256 both sides compute independently. Patches are rejected if they don't match your local state. |
 
 ## Limitations
 

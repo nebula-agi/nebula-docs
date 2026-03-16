@@ -33,13 +33,10 @@ client = NebulaMemoryClient(
 )
 ```
 
-The `storage_path` is where the local snapshot file is persisted. It defaults to `~/.nebula/memory.snapshot`.
 
 </Step>
 
 <Step title="Bootstrap from an existing collection">
-
-Download the full graph state from a Nebula collection to initialize local storage:
 
 ```python
 snapshot = await client.bootstrap(collection_id="YOUR_COLLECTION_ID")
@@ -55,8 +52,6 @@ print(f"Generation: {snapshot.generation}")
 
 <Step title="Ingest new events">
 
-Send new content to Nebula for extraction. Nebula processes the events against your local graph context and returns a patch:
-
 ```python
 from nebula.device_memory import Event
 
@@ -69,13 +64,11 @@ print(f"Patch ops: {len(patch.ops)}")
 print(f"Generation: {patch.base_generation} -> {patch.next_generation}")
 ```
 
-The patch is applied to your local snapshot automatically. New entities, relationships, and embeddings are merged in.
+The patch is applied to your local snapshot automatically.
 
 </Step>
 
 <Step title="Search memory">
-
-Search uses stateless traversal -- your snapshot is sent to Nebula, scored, and results are returned. Nothing is persisted:
 
 ```python
 results = await client.search("What do I know about Alice?")
@@ -87,8 +80,6 @@ for entity in results.get("entities", []):
 </Step>
 
 <Step title="Export and import snapshots">
-
-Export the snapshot as portable compressed bytes for backup or transfer:
 
 ```python
 # Export
@@ -105,82 +96,6 @@ with open("backup.snapshot", "rb") as f:
 
 </Step>
 </Steps>
-
-## Full Example
-
-```python
-import asyncio
-from nebula.device_memory import NebulaMemoryClient, Event
-
-async def main():
-    client = NebulaMemoryClient(api_key="YOUR_API_KEY")
-
-    # Bootstrap from existing collection
-    await client.bootstrap(collection_id="YOUR_COLLECTION_ID")
-
-    # Ingest new events
-    patch = await client.ingest([
-        Event(content="Had a meeting with Alice about the Q2 roadmap"),
-        Event(content="Bob mentioned the API deadline is March 20th"),
-    ])
-    print(f"Applied {len(patch.ops)} ops, generation {patch.next_generation}")
-
-    # Search
-    results = await client.search("What's the API deadline?")
-    for entity in results.get("entities", []):
-        print(f"  {entity['name']}: {entity['description']}")
-
-    # Export for backup
-    backup = client.export_snapshot()
-    print(f"Snapshot size: {len(backup)} bytes")
-
-asyncio.run(main())
-```
-
-## Using cURL Directly
-
-If you're not using the Python SDK, you can call the REST endpoints directly:
-
-<CodeGroup>
-
-```bash Export
-curl -X POST "https://api.trynebula.ai/v1/device-memory/snapshot/export" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{"collection_id": "YOUR_COLLECTION_ID"}'
-```
-
-```bash Compute
-curl -X POST "https://api.trynebula.ai/v1/device-memory/compute" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "request": {
-      "request_id": "unique-request-id",
-      "collection_id": "YOUR_COLLECTION_ID",
-      "base_generation": 1,
-      "base_root_hash": "sha256:...",
-      "events": [
-        {"content": "Had a meeting with Alice about the Q2 roadmap"}
-      ],
-      "context": { "...snapshot graph..." },
-      "context_selection": {"strategy": "full_snapshot"}
-    }
-  }'
-```
-
-```bash Query
-curl -X POST "https://api.trynebula.ai/v1/device-memory/query" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "snapshot": { "...full snapshot envelope..." },
-    "query": "What do I know about Alice?",
-    "limit": 10
-  }'
-```
-
-</CodeGroup>
 
 ## Next Steps
 

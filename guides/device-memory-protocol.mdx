@@ -9,21 +9,14 @@ description: "Detailed wire protocol specification for device-memory snapshots a
 
 The Device Memory wire protocol defines how clients and Nebula exchange graph state. The client owns the canonical graph and Nebula acts as a stateless compute engine.
 
-The protocol uses a lossless patch model built around:
+Design goals:
 
-- Full-value `put_*` operations for entities and relationships
-- Explicit optimistic concurrency checks using `base_generation` and `base_root_hash`
-- Masked embedding blocks so missing embeddings stay distinct from zero vectors
-- A single canonical record shape reused by snapshots, subgraph context, and patches
+- **Lossless** -- full-value `put_*` ops; no partial updates or lossy deltas
+- **Tamper-evident** -- optimistic concurrency via `base_generation` and `base_root_hash` makes stale patches impossible to apply silently
+- **Consistent** -- one canonical record shape reused by snapshots, context, and patches
+- **Masked embeddings** -- boolean presence masks distinguish missing embeddings from zero vectors
 
-The reference schema lives in `backend/nebula-r2r/py/core/providers/database/graphs/snapshot_format.py`.
-
-## Design Goals
-
-- Keep client-owned state lossless across snapshot export, compute, and patch apply
-- Make stale patch application impossible to do silently
-- Avoid protocol drift by reusing the same entity and relationship record shapes everywhere
-- Separate transport concerns from semantic correctness
+Reference schema: `backend/nebula-r2r/py/core/providers/database/graphs/snapshot_format.py`.
 
 ## Core Envelopes
 
