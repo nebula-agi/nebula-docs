@@ -48,6 +48,15 @@
             ]
           },
           {
+            "group": "Device Memory",
+            "pages": [
+              "guides/device-memory",
+              "guides/device-memory-quickstart",
+              "guides/device-memory-api",
+              "guides/device-memory-protocol"
+            ]
+          },
+          {
             "group": "Integration",
             "pages": [
               "guides/connectors",

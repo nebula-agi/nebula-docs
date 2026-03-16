@@ -1,0 +1,60 @@
+---
+title: 'Device Memory'
+description: 'Own your memory graph on-device while using Nebula as a stateless compute engine'
+---
+
+## What is Device Memory?
+
+In the standard Nebula model, your memory graph lives on Nebula's servers. Device Memory inverts this: **your application owns the canonical graph state**, and Nebula operates as a stateless compute engine that processes snapshots and returns patches.
+
+Your app stores a portable `SnapshotEnvelope` locally (on-device, in your database, wherever you choose). When new content arrives, you send it to Nebula alongside the relevant subgraph. Nebula runs extraction, entity linking, deduplication, and consolidation, then returns a `PatchEnvelope` describing exactly what changed. Your app applies the patch locally and moves on.
+
+Nebula never persists your data. Ephemeral server-side state is created only for the duration of a compute request and cleaned up immediately afterward.
+
+## When to Use Device Memory
+
+Device Memory is a good fit when:
+
+- **Privacy requirements** mandate that user data stays on-device or in your own infrastructure
+- **Offline-first** applications need a local memory graph that syncs when connectivity is available
+- **Portability** across providers or environments is important -- the snapshot is a self-contained file
+- **Edge deployments** need to minimize server-side state
+
+<Tip>If you're fine with Nebula managing your state, the standard hosted API is simpler. See the [Quick Start](/quickstart).</Tip>
+
+## How It Works
+
+The device-memory lifecycle has four operations:
+
+**1. Bootstrap** -- Download an initial snapshot from an existing Nebula collection via the [export endpoint](/guides/device-memory-api#export-snapshot). After this, your local copy is canonical.
+
+**2. Ingest** -- When new content arrives, send a `ComputeRequest` containing the new events and your current graph as context to the [compute endpoint](/guides/device-memory-api#compute). Nebula returns a `PatchEnvelope` with `put_entity`, `put_relationship`, `delete_entity`, and `delete_relationship` operations. Apply the patch locally.
+
+**3. Search** -- Send your snapshot to the [query endpoint](/guides/device-memory-api#query-snapshot) for stateless traversal. Nebula scores entities using cosine similarity and BM25, expands related nodes, and returns results. Nothing is stored server-side.
+
+**4. Export / Import** -- Serialize the snapshot to portable compressed bytes for backup, transfer between devices, or migration.
+
+## Key Concepts
+
+| Concept | Description |
+|---------|-------------|
+| **SnapshotEnvelope** | The complete portable state: entities, relationships, masked embedding blocks, a generation counter, and a root hash. |
+| **ComputeRequest** | New events to process, plus a context subgraph from your snapshot. Includes `base_generation` and `base_root_hash` for concurrency. |
+| **PatchEnvelope** | Ordered list of `put_*` / `delete_*` operations, plus the `next_generation` and `next_root_hash` to expect after applying. |
+| **Generation** | Monotonically increasing counter. Each patch bumps it by one. |
+| **Root Hash** | Deterministic SHA-256 over sorted entity/relationship records and raw embedding blocks. Both client and server compute it independently to verify consistency. |
+| **Optimistic Concurrency** | Patches include `base_generation` and `base_root_hash`. If these don't match your local snapshot, the patch is stale and must be rejected. |
+| **Embedding Blocks** | Positional float16 numpy matrices with boolean presence masks, base64-encoded. Missing embeddings are distinct from zero vectors. |
+| **Advisory Events** | Optional annotations in patches (e.g., `entity_merged`) useful for UI or observability. Not required for correctness. |
+
+## Limitations
+
+<Warning>
+Device Memory is a **single-writer protocol**. If multiple devices mutate the same collection concurrently without external coordination (leases, event log, CRDTs), patches will conflict. Treat the local snapshot as the single source of truth for one writer at a time.
+</Warning>
+
+## Next Steps
+
+- [Device Memory Quickstart](/guides/device-memory-quickstart) -- Get up and running in 5 minutes
+- [Device Memory API](/guides/device-memory-api) -- REST endpoint reference
+- [Device Memory Wire Protocol](/guides/device-memory-protocol) -- Detailed envelope schemas and apply rules

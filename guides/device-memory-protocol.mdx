@@ -1,0 +1,199 @@
+---
+title: "Device Memory Wire Protocol"
+description: "Detailed wire protocol specification for device-memory snapshots and patches"
+---
+
+<Info>This is the detailed protocol specification. For a high-level overview, see [Device Memory Architecture](/guides/device-memory).</Info>
+
+## Overview
+
+The Device Memory wire protocol defines how clients and Nebula exchange graph state. The client owns the canonical graph and Nebula acts as a stateless compute engine.
+
+The protocol uses a lossless patch model built around:
+
+- Full-value `put_*` operations for entities and relationships
+- Explicit optimistic concurrency checks using `base_generation` and `base_root_hash`
+- Masked embedding blocks so missing embeddings stay distinct from zero vectors
+- A single canonical record shape reused by snapshots, subgraph context, and patches
+
+The reference schema lives in `backend/nebula-r2r/py/core/providers/database/graphs/snapshot_format.py`.
+
+## Design Goals
+
+- Keep client-owned state lossless across snapshot export, compute, and patch apply
+- Make stale patch application impossible to do silently
+- Avoid protocol drift by reusing the same entity and relationship record shapes everywhere
+- Separate transport concerns from semantic correctness
+
+## Core Envelopes
+
+### SnapshotEnvelope
+
+The full client-owned snapshot.
+
+```json
+{
+  "format_version": 2,
+  "collection_id": "uuid",
+  "generation": 42,
+  "root_hash": "sha256:...",
+  "created_at": "2026-03-14T00:00:00Z",
+  "graph": {
+    "entities": [],
+    "relationships": [],
+    "entity_description_embeddings": {
+      "ids": [],
+      "dim": 1536,
+      "dtype": "float16",
+      "encoding": "npy-base64",
+      "values_b64": "",
+      "mask_b64": ""
+    },
+    "relationship_description_embeddings": {
+      "ids": [],
+      "dim": 1536,
+      "dtype": "float16",
+      "encoding": "npy-base64",
+      "values_b64": "",
+      "mask_b64": ""
+    },
+    "relationship_relation_embeddings": {
+      "ids": [],
+      "dim": 1536,
+      "dtype": "float16",
+      "encoding": "npy-base64",
+      "values_b64": "",
+      "mask_b64": ""
+    }
+  }
+}
+```
+
+### ComputeRequest
+
+A stateless compute request over a context subgraph.
+
+```json
+{
+  "format_version": 2,
+  "request_id": "uuid",
+  "collection_id": "uuid",
+  "base_generation": 42,
+  "base_root_hash": "sha256:...",
+  "events": [
+    {
+      "content": "Met Alice to discuss the Q2 roadmap",
+      "source_type": "document",
+      "metadata": {},
+      "timestamp": "2026-03-14T00:00:00Z"
+    }
+  ],
+  "context": {
+    "entities": [],
+    "relationships": [],
+    "entity_description_embeddings": {
+      "ids": [],
+      "dim": 1536,
+      "dtype": "float16",
+      "encoding": "npy-base64",
+      "values_b64": "",
+      "mask_b64": ""
+    },
+    "relationship_description_embeddings": {
+      "ids": [],
+      "dim": 1536,
+      "dtype": "float16",
+      "encoding": "npy-base64",
+      "values_b64": "",
+      "mask_b64": ""
+    },
+    "relationship_relation_embeddings": {
+      "ids": [],
+      "dim": 1536,
+      "dtype": "float16",
+      "encoding": "npy-base64",
+      "values_b64": "",
+      "mask_b64": ""
+    }
+  },
+  "context_selection": {
+    "strategy": "neighbors",
+    "seed_entity_ids": ["uuid"],
+    "max_hops": 2,
+    "truncated": false
+  }
+}
+```
+
+### PatchEnvelope
+
+A patch tied to one exact client base state.
+
+```json
+{
+  "format_version": 2,
+  "patch_id": "sha256:...",
+  "request_id": "uuid",
+  "collection_id": "uuid",
+  "base_generation": 42,
+  "base_root_hash": "sha256:...",
+  "next_generation": 43,
+  "next_root_hash": "sha256:...",
+  "ops": [
+    {
+      "op": "put_entity",
+      "entity": {
+        "id": "uuid",
+        "name": "Alice",
+        "category": "person",
+        "description": "Leads product planning",
+        "metadata": {},
+        "chunk_ids": ["uuid"],
+        "relationship_count": 3,
+        "collection_id": "uuid"
+      },
+      "description_embedding": {
+        "present": true,
+        "value_b64": "..."
+      }
+    }
+  ],
+  "events": [
+    {
+      "type": "entity_merged",
+      "source_id": "uuid",
+      "canonical_id": "uuid"
+    }
+  ]
+}
+```
+
+## Apply Rules
+
+Clients must reject a patch unless all of these match the local snapshot:
+
+- `collection_id`
+- `base_generation`
+- `base_root_hash`
+
+After applying `ops`, the client recomputes `root_hash`. If the result does not equal `next_root_hash`, the patch is invalid and the client should revert and resync.
+
+`request_id` is the idempotency key. Retried compute requests with the same `request_id` should return the same `patch_id` and payload.
+
+## Semantics
+
+- `put_entity` and `put_relationship` are full-value upserts. They replace any existing record for that id.
+- `delete_entity` and `delete_relationship` remove records by id.
+- `events` are advisory annotations, not required for correctness. For example, `entity_merged` is useful for UI or observability, but the actual state change still lives in `ops`.
+
+## Non-Goals
+
+This protocol does not pretend to solve multi-writer synchronization by itself.
+
+If multiple devices are allowed to mutate the same collection concurrently, a separate coordination model is required:
+
+- Lease-based single writer
+- Server-sequenced event log
+- CRDT or OT-based merge semantics
+
+Without one of those, Device Memory should be treated as a single-writer protocol.

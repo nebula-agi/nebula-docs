@@ -1,0 +1,276 @@
+---
+title: 'Device Memory API'
+description: 'REST API reference for device-memory endpoints'
+---
+
+<Info>For a conceptual overview, see [Device Memory Architecture](/guides/device-memory). For the wire protocol specification, see [Wire Protocol](/guides/device-memory-protocol).</Info>
+
+All endpoints require authentication via `Authorization: Bearer <API_KEY>` and collection-level access.
+
+## Export Snapshot
+
+Export a collection's full graph state as a portable `SnapshotEnvelope`.
+
+```
+POST /v1/device-memory/snapshot/export
+```
+
+### Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `collection_id` | string | Yes | UUID of the collection to export |
+
+### Response
+
+Returns a `SnapshotEnvelope` containing entities, relationships, embedding blocks, generation counter, and root hash. See the [Wire Protocol](/guides/device-memory-protocol#snapshotenvelope) for the full schema.
+
+<CodeGroup>
+
+```python Python
+from nebula.device_memory import NebulaMemoryClient
+
+client = NebulaMemoryClient(api_key="YOUR_API_KEY")
+snapshot = await client.bootstrap(collection_id="YOUR_COLLECTION_ID")
+```
+
+```bash cURL
+curl -X POST "https://api.trynebula.ai/v1/device-memory/snapshot/export" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{"collection_id": "YOUR_COLLECTION_ID"}'
+```
+
+</CodeGroup>
+
+<Info>This is typically a one-time bootstrap operation. After export, the local snapshot is the canonical copy.</Info>
+
+---
+
+## Import Snapshot
+
+Import a `SnapshotEnvelope` into an ephemeral server-side collection. Useful for server-side operations that require a temporary hydrated graph.
+
+```
+POST /v1/device-memory/snapshot/import
+```
+
+### Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `snapshot` | SnapshotEnvelope | Yes | The full snapshot to import |
+
+### Response
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `ephemeral_collection_id` | string | UUID of the temporary collection created server-side |
+
+<CodeGroup>
+
+```python Python
+# The import endpoint is used internally by the compute pipeline.
+# Direct usage is for advanced cases where you need server-side access
+# to the graph (e.g., custom processing).
+
+from nebula.device_memory import NebulaAPI
+
+api = NebulaAPI(api_key="YOUR_API_KEY")
+# api.export_snapshot() and api.compute() handle import internally
+```
+
+```bash cURL
+curl -X POST "https://api.trynebula.ai/v1/device-memory/snapshot/import" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "snapshot": {
+      "format_version": 2,
+      "collection_id": "YOUR_COLLECTION_ID",
+      "generation": 1,
+      "root_hash": "sha256:...",
+      "created_at": "2026-03-15T00:00:00Z",
+      "graph": {
+        "entities": [],
+        "relationships": [],
+        "entity_description_embeddings": {"ids": [], "dim": 1536, "dtype": "float16", "encoding": "npy-base64", "values_b64": "", "mask_b64": ""},
+        "relationship_description_embeddings": {"ids": [], "dim": 1536, "dtype": "float16", "encoding": "npy-base64", "values_b64": "", "mask_b64": ""},
+        "relationship_relation_embeddings": {"ids": [], "dim": 1536, "dtype": "float16", "encoding": "npy-base64", "values_b64": "", "mask_b64": ""}
+      }
+    }
+  }'
+```
+
+</CodeGroup>
+
+<Warning>Ephemeral collections are automatically cleaned up after compute completes. A background reaper also removes any orphaned ephemeral collections every 15 minutes.</Warning>
+
+---
+
+## Compute
+
+Process new events against a context subgraph and return a `PatchEnvelope` with the resulting changes.
+
+This is the main ingestion endpoint. Nebula runs LLM-based entity extraction, relationship extraction, entity linking, deduplication, and description consolidation over the events, diffs the result against the provided context, and returns patch operations.
+
+```
+POST /v1/device-memory/compute
+```
+
+### Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `request` | ComputeRequest | Yes | The compute request (see fields below) |
+
+**ComputeRequest fields:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `request_id` | string | Yes | Idempotency key (UUID). Retried requests with the same ID return the same patch. |
+| `collection_id` | string | Yes | UUID of the collection |
+| `base_generation` | integer | Yes | Generation of the client's current snapshot |
+| `base_root_hash` | string | Yes | Root hash of the client's current snapshot |
+| `events` | Event[] | Yes | New content to process |
+| `context` | GraphPayload | Yes | Subgraph from the client's snapshot providing context for extraction |
+| `context_selection` | object | No | Describes how context was selected (e.g., `{"strategy": "full_snapshot"}`) |
+
+**Event fields:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `content` | string | Yes | The text content to process |
+| `source_type` | string | No | `"document"` or `"conversation"` (default: `"document"`) |
+| `metadata` | object | No | Arbitrary metadata attached to the event |
+| `timestamp` | string | No | ISO 8601 timestamp |
+
+### Response
+
+Returns a `PatchEnvelope` containing:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `patch_id` | string | SHA-256 hash identifying this patch |
+| `request_id` | string | Echoed from the request |
+| `collection_id` | string | Collection UUID |
+| `base_generation` | integer | Generation this patch applies to |
+| `base_root_hash` | string | Root hash this patch applies to |
+| `next_generation` | integer | Expected generation after applying |
+| `next_root_hash` | string | Expected root hash after applying |
+| `ops` | PatchOp[] | Ordered list of `put_entity`, `put_relationship`, `delete_entity`, `delete_relationship` operations |
+| `events` | Event[] | Advisory annotations (e.g., `entity_merged`) |
+
+<CodeGroup>
+
+```python Python
+from nebula.device_memory import NebulaMemoryClient, Event
+
+client = NebulaMemoryClient(api_key="YOUR_API_KEY")
+
+# Assumes bootstrap has been called
+patch = await client.ingest([
+    Event(content="Had a meeting with Alice about the Q2 roadmap"),
+    Event(content="Bob mentioned the API deadline is March 20th"),
+])
+
+print(f"Ops: {len(patch.ops)}")
+print(f"Generation: {patch.base_generation} -> {patch.next_generation}")
+```
+
+```bash cURL
+curl -X POST "https://api.trynebula.ai/v1/device-memory/compute" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "request": {
+      "request_id": "550e8400-e29b-41d4-a716-446655440000",
+      "collection_id": "YOUR_COLLECTION_ID",
+      "base_generation": 1,
+      "base_root_hash": "sha256:abc123...",
+      "events": [
+        {
+          "content": "Had a meeting with Alice about the Q2 roadmap",
+          "source_type": "document"
+        }
+      ],
+      "context": {
+        "entities": [],
+        "relationships": [],
+        "entity_description_embeddings": {"ids": [], "dim": 1536, "dtype": "float16", "encoding": "npy-base64", "values_b64": "", "mask_b64": ""},
+        "relationship_description_embeddings": {"ids": [], "dim": 1536, "dtype": "float16", "encoding": "npy-base64", "values_b64": "", "mask_b64": ""},
+        "relationship_relation_embeddings": {"ids": [], "dim": 1536, "dtype": "float16", "encoding": "npy-base64", "values_b64": "", "mask_b64": ""}
+      },
+      "context_selection": {"strategy": "full_snapshot"}
+    }
+  }'
+```
+
+</CodeGroup>
+
+<Warning>
+The client **must reject** the patch if `base_generation` or `base_root_hash` don't match the local snapshot. After applying `ops`, the client must verify that the recomputed root hash equals `next_root_hash`. If it doesn't, the patch is invalid -- resync by re-exporting the snapshot.
+</Warning>
+
+---
+
+## Query Snapshot
+
+Run stateless traversal over a customer-provided snapshot. Nebula scores entities using cosine similarity and BM25, performs nodegroup sibling expansion, and returns scored results. No data is persisted.
+
+```
+POST /v1/device-memory/query
+```
+
+### Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `snapshot` | SnapshotEnvelope | Yes | The full snapshot to search over |
+| `query` | string | Yes | Natural language search query |
+| `query_embedding` | float[] | No | Pre-computed query embedding. If omitted, Nebula generates it server-side. |
+| `limit` | integer | No | Maximum entities to return (default: 10) |
+
+### Response
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `entities` | object[] | Scored entity results with name, description, category, and score |
+| `relationships` | object[] | Connecting relationships between returned entities |
+
+<CodeGroup>
+
+```python Python
+from nebula.device_memory import NebulaMemoryClient
+
+client = NebulaMemoryClient(api_key="YOUR_API_KEY")
+
+# Assumes bootstrap and ingest have been called
+results = await client.search("What do I know about Alice?")
+
+for entity in results.get("entities", []):
+    print(f"{entity['name']} ({entity['category']}): {entity['description']}")
+    print(f"  Score: {entity.get('score', 'N/A')}")
+```
+
+```bash cURL
+curl -X POST "https://api.trynebula.ai/v1/device-memory/query" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "snapshot": {
+      "format_version": 2,
+      "collection_id": "YOUR_COLLECTION_ID",
+      "generation": 2,
+      "root_hash": "sha256:def456...",
+      "created_at": "2026-03-15T00:00:00Z",
+      "graph": { "...full graph payload..." }
+    },
+    "query": "What do I know about Alice?",
+    "limit": 10
+  }'
+```
+
+</CodeGroup>
+
+<Tip>If you omit `query_embedding`, Nebula generates it server-side using the same embedding model used during extraction. This keeps your client lightweight.</Tip>
