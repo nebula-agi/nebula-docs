@@ -33,7 +33,7 @@ The API is the same one you already know -- `store_memory` and `search`. The onl
 ## Limitations
 
 <Warning>
-Device Memory is a single-writer protocol. If multiple devices mutate the same collection concurrently, patches will conflict. Use one writer at a time.
+Device Memory is a single-writer protocol. If multiple devices mutate the same snapshot concurrently, writes will conflict. Use one writer at a time.
 </Warning>
 
 ## Next Steps
