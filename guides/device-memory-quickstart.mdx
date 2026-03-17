@@ -51,8 +51,6 @@ const client = new Nebula({ apiKey: 'YOUR_API_KEY' });
 
 <Step title="Export a snapshot from an existing collection">
 
-Download the full graph state of a collection. After this, your local copy is canonical.
-
 <CodeGroup>
 
 ```python Python
@@ -63,108 +61,71 @@ snapshot = client.export_snapshot(collection_id="YOUR_COLLECTION_ID")
 const snapshot = await client.exportSnapshot('YOUR_COLLECTION_ID');
 ```
 
-```bash cURL
-curl -X POST "https://api.trynebula.ai/v1/device-memory/snapshot/export" \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: YOUR_API_KEY" \
-  -d '{"collection_id": "YOUR_COLLECTION_ID"}'
-```
-
 </CodeGroup>
 
 <Info>After export, the local snapshot is the canonical copy. Nebula does not retain a server-side copy.</Info>
 
 </Step>
 
-<Step title="Ingest new events">
+<Step title="Store memories against your snapshot">
 
-Send your snapshot and new events to Nebula. It processes them and returns a patch describing what changed.
+Use the same `store_memory` method you already know -- just pass `snapshot` instead of `collection_id`.
 
 <CodeGroup>
 
 ```python Python
-patch = client.compute({
-    "collection_id": "YOUR_COLLECTION_ID",
-    "context": snapshot,
-    "events": [
-        {"content": "Had a meeting with Alice about the Q2 roadmap"},
-        {"content": "Reviewed PR #42 for the auth module"},
-    ],
-})
+from nebula import Memory
 
-# patch contains put_entities, delete_entities, put_relationships, etc.
+result = client.store_memory(
+    Memory(
+        snapshot=snapshot,
+        content="Had a meeting with Alice about the Q2 roadmap",
+    )
+)
+
+# Update your local snapshot with the returned snapshot
+snapshot = result.snapshot
 ```
 
 ```typescript JavaScript
-const patch = await client.compute({
-  collection_id: 'YOUR_COLLECTION_ID',
-  context: snapshot,
-  events: [
-    { content: 'Had a meeting with Alice about the Q2 roadmap' },
-    { content: 'Reviewed PR #42 for the auth module' },
-  ],
+const result = await client.storeMemory({
+  snapshot,
+  content: 'Had a meeting with Alice about the Q2 roadmap',
 });
-```
 
-```bash cURL
-curl -X POST "https://api.trynebula.ai/v1/device-memory/compute" \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: YOUR_API_KEY" \
-  -d '{
-    "request": {
-      "collection_id": "YOUR_COLLECTION_ID",
-      "events": [
-        {"content": "Had a meeting with Alice about the Q2 roadmap"}
-      ],
-      "context": { "...your snapshot..." }
-    }
-  }'
+// Update your local snapshot with the returned snapshot
+snapshot = result.snapshot;
 ```
 
 </CodeGroup>
-
-Apply the returned patch to your local snapshot to keep it up to date.
 
 </Step>
 
 <Step title="Search memory">
 
-Query your memory through Nebula's traversal engine. Your snapshot is sent, scored, and results are returned. Nothing is stored server-side.
+Same `search` method -- pass `snapshot` instead of `collection_ids`.
 
 <CodeGroup>
 
 ```python Python
-results = client.query_snapshot(
-    snapshot=snapshot,
+results = client.search(
     query="What do I know about Alice?",
-    limit=10,
+    snapshot=snapshot,
 )
 
-for entity in results.get("entities", []):
-    print(f"{entity['name']}: {entity['description']}")
+for fact in results.semantics:
+    print(f"{fact['subject']} -> {fact['predicate']} -> {fact['value']}")
 ```
 
 ```typescript JavaScript
-const results = await client.querySnapshot({
-  snapshot,
+const results = await client.search({
   query: 'What do I know about Alice?',
-  limit: 10,
+  snapshot,
 });
 
-for (const entity of results.entities) {
-  console.log(`${entity.name}: ${entity.description}`);
+for (const fact of results.semantics) {
+  console.log(`${fact.subject} -> ${fact.predicate} -> ${fact.value}`);
 }
-```
-
-```bash cURL
-curl -X POST "https://api.trynebula.ai/v1/device-memory/query" \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: YOUR_API_KEY" \
-  -d '{
-    "snapshot": { "...your snapshot..." },
-    "query": "What do I know about Alice?",
-    "limit": 10
-  }'
 ```
 
 </CodeGroup>
