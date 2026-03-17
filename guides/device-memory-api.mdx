@@ -130,7 +130,6 @@ POST /v1/memories/search
 |-------|------|----------|-------------|
 | `snapshot` | object | Yes | Your full snapshot (mutually exclusive with `collection_ids`) |
 | `query` | string | Yes | Natural language search query |
-| `limit` | integer | No | Maximum results to return (default: 10) |
 
 Returns the same `MemoryResponse` format as standard search (semantics, procedures, episodes, sources).
 
@@ -140,7 +139,6 @@ Returns the same `MemoryResponse` format as standard search (semantics, procedur
 results = client.search(
     query="What do I know about Alice?",
     snapshot=snapshot,
-    limit=10,
 )
 
 for fact in results.semantics:
@@ -151,7 +149,6 @@ for fact in results.semantics:
 results = await client.search(
     query="What do I know about Alice?",
     snapshot=snapshot,
-    limit=10,
 )
 ```
 
@@ -159,7 +156,6 @@ results = await client.search(
 const results = await client.search({
   query: 'What do I know about Alice?',
   snapshot,
-  limit: 10,
 });
 
 for (const fact of results.semantics) {
@@ -173,8 +169,7 @@ curl -X POST "https://api.trynebula.ai/v1/memories/search" \
   -H "X-API-Key: YOUR_API_KEY" \
   -d '{
     "snapshot": { "...your snapshot..." },
-    "query": "What do I know about Alice?",
-    "limit": 10
+    "query": "What do I know about Alice?"
   }'
 ```
 
